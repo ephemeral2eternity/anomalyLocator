@@ -1,0 +1,24 @@
+{% if clients %}
+<table style="width:90%">
+    <tr>
+	<td>Name</td>
+	<td>IP</td>
+	<td>Server</td>
+	<td>AS</td>
+	<td>ISP</td>
+	<td>Route</td>
+    </tr>
+    {% for client in clients %}
+    <tr>
+        <td> {{ client.name }} </td> 
+	<td> {{ client.ip }} </td> 
+	<td> {{ client.server }} </td> 
+	<td> {{ client.AS }} </td> 
+	<td> {{ client.ISP }} </td> 
+	<td> {{ client.route }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+    <p>No clients' info are available.</p>
+{% endif %}

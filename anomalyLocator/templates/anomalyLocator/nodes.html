@@ -1,0 +1,28 @@
+{% if nodes %}
+<table style="width:90%">
+    <tr>
+	<td>Name</td>
+	<td>IP</td>
+	<td>AS</td>
+	<td>ISP</td>
+	<td>City</td>
+	<td>Region</td>
+	<td>Country</td>
+	<td>Latest Update</td>
+    </tr>
+    {% for node in nodes %}
+    <tr>
+        <td> {{ node.name }} </td> 
+	<td> {{ node.ip }} </td> 
+	<td> {{ node.AS }} </td> 
+	<td> {{ node.ISP }} </td> 
+	<td> {{ node.city }} </td> 
+	<td> {{ node.region }} </td> 
+	<td> {{ node.country }} </td> 
+	<td> {{ node.latest_check }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+    <p>No client's route cached.</p>
+{% endif %}
