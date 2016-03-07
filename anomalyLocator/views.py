@@ -2,22 +2,28 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.template import RequestContext, loader
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
-from anomalyLocator.models import Client, Node
+from anomalyLocator.models import Client, Node, Anomaly
 from anomalyLocator.route_utils import *
 import json
 import urllib
 
-# Create your views here.
+# Show detailed info of all clients connecting to this agent.
 def index(request):
 	clients = Client.objects.all()
 	template = loader.get_template('anomalyLocator/index.html')
 	return HttpResponse(template.render({'clients':clients}, request))
 
-# Create your views here.
+# Show detailed info of all nodes.
 def showNodes(request):
 	nodes = Node.objects.all()
 	template = loader.get_template('anomalyLocator/nodes.html')
 	return HttpResponse(template.render({'nodes':nodes}, request))
+
+# Show detailed info of anomalies.
+def showAnomaly(request):
+	anomalies = Anomaly.objects.order_by('-id')[:20]
+	template = loader.get_template('anomalyLocator/anomalies.html')
+	return HttpResponse(template.render({'anomalies':anomalies}, request))
 
 @csrf_exempt
 def checkRoute(request):
@@ -75,9 +81,13 @@ def addRoute(request):
 				node_obj.ISP = node['ISP']
 				node_obj.latitude = node['latitude']
 				node_obj.longitude = node['longitude']
+				node_clients = node_obj.clients.split(',')
+				if client_info['ip'] not in node_clients:
+					node_clients.append(client_info['ip'])
+					node_clients_str = ','.join(str(c) for c in node_clients)
+					node_obj.clients = node_clients_str
 			else:
-				node_obj = Node(name=node['name'], ip=node['ip'], city=node['city'], region=node['region'], country=node['country'], AS=node['AS'], ISP=node['ISP'], latitude=node['latitude'], longitude=node['longitude'])
-
+				node_obj = Node(name=node['name'], ip=node['ip'], city=node['city'], region=node['region'], country=node['country'], AS=node['AS'], ISP=node['ISP'], latitude=node['latitude'], longitude=node['longitude'], clients=client_info['ip'])
 			node_obj.save()
 		return index(request)
 	else:
@@ -97,9 +107,33 @@ def updateRoute(request):
 		if client_exist.count() > 0:
 			client_obj = client_exist[0]
 			client_route = client_obj.route
-			isUpdated = update_route(client_route)
+			update_route(client_obj.ip, client_route)
+			isUpdated = True
 
 	if isUpdated:
 		return HttpResponse("Yes")
 	else:
 		return HttpResponse("No")
+
+@csrf_exempt
+def locate(request):
+	url = request.get_full_path()
+	params = url.split('?')[1]
+	request_dict = urllib.parse.parse_qs(params)
+	print(request_dict.keys())
+	anomaly_info = {}
+	if ('client' in request_dict.keys()) and ('server' in request_dict.keys()):
+		client_exist = Client.objects.filter(ip=request_dict['client'][0], server=request_dict['server'][0])
+		if client_exist.count() > 0:
+			client_obj = client_exist[0]
+			client_ip = client_obj.ip
+			client_route = client_obj.route
+			print("Locate anomalies in client route: " + client_route)
+			anomaly_info = locate_anomaly(client_ip, client_route)
+			## Add the anomaly to database
+			normal_nodes_str = ','.join(str(n) for n in anomaly_info['normal'])
+			abnormal_nodes_str = ','.join(str(n) for n in anomaly_info['abnormal'])
+			peers_str = ','.join(str(n) for n in anomaly_info['peers'])
+			new_anomaly = Anomaly(client=client_ip, normal=normal_nodes_str, abnormal=abnormal_nodes_str, peers=peers_str)
+			new_anomaly.save()
+	return JsonResponse(anomaly_info)

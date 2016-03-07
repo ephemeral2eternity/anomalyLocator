@@ -1,5 +1,5 @@
 {% if nodes %}
-<table style="width:90%">
+<table style="width:150%">
     <tr>
 	<td>Name</td>
 	<td>IP</td>
@@ -9,6 +9,7 @@
 	<td>Region</td>
 	<td>Country</td>
 	<td>Latest Update</td>
+	<td>Clients</td>
     </tr>
     {% for node in nodes %}
     <tr>
@@ -20,6 +21,7 @@
 	<td> {{ node.region }} </td> 
 	<td> {{ node.country }} </td> 
 	<td> {{ node.latest_check }}</td>
+	<td> {{ node.clients }}</td>
     </tr>
     {% endfor %}
 </table>

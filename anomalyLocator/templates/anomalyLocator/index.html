@@ -1,11 +1,12 @@
 {% if clients %}
-<table style="width:90%">
+<table style="width:150%">
     <tr>
 	<td>Name</td>
 	<td>IP</td>
 	<td>Server</td>
 	<td>AS</td>
 	<td>ISP</td>
+	<td>Latest Normal Check</td>
 	<td>Route</td>
     </tr>
     {% for client in clients %}
@@ -15,6 +16,7 @@
 	<td> {{ client.server }} </td> 
 	<td> {{ client.AS }} </td> 
 	<td> {{ client.ISP }} </td> 
+	<td> {{ client.latest_update }} </td> 
 	<td> {{ client.route }}</td>
     </tr>
     {% endfor %}

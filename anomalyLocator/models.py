@@ -29,7 +29,17 @@ class Node(models.Model):
 	ISP = models.CharField(max_length=200, default="")
 	longitude = models.DecimalField(max_digits=10, decimal_places=5, default=0.0)
 	latitude = models.DecimalField(max_digits=10, decimal_places=5, default=0.0)
+	clients = models.CharField(max_length=5000, default="")
 	latest_check = models.DateTimeField(auto_now=True)
 
 	def __str__(self):
 		return str(self.name)
+
+class Anomaly(models.Model):
+	client=models.CharField(max_length=100)
+	normal=models.CharField(max_length=5000)
+	abnormal=models.CharField(max_length=5000)
+	peers = models.CharField(max_length=5000)
+	timestamp = models.DateTimeField(auto_now_add=True)
+	def __str__(self):
+		return str(self.client)

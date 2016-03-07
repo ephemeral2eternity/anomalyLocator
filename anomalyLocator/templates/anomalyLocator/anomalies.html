@@ -1,0 +1,22 @@
+{% if anomalies %}
+<table style="width:150%">
+    <tr>
+	<td>Client</td>
+	<td>Normal Hops</td>
+	<td>Anomaly Hops</td>
+	<td>Time</td>
+	<td>Peers</td>
+    </tr>
+    {% for anomaly in anomalies %}
+    <tr>
+        <td> {{ anomaly.client }} </td> 
+	<td> {{ anomaly.normal }} </td> 
+	<td> {{ anomaly.abnormal }} </td> 
+	<td> {{ anomaly.timestamp }} </td> 
+	<td> {{ anomaly.peers }} </td> 
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+    <p>No anomalies detected.</p>
+{% endif %}
