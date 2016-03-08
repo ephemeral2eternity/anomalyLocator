@@ -5,6 +5,8 @@ from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from anomalyLocator.models import Client, Node, Anomaly
 from anomalyLocator.route_utils import *
 import json
+import csv
+import time
 import urllib
 
 # Show detailed info of all clients connecting to this agent.
@@ -24,6 +26,19 @@ def showAnomaly(request):
 	anomalies = Anomaly.objects.order_by('-id')[:20]
 	template = loader.get_template('anomalyLocator/anomalies.html')
 	return HttpResponse(template.render({'anomalies':anomalies}, request))
+
+# Download all anomalies in csv files.
+def downloadAnomaly(request):
+	anomalies = Anomaly.objects.all()
+	response = HttpResponse(content_type='text/csv')
+	response['Content-Disposition'] = 'attachment; filename="anomalies.csv"'
+
+	writer = csv.writer(response)
+	writer.writerow(['timestamp', 'client', 'normal', 'abnormal', 'peers'])
+	for anomaly in anomalies:
+		writer.writerow([int(time.mktime(anomaly.timestamp.timetuple())), anomaly.client, anomaly.normal, anomaly.abnormal, anomaly.peers])
+
+	return response
 
 @csrf_exempt
 def checkRoute(request):
@@ -84,7 +99,7 @@ def addRoute(request):
 				node_clients = node_obj.clients.split(',')
 				if client_info['ip'] not in node_clients:
 					node_clients.append(client_info['ip'])
-					node_clients_str = ','.join(str(c) for c in node_clients)
+					node_clients_str = '-'.join(str(c) for c in node_clients)
 					node_obj.clients = node_clients_str
 			else:
 				node_obj = Node(name=node['name'], ip=node['ip'], city=node['city'], region=node['region'], country=node['country'], AS=node['AS'], ISP=node['ISP'], latitude=node['latitude'], longitude=node['longitude'], clients=client_info['ip'])
@@ -131,9 +146,9 @@ def locate(request):
 			print("Locate anomalies in client route: " + client_route)
 			anomaly_info = locate_anomaly(client_ip, client_route)
 			## Add the anomaly to database
-			normal_nodes_str = ','.join(str(n) for n in anomaly_info['normal'])
-			abnormal_nodes_str = ','.join(str(n) for n in anomaly_info['abnormal'])
-			peers_str = ','.join(str(n) for n in anomaly_info['peers'])
+			normal_nodes_str = '-'.join(str(n) for n in anomaly_info['normal'])
+			abnormal_nodes_str = '-'.join(str(n) for n in anomaly_info['abnormal'])
+			peers_str = '-'.join(str(n) for n in anomaly_info['peers'])
 			new_anomaly = Anomaly(client=client_ip, normal=normal_nodes_str, abnormal=abnormal_nodes_str, peers=peers_str)
 			new_anomaly.save()
 	return JsonResponse(anomaly_info)

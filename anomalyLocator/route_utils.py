@@ -8,7 +8,7 @@ def route2str(full_route):
     for node in full_route:
         route_list.append(node['ip'])
 
-    route_str = ','.join(str(e) for e in route_list)
+    route_str = '-'.join(str(e) for e in route_list)
     return route_str
 
 
@@ -31,7 +31,7 @@ def update_route(client_ip, client_route_str):
 
 
 def locate_anomaly(client_ip, client_route_str):
-    nodes = client_route_str.split(',')
+    nodes = client_route_str.split('-')
     print("All nodes in client route in locate_anomaly:" + client_route_str)
     normal_hops = []
     abnormal_hops = []
