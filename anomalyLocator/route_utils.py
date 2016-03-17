@@ -13,7 +13,7 @@ def route2str(full_route):
 
 
 def update_route(client_ip, client_route_str):
-    nodes = client_route_str.split(',')
+    nodes = client_route_str.split('-')
     srv_ip = nodes[-1]
     try:
         client_obj = Client.objects.get(ip=client_ip, server=srv_ip)

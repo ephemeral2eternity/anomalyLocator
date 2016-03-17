@@ -1,8 +1,9 @@
 {% if nodes %}
-<table style="width:150%">
+<table style="width:100%">
     <tr>
 	<td>Name</td>
 	<td>IP</td>
+	<td>Type</td>
 	<td>AS</td>
 	<td>ISP</td>
 	<td>City</td>
@@ -15,6 +16,7 @@
     <tr>
         <td> {{ node.name }} </td> 
 	<td> {{ node.ip }} </td> 
+	<td> {{ node.nodeType }} </td> 
 	<td> {{ node.AS }} </td> 
 	<td> {{ node.ISP }} </td> 
 	<td> {{ node.city }} </td> 

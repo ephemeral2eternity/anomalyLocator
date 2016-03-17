@@ -2,8 +2,9 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.template import RequestContext, loader
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
-from anomalyLocator.models import Client, Node, Anomaly
+from anomalyLocator.models import Client, Node, Edge, Anomaly
 from anomalyLocator.route_utils import *
+import operator
 import json
 import csv
 import time
@@ -20,6 +21,12 @@ def showNodes(request):
 	nodes = Node.objects.all()
 	template = loader.get_template('anomalyLocator/nodes.html')
 	return HttpResponse(template.render({'nodes':nodes}, request))
+
+# Show detailed info of all nodes.
+def showEdges(request):
+	edges = Edge.objects.all()
+	template = loader.get_template('anomalyLocator/edges.html')
+	return HttpResponse(template.render({'edges':edges}, request))
 
 # Show detailed info of anomalies.
 def showAnomaly(request):
@@ -81,10 +88,32 @@ def addRoute(request):
 			client_obj = Client(name=client_info['name'], ip=client_info['ip'], server=client_info['server'], city=client_info['city'], region=client_info['region'], country=client_info['country'], AS=client_info['AS'], ISP=client_info['ISP'], latitude=client_info['latitude'], longitude=client_info['longitude'], route=client_route)
 		client_obj.save()
 
+		client_node_exist = Node.objects.filter(ip=client_info['ip'])
+		if client_node_exist.count() > 0:
+			client_node_obj = client_node_exist[0]
+			client_node_obj.ip = client_info['ip']
+			client_node_obj.name = client_info['name']
+			client_node_obj.city = client_info['city']
+			client_node_obj.region = client_info['region']
+			client_node_obj.country = client_info['country']
+			client_node_obj.AS = client_info['AS']
+			client_node_obj.ISP = client_info['ISP']
+			client_node_obj.latitude = client_info['latitude']
+			client_node_obj.longitude = client_info['longitude']
+			client_node_obj.nodeType = "client"
+		else:
+			client_node_obj = Node(name=client_info['name'], ip=client_info['ip'], city=client_info['city'], region=client_info['region'], country=client_info['country'], AS=client_info['AS'], ISP=client_info['ISP'], latitude=client_info['latitude'], longitude=client_info['longitude'], nodeType="client", clients=client_info['ip'])
+		client_node_obj.save()
+
 		## Update all nodes' info in the route
+		preNode = {'name' : client_info['name'], 'ip' : client_info['ip']}
 		for node in client_info['route']:
 			node_ip = node['ip']
 			node_exist = Node.objects.filter(ip=node_ip)
+			if node_ip == client_info['server']:
+				node_type = "server"
+			else:
+				node_type = "router"
 			if node_exist.count() > 0:
 				node_obj = node_exist[0]
 				node_obj.ip = node_ip
@@ -96,14 +125,36 @@ def addRoute(request):
 				node_obj.ISP = node['ISP']
 				node_obj.latitude = node['latitude']
 				node_obj.longitude = node['longitude']
+				node_obj.nodeType = node_type
 				node_clients = node_obj.clients.split(',')
 				if client_info['ip'] not in node_clients:
 					node_clients.append(client_info['ip'])
 					node_clients_str = '-'.join(str(c) for c in node_clients)
 					node_obj.clients = node_clients_str
 			else:
-				node_obj = Node(name=node['name'], ip=node['ip'], city=node['city'], region=node['region'], country=node['country'], AS=node['AS'], ISP=node['ISP'], latitude=node['latitude'], longitude=node['longitude'], clients=client_info['ip'])
+				node_obj = Node(name=node['name'], ip=node['ip'], city=node['city'], region=node['region'], country=node['country'], AS=node['AS'], ISP=node['ISP'], latitude=node['latitude'], longitude=node['longitude'], nodeType=node_type, clients=client_info['ip'])
 			node_obj.save()
+
+			## Add Edge Object
+			curNode = {'name' : node_obj.name, 'ip' : node_obj.ip}
+			edge = {preNode['name'] : preNode['ip'], curNode['name']:curNode['ip']}
+			sorted_edge = sorted(edge.items(), key=operator.itemgetter(1))
+			src = sorted_edge[0][0]
+			srcIP = sorted_edge[0][1]
+			dst = sorted_edge[1][0]
+			dstIP = sorted_edge[1][1]
+
+			edge_exist = Edge.objects.filter(srcIP=srcIP, dstIP=dstIP)
+			if edge_exist.count() > 0:
+				edge_obj = edge_exist[0]
+				edge_obj.src = src
+				edge_obj.srcIP = srcIP
+				edge_obj.dst = dst
+				edge_obj.dstIP = dstIP
+			else:
+				edge_obj = Edge(src=src, srcIP=srcIP, dst=dst, dstIP=dstIP)
+			edge_obj.save()
+			preNode = curNode
 		return index(request)
 	else:
 		return HttpResponse("Please use the POST method for http://locator_ip/anomalyLocator/addRoute request to add new routes for a client!")

@@ -4,6 +4,7 @@ from anomalyLocator import views
 urlpatterns = [
 	url(r'^$', views.index, name='index'),
 	url(r'^nodes$', views.showNodes, name='showNodes'),
+	url(r'^edges$', views.showEdges, name='showEdges'),
 	url(r'^anomalies$', views.showAnomaly, name='showAnomaly'),
 	url(r'^download_anomalies$', views.downloadAnomaly, name='downloadAnomaly'),
 	url(r'^add$', views.addRoute, name='addRoute'),
