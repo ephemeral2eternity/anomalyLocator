@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, render_to_response
 from django.http import HttpResponse, JsonResponse
 from django.template import RequestContext, loader
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
@@ -28,6 +28,46 @@ def showEdges(request):
 	template = loader.get_template('anomalyLocator/edges.html')
 	return HttpResponse(template.render({'edges':edges}, request))
 
+@csrf_exempt
+def getGraphJson(request):
+	edges = Edge.objects.all()
+	node_json = []
+	edge_json = []
+	node_list = []
+	graph = {}
+	for edge in edges:
+		if edge.srcIP not in node_list:
+			cur_node_ip = edge.srcIP
+			node_list.append(cur_node_ip)
+			cur_node = Node.objects.get(ip=cur_node_ip)
+			if cur_node.nodeType == "server":
+				cur_node_json = {'name' : cur_node.ip, 'group' : cur_node.nodeType}
+			else:
+				cur_node_json = {'name' : cur_node.name, 'group' : cur_node.nodeType}
+			node_json.append(cur_node_json)
+		if edge.dstIP not in node_list:
+			cur_node_ip = edge.dstIP
+			node_list.append(cur_node_ip)
+			cur_node = Node.objects.get(ip=cur_node_ip)
+			if cur_node.nodeType == "server":
+				cur_node_json = {'name' : cur_node.ip, 'group' : cur_node.nodeType}
+			else:
+				cur_node_json = {'name' : cur_node.name, 'group' : cur_node.nodeType}
+			node_json.append(cur_node_json)
+		cur_edge = {}
+		cur_edge['source'] = node_list.index(edge.srcIP)
+		cur_edge['target'] = node_list.index(edge.dstIP)
+		cur_edge['value'] = 1
+		edge_json.append(cur_edge)
+	graph['nodes'] = node_json
+	graph['links'] = edge_json
+	rsp = JsonResponse(graph, safe=False)
+	rsp["Access-Control-Allow-Origin"] = "*"
+	return rsp
+
+def getGraph(request):
+	return render_to_response("anomalyLocator/topology.html")
+
 # Show detailed info of anomalies.
 def showAnomaly(request):
 	anomalies = Anomaly.objects.order_by('-id')[:20]
@@ -44,7 +84,6 @@ def downloadAnomaly(request):
 	writer.writerow(['timestamp', 'client', 'normal', 'abnormal', 'peers'])
 	for anomaly in anomalies:
 		writer.writerow([int(time.mktime(anomaly.timestamp.timetuple())), anomaly.client, anomaly.normal, anomaly.abnormal, anomaly.peers])
-
 	return response
 
 @csrf_exempt
