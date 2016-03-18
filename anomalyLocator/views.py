@@ -9,6 +9,7 @@ import json
 import csv
 import time
 import urllib
+from copy import deepcopy
 
 # Show detailed info of all clients connecting to this agent.
 def index(request):
@@ -40,7 +41,7 @@ def getGraphJson(request):
 			cur_node_ip = edge.srcIP
 			node_list.append(cur_node_ip)
 			cur_node = Node.objects.get(ip=cur_node_ip)
-			if cur_node.nodeType == "server":
+			if "No Host" in cur_node.name:
 				cur_node_json = {'name' : cur_node.ip, 'group' : cur_node.nodeType}
 			else:
 				cur_node_json = {'name' : cur_node.name, 'group' : cur_node.nodeType}
@@ -49,7 +50,7 @@ def getGraphJson(request):
 			cur_node_ip = edge.dstIP
 			node_list.append(cur_node_ip)
 			cur_node = Node.objects.get(ip=cur_node_ip)
-			if cur_node.nodeType == "server":
+			if "No Host" in cur_node.name:
 				cur_node_json = {'name' : cur_node.ip, 'group' : cur_node.nodeType}
 			else:
 				cur_node_json = {'name' : cur_node.name, 'group' : cur_node.nodeType}
@@ -172,6 +173,7 @@ def addRoute(request):
 					node_obj.clients = node_clients_str
 			else:
 				node_obj = Node(name=node['name'], ip=node['ip'], city=node['city'], region=node['region'], country=node['country'], AS=node['AS'], ISP=node['ISP'], latitude=node['latitude'], longitude=node['longitude'], nodeType=node_type, clients=client_info['ip'])
+			print("Saving " + str(node))
 			node_obj.save()
 
 			## Add Edge Object
@@ -193,7 +195,8 @@ def addRoute(request):
 			else:
 				edge_obj = Edge(src=src, srcIP=srcIP, dst=dst, dstIP=dstIP)
 			edge_obj.save()
-			preNode = curNode
+			print("Save edge from " + src + "("+ srcIP + ")" + " to " + dst + "("+ dstIP + ")")
+			preNode = deepcopy(curNode)
 		return index(request)
 	else:
 		return HttpResponse("Please use the POST method for http://locator_ip/anomalyLocator/addRoute request to add new routes for a client!")
