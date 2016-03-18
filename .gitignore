@@ -2,5 +2,6 @@ db.sqlite3
 *.pyc
 */migrations/*
 */__pycache__/*.pyc
-agens/__pycache__/*
+locator/__pycache__/*
+anomalyLocator/__pycache__/*
 */*/*.json
