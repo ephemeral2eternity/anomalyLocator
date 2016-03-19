@@ -56,7 +56,7 @@ def locate_anomaly(client_ip, client_route_str):
                 normal_hops.append(node_ip)
             else:
                 abnormal_hops.append(node_ip)
-            node_clients = node_obj.clients.split(',')
+            node_clients = node_obj.clients.split('-')
             for peer_ip in node_clients:
                 if (peer_ip != client_ip) and (peer_ip not in peers):
                        peers.append(peer_ip)
