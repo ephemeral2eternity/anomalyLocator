@@ -166,7 +166,7 @@ def addRoute(request):
 				node_obj.latitude = node['latitude']
 				node_obj.longitude = node['longitude']
 				node_obj.nodeType = node_type
-				node_clients = node_obj.clients.split(',')
+				node_clients = node_obj.clients.split('-')
 				if client_info['ip'] not in node_clients:
 					node_clients.append(client_info['ip'])
 					node_clients_str = '-'.join(str(c) for c in node_clients)
