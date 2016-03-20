@@ -40,7 +40,12 @@ def getGraphJson(request):
 		if edge.srcIP not in node_list:
 			cur_node_ip = edge.srcIP
 			node_list.append(cur_node_ip)
-			cur_node = Node.objects.get(ip=cur_node_ip)
+			# cur_node = Node.objects.get(ip=cur_node_ip)
+			cur_node_exist = Node.objects.filter(ip=cur_node_ip).order_by('-latest_check')
+			cur_node = cur_node_exist[0]
+			if cur_node_exist.count() >= 1:
+				for node_idx in range(1, cur_node_exist.count()):
+					cur_node_exist[node_idx].delete()
 			if "No Host" in cur_node.name:
 				cur_node_json = {'name' : cur_node.ip, 'group' : cur_node.nodeType}
 			else:
@@ -49,7 +54,11 @@ def getGraphJson(request):
 		if edge.dstIP not in node_list:
 			cur_node_ip = edge.dstIP
 			node_list.append(cur_node_ip)
-			cur_node = Node.objects.get(ip=cur_node_ip)
+			cur_node_exist = Node.objects.filter(ip=cur_node_ip).order_by('-latest_check')
+			cur_node = cur_node_exist[0]
+			if cur_node_exist.count() >= 1:
+				for node_idx in range(1, cur_node_exist.count()):
+					cur_node_exist[node_idx].delete()
 			if "No Host" in cur_node.name:
 				cur_node_json = {'name' : cur_node.ip, 'group' : cur_node.nodeType}
 			else:
