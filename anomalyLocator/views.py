@@ -191,7 +191,10 @@ def addRoute(request):
 			## Add Edge Object
 			curNode = {'name' : node_obj.name, 'ip' : node_obj.ip}
 			edge = {preNode['name'] : preNode['ip'], curNode['name']:curNode['ip']}
+			print(edge)
 			sorted_edge = sorted(edge.items(), key=operator.itemgetter(1))
+			if len(sorted_edge) < 2:
+				continue
 			src = sorted_edge[0][0]
 			srcIP = sorted_edge[0][1]
 			dst = sorted_edge[1][0]
