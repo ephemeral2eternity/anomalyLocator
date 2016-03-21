@@ -2,12 +2,14 @@ from django.shortcuts import render, render_to_response
 from django.http import HttpResponse, JsonResponse
 from django.template import RequestContext, loader
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
+from django.utils import timezone
 from anomalyLocator.models import Client, Node, Edge, Anomaly
 from anomalyLocator.route_utils import *
 import operator
 import json
 import csv
 import time
+from datetime import date, datetime, timedelta
 import urllib
 from copy import deepcopy
 
@@ -83,6 +85,60 @@ def showAnomaly(request):
 	anomalies = Anomaly.objects.order_by('-id')
 	template = loader.get_template('anomalyLocator/anomalies.html')
 	return HttpResponse(template.render({'anomalies':anomalies}, request))
+
+def statGraph(request):
+	return render_to_response("anomalyLocator/stat.html")
+
+def anomalyStatJson(request):
+	url = request.get_full_path()
+	if '?' in url:
+		params = url.split('?')[1]
+		request_dict = urllib.parse.parse_qs(params)
+		if "days" in request_dict.keys():
+			num_days = int(request_dict["days"][0])
+			end_time = timezone.now()
+			start_time = end_time - timedelta(days=num_days)
+			print(start_time)
+			anomalies = Anomaly.objects.filter(timestamp__range=[start_time, end_time])
+		elif "hours" in request_dict.keys():
+			num_hours = int(request_dict["hours"][0])
+			end_time = timezone.now()
+			start_time = end_time - timedelta(hours=num_hours)
+			anomalies = Anomaly.objects.filter(timestamp__range=[start_time, end_time])
+	else:
+		anomalies = Anomaly.objects.all()
+	# template = loader.get_template('anomalyLocator/anomalies.html')
+	anomaly_type = {'server' : 0, 'client' : 0, 'cloud network' : 0, 'client network' : 0, 'transit ISP' : 0}
+	for anomaly in anomalies:
+		client = anomaly.client
+		client_obj = Client.objects.get(ip=client)
+		server = client_obj.server
+		client_AS = client_obj.AS
+		server_obj = Node.objects.get(ip=server)
+		server_AS = server_obj.AS
+		anomaly_hops = anomaly.abnormal.split('-')
+		anomaly_type_status = {'server' : False, 'client' : False, 'cloud network' : False, 'client network' : False, 'transit ISP' : False}
+		for anomaly_hop in anomaly_hops:
+			hop_info = Node.objects.get(ip=anomaly_hop)
+			hop_AS = hop_info.AS
+			if anomaly_hop == server:
+				anomaly_type_status['server'] = True
+			elif anomaly_hop == client:
+				anomaly_type_status['client'] = True
+			elif hop_AS == client_AS:
+				anomaly_type_status['client network'] = True
+			elif hop_AS == server_AS:
+				anomaly_type_status['cloud network'] = True
+			else:
+				anomaly_type_status['transit ISP'] = True
+
+		for typ_key in anomaly_type_status.keys():
+			if anomaly_type_status[typ_key]:
+				anomaly_type[typ_key] += 1
+
+	rsp = JsonResponse(anomaly_type, safe=False)
+	rsp["Access-Control-Allow-Origin"] = "*"
+	return rsp
 
 # Download all anomalies in csv files.
 def downloadAnomaly(request):
