@@ -119,7 +119,7 @@ def addRoute(request):
 		print(request.body)
 		client_info = json.loads(request.body.decode("utf-8"))
 		client_route = route2str(client_info['route'])
-		client_exist = Client.objects.filter(ip=client_info['ip'], server=client_info['server'])
+		client_exist = Client.objects.filter(ip=client_info['ip'], server=client_info['server']).order_by('-latest_update')
 		if client_exist.count() > 0:
 			client_obj = client_exist[0]
 			client_obj.name = client_info['name']
@@ -133,6 +133,9 @@ def addRoute(request):
 			client_obj.latitude = client_info['latitude']
 			client_obj.longitude = client_info['longitude']
 			client_obj.route = client_route
+			if client_exist.count() >= 1:
+				for client_idx in range(1, client_exist.count()):
+					client_exist[client_idx].delete()
 		else:
 			client_obj = Client(name=client_info['name'], ip=client_info['ip'], server=client_info['server'], city=client_info['city'], region=client_info['region'], country=client_info['country'], AS=client_info['AS'], ISP=client_info['ISP'], latitude=client_info['latitude'], longitude=client_info['longitude'], route=client_route)
 		client_obj.save()
