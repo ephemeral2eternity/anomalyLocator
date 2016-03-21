@@ -80,7 +80,7 @@ def getGraph(request):
 
 # Show detailed info of anomalies.
 def showAnomaly(request):
-	anomalies = Anomaly.objects.order_by('-id')[:20]
+	anomalies = Anomaly.objects.order_by('-id')
 	template = loader.get_template('anomalyLocator/anomalies.html')
 	return HttpResponse(template.render({'anomalies':anomalies}, request))
 
