@@ -119,7 +119,10 @@ def anomalyStatJson(request):
 		anomaly_hops = anomaly.abnormal.split('-')
 		anomaly_type_status = {'server' : False, 'client' : False, 'cloud network' : False, 'client network' : False, 'transit ISP' : False}
 		for anomaly_hop in anomaly_hops:
-			hop_info = Node.objects.get(ip=anomaly_hop)
+			try:
+				hop_info = Node.objects.get(ip=anomaly_hop)
+			except:
+				continue
 			hop_AS = hop_info.AS
 			if anomaly_hop == server:
 				anomaly_type_status['server'] = True
