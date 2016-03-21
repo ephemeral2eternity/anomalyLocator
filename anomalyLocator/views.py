@@ -143,6 +143,100 @@ def anomalyStatJson(request):
 	rsp["Access-Control-Allow-Origin"] = "*"
 	return rsp
 
+def anomalyGraph(request):
+	url = request.get_full_path()
+	latest_anomaly = Anomaly.objects.all()[0]
+	anomaly_id = latest_anomaly.id
+	if '?' in url:
+		params = url.split('?')[1]
+		request_dict = urllib.parse.parse_qs(params)
+		if "id" in request_dict.keys():
+			anomaly_id = int(request_dict["id"][0])
+	template = loader.get_template('anomalyLocator/anomalyGraph.html')
+	return HttpResponse(template.render({'id':anomaly_id}, request))
+	
+def anomalyGraphJson(request):
+	url = request.get_full_path()
+	params = url.split('?')[1]
+	request_dict = urllib.parse.parse_qs(params)
+	if "id" in request_dict.keys():
+		anomaly_id = int(request_dict["id"][0])
+		anomaly_obj = Anomaly.objects.get(pk=anomaly_id)
+	else:
+		anomaly_obj = Anomaly.objects.all()[0]
+	client = anomaly_obj.client
+	abnormal_nodes = anomaly_obj.abnormal.split('-')
+	peers = anomaly_obj.peers.split('-')
+	node_list = []
+	edge_list = []
+	node_json = []
+	edge_json = []
+	graph = {}
+	client_obj = Client.objects.get(ip=client)
+	client_hops = client_obj.route.split('-')
+	preNode = {'name' : client, 'group' : 'anomaly'}
+	if client not in node_list:
+		node_list.append(client)
+		node_json.append(preNode)
+	for node in client_hops:
+		if node in abnormal_nodes:
+			curNode = {'name' : node, 'group' : 'anomaly'}
+		else:
+			curNode = {'name' : node, 'group' : 'normal'}
+		if node not in node_list:
+			node_list.append(node)
+			node_json.append(curNode)
+		preID = node_list.index(preNode['name'])
+		curID = node_list.index(curNode['name'])
+		if preID < curID:
+			edge_id = [preID, curID]
+		else:
+			edge_id = [curID, preID]
+		if edge_id not in edge_list:
+			edge_list.append(edge_id)
+			cur_edge = {}
+			cur_edge['source'] = edge_id[0]
+			cur_edge['target'] = edge_id[1]
+			cur_edge['value'] = 1
+			edge_json.append(cur_edge)
+		preNode = deepcopy(curNode)
+
+	for peer in peers:
+		peer_obj = Client.objects.get(ip=peer)
+		peer_hops = peer_obj.route.split('-')
+		preNode = {'name' : peer, 'group' : 'normal'}
+		if peer not in node_list:
+			node_list.append(peer)
+			node_json.append(preNode)
+			print("Length of node_list: " + str(len(node_list)))
+			print("Length of node_json: " + str(len(node_json)))
+		for node in peer_hops:
+			curNode = {'name' : node, 'group' : 'normal'}
+			if node not in node_list:
+				node_list.append(node)
+				node_json.append(curNode)
+			preID = node_list.index(preNode['name'])
+			curID = node_list.index(curNode['name'])
+			if preID < curID:
+				edge_id = [preID, curID]
+			else:
+				edge_id = [curID, preID]
+			if edge_id not in edge_list:
+				edge_list.append(edge_id)
+				cur_edge = {}
+				cur_edge['source'] = edge_id[0]
+				cur_edge['target'] = edge_id[1]
+				cur_edge['value'] = 1
+				edge_json.append(cur_edge)
+			preNode = deepcopy(curNode)
+	print("Length of edge_list: " + str(len(edge_list)))
+	print("Length of edge_json: " + str(len(edge_json)))
+	graph['nodes'] = node_json
+	graph['links'] = edge_json
+	rsp = JsonResponse(graph, safe=False)
+	rsp["Access-Control-Allow-Origin"] = "*"
+	return rsp
+
 # Download all anomalies in csv files.
 def downloadAnomaly(request):
 	anomalies = Anomaly.objects.all()
