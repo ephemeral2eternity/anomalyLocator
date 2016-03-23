@@ -47,6 +47,7 @@ class Edge(models.Model):
 
 class Anomaly(models.Model):
 	client=models.CharField(max_length=100)
+	server=models.CharField(max_length=100)
 	normal=models.CharField(max_length=5000)
 	abnormal=models.CharField(max_length=5000)
 	peers = models.CharField(max_length=5000)

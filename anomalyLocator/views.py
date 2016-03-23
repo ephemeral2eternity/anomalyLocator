@@ -414,6 +414,6 @@ def locate(request):
 			normal_nodes_str = '-'.join(str(n) for n in anomaly_info['normal'])
 			abnormal_nodes_str = '-'.join(str(n) for n in anomaly_info['abnormal'])
 			peers_str = '-'.join(str(n) for n in anomaly_info['peers'])
-			new_anomaly = Anomaly(client=client_ip, normal=normal_nodes_str, abnormal=abnormal_nodes_str, peers=peers_str)
+			new_anomaly = Anomaly(client=client_ip, normal=normal_nodes_str, abnormal=abnormal_nodes_str, peers=peers_str,server=server)
 			new_anomaly.save()
 	return JsonResponse(anomaly_info)
