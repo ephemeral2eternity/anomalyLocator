@@ -202,7 +202,10 @@ def anomalyGraphJson(request):
 		preNode = deepcopy(curNode)
 
 	for peer in peers:
-		peer_obj = Client.objects.get(ip=peer)
+		try:
+			peer_obj = Client.objects.get(ip=peer)
+		except:
+			continue
 		peer_hops = peer_obj.route.split('-')
 		preNode = {'name' : peer, 'group' : 'normal'}
 		if peer not in node_list:
@@ -385,7 +388,8 @@ def updateRoute(request):
 			client_route = client_obj.route
 			update_route(client_obj.ip, client_route)
 			isUpdated = True
-
+			## Update the timestamp of the client's last update
+			client_obj.save()
 	if isUpdated:
 		return HttpResponse("Yes")
 	else:

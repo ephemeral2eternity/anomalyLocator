@@ -45,11 +45,11 @@ def locate_anomaly(client_ip, client_route_str):
     except:
         client_update_datetime = datetime.datetime.now() - datetime.timedelta(minutes=1)
 
-    past_five_min_datetime = datetime.datetime.now() - datetime.timedelta(minutes=5)
-    if client_update_datetime > past_five_min_datetime:
+    past_min_datetime = datetime.datetime.now() - datetime.timedelta(minutes=1)
+    if client_update_datetime > past_min_datetime:
         cmp_update_datetime = client_update_datetime
     else:
-        cmp_update_datetime = past_five_min_datetime
+        cmp_update_datetime = past_min_datetime
 
     for node_ip in nodes:
         print("Get latest time for node:" + node_ip)
