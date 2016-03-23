@@ -3,6 +3,7 @@
     <tr>
 	<td>ID</td>
 	<td>Client</td>
+	<td>Server</td>
 	<td>Anomaly Graph</td>
 	<td>Normal Hops</td>
 	<td>Anomaly Hops</td>
@@ -13,6 +14,7 @@
     <tr>
         <td> {{ anomaly.id }} </td> 
         <td> {{ anomaly.client }} </td> 
+        <td> {{ anomaly.server }} </td> 
         <td><a href="/locator/anomalyGraph?id={{ anomaly.id }}">Show Graph</a></td> 
 	<td> {{ anomaly.normal }} </td> 
 	<td> {{ anomaly.abnormal }} </td> 
