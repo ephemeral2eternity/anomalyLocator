@@ -403,7 +403,8 @@ def locate(request):
 	print(request_dict.keys())
 	anomaly_info = {}
 	if ('client' in request_dict.keys()) and ('server' in request_dict.keys()):
-		client_exist = Client.objects.filter(ip=request_dict['client'][0], server=request_dict['server'][0])
+		server = request_dict['server'][0]
+		client_exist = Client.objects.filter(ip=request_dict['client'][0], server=server)
 		if client_exist.count() > 0:
 			client_obj = client_exist[0]
 			client_ip = client_obj.ip
