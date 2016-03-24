@@ -20,14 +20,14 @@ def update_route(client_ip, client_route_str):
         client_obj.save()
         #print("The update_route find route from client" + client_ip + " to server " + srv_ip + " and update the client check time!")
     except:
-        #print("The update_route cannot find route from client" + client_ip + " to server " + srv_ip + " and cannot update client check time!")
+        print("The update_route cannot find route from client" + client_ip + " to server " + srv_ip + " and cannot update client check time!")
     for node_ip in nodes:
         try:
             node_obj = Node.objects.get(ip=node_ip)
             node_obj.save()
             #print("The update_route find node" + node_ip + " in existing cache!")
         except:
-            #print("The update_route cannot find node" + node_ip + " in existing cache!")
+            print("The update_route cannot find node" + node_ip + " in existing cache!")
 
 
 def locate_anomaly(client_ip, client_route_str):
@@ -67,6 +67,6 @@ def locate_anomaly(client_ip, client_route_str):
                 if (peer_ip != client_ip) and (peer_ip not in peers):
                        peers.append(peer_ip)
         except:
-            #print("Ingoring node: " + node_ip + " as it is not cached as it belongs to client whose route has not been cached!")
+            print("Ingoring node: " + node_ip + " as it is not cached as it belongs to client whose route has not been cached!")
     anomaly_info = {'client':client_ip, 'normal':normal_hops, 'abnormal':abnormal_hops, 'peers':peers}
     return anomaly_info
