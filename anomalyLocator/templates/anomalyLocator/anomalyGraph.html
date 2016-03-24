@@ -14,13 +14,16 @@
 <script>
 var width = $(window).width()*0.9,
     height = $(window).height()*0.9;
-var color = d3.scale.category20();
+//var color = d3.scale.category20();
+var color = d3.scale.ordinal()
+    .domain(["anomaly", "normal"])
+    .range(["#ff9900", "#109618"]);
 var svg = d3.select("body").append("svg")
     .attr("width", width)
     .attr("height", height);
 var force = d3.layout.force()
-    .gravity(.05)
-    .distance(50)
+    .gravity(.1)
+    .distance(40)
     .charge(-120)
     .size([width, height]);
 var id = "{{ id }}";

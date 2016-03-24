@@ -98,7 +98,7 @@ def anomalyStatJson(request):
 			num_days = int(request_dict["days"][0])
 			end_time = timezone.now()
 			start_time = end_time - timedelta(days=num_days)
-			print(start_time)
+			# print(start_time)
 			anomalies = Anomaly.objects.filter(timestamp__range=[start_time, end_time])
 		elif "hours" in request_dict.keys():
 			num_hours = int(request_dict["hours"][0])
@@ -211,8 +211,8 @@ def anomalyGraphJson(request):
 		if peer not in node_list:
 			node_list.append(peer)
 			node_json.append(preNode)
-			print("Length of node_list: " + str(len(node_list)))
-			print("Length of node_json: " + str(len(node_json)))
+			# print("Length of node_list: " + str(len(node_list)))
+			# print("Length of node_json: " + str(len(node_json)))
 		for node in peer_hops:
 			curNode = {'name' : node, 'group' : 'normal'}
 			if node not in node_list:
@@ -232,8 +232,8 @@ def anomalyGraphJson(request):
 				cur_edge['value'] = 1
 				edge_json.append(cur_edge)
 			preNode = deepcopy(curNode)
-	print("Length of edge_list: " + str(len(edge_list)))
-	print("Length of edge_json: " + str(len(edge_json)))
+	# print("Length of edge_list: " + str(len(edge_list)))
+	# print("Length of edge_json: " + str(len(edge_json)))
 	graph['nodes'] = node_json
 	graph['links'] = edge_json
 	rsp = JsonResponse(graph, safe=False)
@@ -257,7 +257,7 @@ def checkRoute(request):
 	url = request.get_full_path()
 	params = url.split('?')[1]
 	request_dict = urllib.parse.parse_qs(params)
-	print(request_dict.keys())
+	# print(request_dict.keys())
 	client_info = {}
 	if ('client' in request_dict.keys()) and ('server' in request_dict.keys()):
 		client_exist = Client.objects.filter(ip=request_dict['client'][0], server=request_dict['server'][0])
@@ -272,7 +272,7 @@ def addRoute(request):
 	if request.method == "POST":
 		## Update the client info
 		# print(request.POST)
-		print(request.body)
+		# print(request.body)
 		client_info = json.loads(request.body.decode("utf-8"))
 		client_route = route2str(client_info['route'])
 		client_exist = Client.objects.filter(ip=client_info['ip'], server=client_info['server']).order_by('-latest_update')
@@ -341,13 +341,13 @@ def addRoute(request):
 					node_obj.clients = node_clients_str
 			else:
 				node_obj = Node(name=node['name'], ip=node['ip'], city=node['city'], region=node['region'], country=node['country'], AS=node['AS'], ISP=node['ISP'], latitude=node['latitude'], longitude=node['longitude'], nodeType=node_type, clients=client_info['ip'])
-			print("Saving " + str(node))
+			# print("Saving " + str(node))
 			node_obj.save()
 
 			## Add Edge Object
 			curNode = {'name' : node_obj.name, 'ip' : node_obj.ip}
 			edge = {preNode['name'] : preNode['ip'], curNode['name']:curNode['ip']}
-			print(edge)
+			# print(edge)
 			sorted_edge = sorted(edge.items(), key=operator.itemgetter(1))
 			if len(sorted_edge) < 2:
 				continue
@@ -366,7 +366,7 @@ def addRoute(request):
 			else:
 				edge_obj = Edge(src=src, srcIP=srcIP, dst=dst, dstIP=dstIP)
 			edge_obj.save()
-			print("Save edge from " + src + "("+ srcIP + ")" + " to " + dst + "("+ dstIP + ")")
+			# print("Save edge from " + src + "("+ srcIP + ")" + " to " + dst + "("+ dstIP + ")")
 			preNode = deepcopy(curNode)
 		return index(request)
 	else:
@@ -379,7 +379,7 @@ def updateRoute(request):
 	url = request.get_full_path()
 	params = url.split('?')[1]
 	request_dict = urllib.parse.parse_qs(params)
-	print(request_dict.keys())
+	# print(request_dict.keys())
 	client_info = {}
 	if ('client' in request_dict.keys()) and ('server' in request_dict.keys()):
 		client_exist = Client.objects.filter(ip=request_dict['client'][0], server=request_dict['server'][0])
@@ -400,7 +400,7 @@ def locate(request):
 	url = request.get_full_path()
 	params = url.split('?')[1]
 	request_dict = urllib.parse.parse_qs(params)
-	print(request_dict.keys())
+	# print(request_dict.keys())
 	anomaly_info = {}
 	if ('client' in request_dict.keys()) and ('server' in request_dict.keys()):
 		server = request_dict['server'][0]
@@ -409,7 +409,7 @@ def locate(request):
 			client_obj = client_exist[0]
 			client_ip = client_obj.ip
 			client_route = client_obj.route
-			print("Locate anomalies in client route: " + client_route)
+			# print("Locate anomalies in client route: " + client_route)
 			anomaly_info = locate_anomaly(client_ip, client_route)
 			## Add the anomaly to database
 			normal_nodes_str = '-'.join(str(n) for n in anomaly_info['normal'])
