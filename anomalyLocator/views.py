@@ -3,6 +3,7 @@ from django.http import HttpResponse, JsonResponse
 from django.template import RequestContext, loader
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.utils import timezone
+from django.db import transaction
 from anomalyLocator.models import Client, Node, Edge, Anomaly
 from anomalyLocator.route_utils import *
 import operator
@@ -31,6 +32,12 @@ def showEdges(request):
 	template = loader.get_template('anomalyLocator/edges.html')
 	return HttpResponse(template.render({'edges':edges}, request))
 
+# Show detailed info of all nodes.
+def showUpdates(request):
+	updates = Update.objects.all()
+	template = loader.get_template('anomalyLocator/updates.html')
+	return HttpResponse(template.render({'updates':updates}, request))
+
 @csrf_exempt
 def getGraphJson(request):
 	edges = Edge.objects.all()
@@ -39,36 +46,25 @@ def getGraphJson(request):
 	node_list = []
 	graph = {}
 	for edge in edges:
-		if edge.srcIP not in node_list:
-			cur_node_ip = edge.srcIP
-			node_list.append(cur_node_ip)
-			# cur_node = Node.objects.get(ip=cur_node_ip)
-			cur_node_exist = Node.objects.filter(ip=cur_node_ip).order_by('-latest_check')
-			cur_node = cur_node_exist[0]
-			if cur_node_exist.count() >= 1:
-				for node_idx in range(1, cur_node_exist.count()):
-					cur_node_exist[node_idx].delete()
+		cur_node = edge.src
+		if cur_node.ip not in node_list:
+			node_list.append(cur_node.ip)
 			if "No Host" in cur_node.name:
 				cur_node_json = {'name' : cur_node.ip, 'group' : cur_node.nodeType}
 			else:
 				cur_node_json = {'name' : cur_node.name, 'group' : cur_node.nodeType}
 			node_json.append(cur_node_json)
-		if edge.dstIP not in node_list:
-			cur_node_ip = edge.dstIP
-			node_list.append(cur_node_ip)
-			cur_node_exist = Node.objects.filter(ip=cur_node_ip).order_by('-latest_check')
-			cur_node = cur_node_exist[0]
-			if cur_node_exist.count() >= 1:
-				for node_idx in range(1, cur_node_exist.count()):
-					cur_node_exist[node_idx].delete()
+		cur_node = edge.dst
+		if cur_node.ip not in node_list:
+			node_list.append(cur_node.ip)
 			if "No Host" in cur_node.name:
 				cur_node_json = {'name' : cur_node.ip, 'group' : cur_node.nodeType}
 			else:
 				cur_node_json = {'name' : cur_node.name, 'group' : cur_node.nodeType}
 			node_json.append(cur_node_json)
 		cur_edge = {}
-		cur_edge['source'] = node_list.index(edge.srcIP)
-		cur_edge['target'] = node_list.index(edge.dstIP)
+		cur_edge['source'] = node_list.index(edge.src.ip)
+		cur_edge['target'] = node_list.index(edge.dst.ip)
 		cur_edge['value'] = 1
 		edge_json.append(cur_edge)
 	graph['nodes'] = node_json
@@ -111,30 +107,12 @@ def anomalyStatJson(request):
 	anomaly_type = {'server' : 0, 'client' : 0, 'cloud network' : 0, 'client network' : 0, 'transit ISP' : 0}
 	for anomaly in anomalies:
 		client = anomaly.client
-		client_obj = Client.objects.get(ip=client)
-		server = client_obj.server
-		client_AS = client_obj.AS
-		server_obj = Node.objects.get(ip=server)
-		server_AS = server_obj.AS
-		anomaly_hops = anomaly.abnormal.split('-')
+		server = anomaly.server
+		anomaly_hops = json.loads(anomaly.abnormal)
 		anomaly_type_status = {'server' : False, 'client' : False, 'cloud network' : False, 'client network' : False, 'transit ISP' : False}
-		for anomaly_hop in anomaly_hops:
-			try:
-				hop_info = Node.objects.get(ip=anomaly_hop)
-			except:
-				continue
-			hop_AS = hop_info.AS
-			if anomaly_hop == server:
-				anomaly_type_status['server'] = True
-			elif anomaly_hop == client:
-				anomaly_type_status['client'] = True
-			elif hop_AS == client_AS:
-				anomaly_type_status['client network'] = True
-			elif hop_AS == server_AS:
-				anomaly_type_status['cloud network'] = True
-			else:
-				anomaly_type_status['transit ISP'] = True
-
+		for anomaly_hop in anomaly_hops.keys():
+			hop_type = anomaly_hops[anomaly_hop]['Type']
+			anomaly_type_status[hop_type] = True
 		for typ_key in anomaly_type_status.keys():
 			if anomaly_type_status[typ_key]:
 				anomaly_type[typ_key] += 1
@@ -165,73 +143,77 @@ def anomalyGraphJson(request):
 	else:
 		anomaly_obj = Anomaly.objects.all()[0]
 	client = anomaly_obj.client
-	abnormal_nodes = anomaly_obj.abnormal.split('-')
-	peers = anomaly_obj.peers.split('-')
+	server = anomaly_obj.server
+	#print("Anomaly Client Server pair: (%s, %s)" % (client, server))
+	abnormal_nodes = json.loads(anomaly_obj.abnormal)
+	#print(abnormal_nodes)
+	peers = json.loads(anomaly_obj.peers)
+	#print(peers)
 	node_list = []
 	edge_list = []
 	node_json = []
 	edge_json = []
 	graph = {}
-	client_obj = Client.objects.get(ip=client)
-	client_hops = client_obj.route.split('-')
-	preNode = {'name' : client, 'group' : 'anomaly'}
-	if client not in node_list:
-		node_list.append(client)
-		node_json.append(preNode)
-	for node in client_hops:
-		if node in abnormal_nodes:
-			curNode = {'name' : node, 'group' : 'anomaly'}
-		else:
-			curNode = {'name' : node, 'group' : 'normal'}
-		if node not in node_list:
-			node_list.append(node)
-			node_json.append(curNode)
-		preID = node_list.index(preNode['name'])
-		curID = node_list.index(curNode['name'])
-		if preID < curID:
-			edge_id = [preID, curID]
-		else:
-			edge_id = [curID, preID]
-		if edge_id not in edge_list:
-			edge_list.append(edge_id)
-			cur_edge = {}
-			cur_edge['source'] = edge_id[0]
-			cur_edge['target'] = edge_id[1]
-			cur_edge['value'] = 1
-			edge_json.append(cur_edge)
-		preNode = deepcopy(curNode)
+	try:
+		client_obj = Client.objects.get(ip=client, server=server)
+		client_route = client_obj.route.all()
+		preID = -1
+		for node in client_route:
+			# print("Processing node %s" % node.ip)
+			if node.ip in abnormal_nodes.keys():
+				curNode = {'name' : node.name, 'group' : 'anomaly'}
+			else:
+				curNode = {'name' : node.name, 'group' : 'normal'}
+			if node.ip not in node_list:
+				node_list.append(node.ip)
+				node_json.append(curNode)
+			curID = node_list.index(node.ip)
+			if preID >= 0:
+				if preID < curID:
+					edge_id = [preID, curID]
+				else:
+					edge_id = [curID, preID]
+				if edge_id not in edge_list:
+					edge_list.append(edge_id)
+					cur_edge = {}
+					cur_edge['source'] = edge_id[0]
+					cur_edge['target'] = edge_id[1]
+					cur_edge['value'] = 1
+					edge_json.append(cur_edge)
+			preID = curID
+	except:
+		print("Failed to parse anomaly's (%s,%s) route into json format!" % (client, server))
+		pass
 
 	for peer in peers:
 		try:
-			peer_obj = Client.objects.get(ip=peer)
+			peer_obj = Client.objects.get(ip=peer['client'],server=peer['server'])
+			peer_route = peer_obj.route.all()
+			preID = -1
+			for node in peer_route:
+				if node.ip in abnormal_nodes.keys():
+					curNode = {'name' : node.name, 'group' : 'anomaly'}
+				else:
+					curNode = {'name' : node.name, 'group' : 'normal'}
+				if node.ip not in node_list:
+					node_list.append(node.ip)
+					node_json.append(curNode)
+				curID = node_list.index(node.ip)
+				if preID >= 0:
+					if preID < curID:
+						edge_id = [preID, curID]
+					else:
+						edge_id = [curID, preID]
+					if edge_id not in edge_list:
+						edge_list.append(edge_id)
+						cur_edge = {}
+						cur_edge['source'] = edge_id[0]
+						cur_edge['target'] = edge_id[1]
+						cur_edge['value'] = 1
+						edge_json.append(cur_edge)
+				preID = curID
 		except:
-			continue
-		peer_hops = peer_obj.route.split('-')
-		preNode = {'name' : peer, 'group' : 'normal'}
-		if peer not in node_list:
-			node_list.append(peer)
-			node_json.append(preNode)
-			# print("Length of node_list: " + str(len(node_list)))
-			# print("Length of node_json: " + str(len(node_json)))
-		for node in peer_hops:
-			curNode = {'name' : node, 'group' : 'normal'}
-			if node not in node_list:
-				node_list.append(node)
-				node_json.append(curNode)
-			preID = node_list.index(preNode['name'])
-			curID = node_list.index(curNode['name'])
-			if preID < curID:
-				edge_id = [preID, curID]
-			else:
-				edge_id = [curID, preID]
-			if edge_id not in edge_list:
-				edge_list.append(edge_id)
-				cur_edge = {}
-				cur_edge['source'] = edge_id[0]
-				cur_edge['target'] = edge_id[1]
-				cur_edge['value'] = 1
-				edge_json.append(cur_edge)
-			preNode = deepcopy(curNode)
+			pass
 	# print("Length of edge_list: " + str(len(edge_list)))
 	# print("Length of edge_json: " + str(len(edge_json)))
 	graph['nodes'] = node_json
@@ -247,9 +229,9 @@ def downloadAnomaly(request):
 	response['Content-Disposition'] = 'attachment; filename="anomalies.csv"'
 
 	writer = csv.writer(response)
-	writer.writerow(['timestamp', 'client', 'normal', 'abnormal', 'peers'])
+	writer.writerow(['timestamp', 'client', 'server', 'normal', 'abnormal', 'peers'])
 	for anomaly in anomalies:
-		writer.writerow([int(time.mktime(anomaly.timestamp.timetuple())), anomaly.client, anomaly.normal, anomaly.abnormal, anomaly.peers])
+		writer.writerow([int(time.mktime(anomaly.timestamp.timetuple())), anomaly.client, anomaly.server, anomaly.normal, anomaly.abnormal, anomaly.peers])
 	return response
 
 @csrf_exempt
@@ -260,27 +242,25 @@ def checkRoute(request):
 	# print(request_dict.keys())
 	client_info = {}
 	if ('client' in request_dict.keys()) and ('server' in request_dict.keys()):
-		client_exist = Client.objects.filter(ip=request_dict['client'][0], server=request_dict['server'][0])
-		if client_exist.count() > 0:
-			client_obj = client_exist[0]
-			client_info = {'ip' : client_obj.ip, 'server' : client_obj.server, 'route': client_obj.route}
+		try:
+			client_obj = Client.objects.get(ip=request_dict['client'][0], server=request_dict['server'][0])
+			client_info = {'ip' : client_obj.ip, 'server' : client_obj.server}
+		except:
+			client_info = {}
 	return JsonResponse(client_info)
 
 
 @csrf_exempt
+@transaction.atomic
 def addRoute(request):
 	if request.method == "POST":
 		## Update the client info
-		# print(request.POST)
 		# print(request.body)
+		# start_time = time.time()
 		client_info = json.loads(request.body.decode("utf-8"))
-		client_route = route2str(client_info['route'])
-		client_exist = Client.objects.filter(ip=client_info['ip'], server=client_info['server']).order_by('-latest_update')
-		if client_exist.count() > 0:
-			client_obj = client_exist[0]
+		try:
+			client_obj = Client.objects.get(ip=client_info['ip'], server=client_info['server'])
 			client_obj.name = client_info['name']
-			client_obj.ip = client_info['ip']
-			client_obj.server = client_info['server']
 			client_obj.city = client_info['city']
 			client_obj.region = client_info['region']
 			client_obj.country = client_info['country']
@@ -288,18 +268,14 @@ def addRoute(request):
 			client_obj.ISP = client_info['ISP']
 			client_obj.latitude = client_info['latitude']
 			client_obj.longitude = client_info['longitude']
-			client_obj.route = client_route
-			if client_exist.count() >= 1:
-				for client_idx in range(1, client_exist.count()):
-					client_exist[client_idx].delete()
-		else:
-			client_obj = Client(name=client_info['name'], ip=client_info['ip'], server=client_info['server'], city=client_info['city'], region=client_info['region'], country=client_info['country'], AS=client_info['AS'], ISP=client_info['ISP'], latitude=client_info['latitude'], longitude=client_info['longitude'], route=client_route)
+		except:
+			client_obj = Client(name=client_info['name'], ip=client_info['ip'], server=client_info['server'], city=client_info['city'], region=client_info['region'], country=client_info['country'], AS=client_info['AS'], ISP=client_info['ISP'], latitude=client_info['latitude'], longitude=client_info['longitude'])
 		client_obj.save()
 
-		client_node_exist = Node.objects.filter(ip=client_info['ip'])
-		if client_node_exist.count() > 0:
-			client_node_obj = client_node_exist[0]
-			client_node_obj.ip = client_info['ip']
+		# time_elapsed = time.time() - start_time
+		# print("1.1 The total time to process an add route request is : " + str(time_elapsed) + " seconds!")
+		try:
+			client_node_obj = Node.objects.get(ip=client_info['ip'])
 			client_node_obj.name = client_info['name']
 			client_node_obj.city = client_info['city']
 			client_node_obj.region = client_info['region']
@@ -309,22 +285,23 @@ def addRoute(request):
 			client_node_obj.latitude = client_info['latitude']
 			client_node_obj.longitude = client_info['longitude']
 			client_node_obj.nodeType = "client"
-		else:
-			client_node_obj = Node(name=client_info['name'], ip=client_info['ip'], city=client_info['city'], region=client_info['region'], country=client_info['country'], AS=client_info['AS'], ISP=client_info['ISP'], latitude=client_info['latitude'], longitude=client_info['longitude'], nodeType="client", clients=client_info['ip'])
+		except:
+			client_node_obj = Node(name=client_info['name'], ip=client_info['ip'], city=client_info['city'], region=client_info['region'], country=client_info['country'], AS=client_info['AS'], ISP=client_info['ISP'], latitude=client_info['latitude'], longitude=client_info['longitude'], nodeType="client")
 		client_node_obj.save()
+		client_obj.route.add(client_node_obj)
+		# time_elapsed = time.time() - start_time
+		# print("1.2 The total time to process an add route request is : " + str(time_elapsed) + " seconds!")
 
 		## Update all nodes' info in the route
-		preNode = {'name' : client_info['name'], 'ip' : client_info['ip']}
-		for node in client_info['route']:
+		preNode = client_node_obj
+		for i, node in enumerate(client_info['route']):
 			node_ip = node['ip']
-			node_exist = Node.objects.filter(ip=node_ip)
 			if node_ip == client_info['server']:
 				node_type = "server"
 			else:
 				node_type = "router"
-			if node_exist.count() > 0:
-				node_obj = node_exist[0]
-				node_obj.ip = node_ip
+			try:
+				node_obj = Node.objects.get(ip=node_ip)
 				node_obj.name = node['name']
 				node_obj.city = node['city']
 				node_obj.region = node['region']
@@ -334,87 +311,86 @@ def addRoute(request):
 				node_obj.latitude = node['latitude']
 				node_obj.longitude = node['longitude']
 				node_obj.nodeType = node_type
-				node_clients = node_obj.clients.split('-')
-				if client_info['ip'] not in node_clients:
-					node_clients.append(client_info['ip'])
-					node_clients_str = '-'.join(str(c) for c in node_clients)
-					node_obj.clients = node_clients_str
-			else:
-				node_obj = Node(name=node['name'], ip=node['ip'], city=node['city'], region=node['region'], country=node['country'], AS=node['AS'], ISP=node['ISP'], latitude=node['latitude'], longitude=node['longitude'], nodeType=node_type, clients=client_info['ip'])
-			# print("Saving " + str(node))
+			except:
+				node_obj = Node(name=node['name'], ip=node['ip'], city=node['city'], region=node['region'], country=node['country'], AS=node['AS'], ISP=node['ISP'], latitude=node['latitude'], longitude=node['longitude'], nodeType=node_type)
+	
 			node_obj.save()
+			client_obj.route.add(node_obj)
 
 			## Add Edge Object
-			curNode = {'name' : node_obj.name, 'ip' : node_obj.ip}
-			edge = {preNode['name'] : preNode['ip'], curNode['name']:curNode['ip']}
-			# print(edge)
-			sorted_edge = sorted(edge.items(), key=operator.itemgetter(1))
-			if len(sorted_edge) < 2:
-				continue
-			src = sorted_edge[0][0]
-			srcIP = sorted_edge[0][1]
-			dst = sorted_edge[1][0]
-			dstIP = sorted_edge[1][1]
-
-			edge_exist = Edge.objects.filter(srcIP=srcIP, dstIP=dstIP)
-			if edge_exist.count() > 0:
-				edge_obj = edge_exist[0]
-				edge_obj.src = src
-				edge_obj.srcIP = srcIP
-				edge_obj.dst = dst
-				edge_obj.dstIP = dstIP
+			curNode = node_obj
+			if curNode.ip < preNode.ip:
+				srcNode = curNode
+				dstNode = preNode
 			else:
-				edge_obj = Edge(src=src, srcIP=srcIP, dst=dst, dstIP=dstIP)
+				srcNode = preNode
+				dstNode = curNode
+
+			try:
+				edge_obj = Edge.objects.get(src=srcNode, dst=dstNode)
+			except:
+				edge_obj = Edge(src=srcNode, dst=dstNode)
 			edge_obj.save()
-			# print("Save edge from " + src + "("+ srcIP + ")" + " to " + dst + "("+ dstIP + ")")
-			preNode = deepcopy(curNode)
+			preNode = curNode
+			# time_elapsed = time.time() - start_time
+			# print("2.%d The total time to process an add route request is : %s seconds!" % (i, time_elapsed))
+		client_obj.save()
+		# time_elapsed = time.time() - start_time
+		# print("3. The total time to process an add route request is : " + str(time_elapsed) + " seconds!")
 		return index(request)
 	else:
 		return HttpResponse("Please use the POST method for http://locator_ip/anomalyLocator/addRoute request to add new routes for a client!")
 
 
 @csrf_exempt
+@transaction.atomic
 def updateRoute(request):
+	#time_start = time.time()
 	isUpdated = False
 	url = request.get_full_path()
 	params = url.split('?')[1]
 	request_dict = urllib.parse.parse_qs(params)
 	# print(request_dict.keys())
-	client_info = {}
-	if ('client' in request_dict.keys()) and ('server' in request_dict.keys()):
-		client_exist = Client.objects.filter(ip=request_dict['client'][0], server=request_dict['server'][0])
-		if client_exist.count() > 0:
-			client_obj = client_exist[0]
-			client_route = client_obj.route
-			update_route(client_obj.ip, client_route)
-			isUpdated = True
-			## Update the timestamp of the client's last update
-			client_obj.save()
+	if ('client' in request_dict.keys()) and ('server' in request_dict.keys()) and ('qoe' in request_dict.keys()):
+		client = request_dict['client'][0]
+		server = request_dict['server'][0]
+		qoe = float(request_dict['qoe'][0])
+		state = True
+		update = Update(client=client, server=server, qoe=qoe, state=state)
+		update.save()
+		isUpdated = update_route(client, server, update)
+	# time_elapsed = time.time() - time_start
+	# print("The processing time of the updateRoute request is %s seconds" % time_elapsed)
 	if isUpdated:
 		return HttpResponse("Yes")
 	else:
 		return HttpResponse("No")
 
 @csrf_exempt
+@transaction.atomic
 def locate(request):
+	time_start = time.time()
 	url = request.get_full_path()
 	params = url.split('?')[1]
 	request_dict = urllib.parse.parse_qs(params)
 	# print(request_dict.keys())
 	anomaly_info = {}
-	if ('client' in request_dict.keys()) and ('server' in request_dict.keys()):
+	if ('client' in request_dict.keys()) and ('server' in request_dict.keys()) and ('qoe' in request_dict.keys()):
+		client = request_dict['client'][0]
 		server = request_dict['server'][0]
-		client_exist = Client.objects.filter(ip=request_dict['client'][0], server=server)
-		if client_exist.count() > 0:
-			client_obj = client_exist[0]
-			client_ip = client_obj.ip
-			client_route = client_obj.route
-			# print("Locate anomalies in client route: " + client_route)
-			anomaly_info = locate_anomaly(client_ip, client_route)
-			## Add the anomaly to database
-			normal_nodes_str = '-'.join(str(n) for n in anomaly_info['normal'])
-			abnormal_nodes_str = '-'.join(str(n) for n in anomaly_info['abnormal'])
-			peers_str = '-'.join(str(n) for n in anomaly_info['peers'])
-			new_anomaly = Anomaly(client=client_ip, normal=normal_nodes_str, abnormal=abnormal_nodes_str, peers=peers_str,server=server)
+		qoe = float(request_dict['qoe'][0])
+		state = False
+		update = Update(client=client, server=server, qoe=qoe, state=state)
+		update.save()
+		anomaly_info = locate_anomaly(client, server, update)
+
+		## Add the anomaly to database
+		if anomaly_info:
+			normal_nodes_str = json.dumps(anomaly_info['normal'])
+			abnormal_nodes_str = json.dumps(anomaly_info['abnormal'])
+			peers_str = json.dumps(anomaly_info['peers'])
+			time_elapsed = time.time() - time_start
+			new_anomaly = Anomaly(client=client, normal=normal_nodes_str, abnormal=abnormal_nodes_str, peers=peers_str,server=server, timeToLocate=time_elapsed)
 			new_anomaly.save()
+	print("Locate request processing time: %s seconds!" % time_elapsed)
 	return JsonResponse(anomaly_info)

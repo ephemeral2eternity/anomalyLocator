@@ -7,7 +7,7 @@
 	<td>Anomaly Graph</td>
 	<td>Normal Hops</td>
 	<td>Anomaly Hops</td>
-	<td>Time</td>
+	<td>Time To Locate (Seconds)</td>
 	<td>Peers</td>
     </tr>
     {% for anomaly in anomalies %}
@@ -18,7 +18,7 @@
         <td><a href="/locator/anomalyGraph?id={{ anomaly.id }}">Show Graph</a></td> 
 	<td> {{ anomaly.normal }} </td> 
 	<td> {{ anomaly.abnormal }} </td> 
-	<td> {{ anomaly.timestamp }} </td> 
+	<td> {{ anomaly.timeToLocate }} </td> 
 	<td> {{ anomaly.peers }} </td> 
     </tr>
     {% endfor %}

@@ -9,10 +9,10 @@
     </tr>
     {% for edge in edges %}
     <tr>
-        <td> {{ edge.src }} </td> 
-	<td> {{ edge.srcIP }} </td> 
-	<td> {{ edge.dst }} </td> 
-	<td> {{ edge.dstIP }} </td> 
+        <td> {{ edge.src.name }} </td> 
+	<td> {{ edge.src.ip }} </td> 
+	<td> {{ edge.dst.name }} </td> 
+	<td> {{ edge.dst.ip }} </td> 
 	<td> {{ edge.latest_check }}</td>
     </tr>
     {% endfor %}

@@ -1,7 +1,7 @@
 ## route_utils.py
 # By Chen Wang, March 4, 2016
 import datetime
-from anomalyLocator.models import Client, Node
+from anomalyLocator.models import Client, Node, Update
 
 def route2str(full_route):
     route_list = []
@@ -12,61 +12,100 @@ def route2str(full_route):
     return route_str
 
 
-def update_route(client_ip, client_route_str):
-    nodes = client_route_str.split('-')
-    srv_ip = nodes[-1]
+def update_route(client_ip, server_ip, update):
+    isUpdated = False
     try:
-        client_obj = Client.objects.get(ip=client_ip, server=srv_ip)
-        client_obj.save()
-        #print("The update_route find route from client" + client_ip + " to server " + srv_ip + " and update the client check time!")
+        client_obj = Client.objects.get(ip=client_ip, server=server_ip)
+        route = client_obj.route.all()
+        for node in route:
+            # print("Reading info for node %s " % node.ip)
+            try:
+                # print("Removing updates from the same client %s for node %s " % (update.client, node.ip))
+                update_client_exist = node.updates.get(client=update.client, server=update.server)
+                node.updates.remove(update_client_exist)
+                # print("Removing updates successfully!")
+            except:
+                pass
+            while node.updates.count() > 2:
+                oldest_obj = node.updates.all().order_by('timestamp')[0]
+                node.updates.remove(oldest_obj)
+            # print("Adding update from client %s with QoE %.2f to node %s " % (update.client, update.qoe, node.ip))
+            node.updates.add(update)
+        isUpdated = True
     except:
-        print("The update_route cannot find route from client" + client_ip + " to server " + srv_ip + " and cannot update client check time!")
-    for node_ip in nodes:
-        try:
-            node_obj = Node.objects.get(ip=node_ip)
-            node_obj.save()
-            #print("The update_route find node" + node_ip + " in existing cache!")
-        except:
-            print("The update_route cannot find node" + node_ip + " in existing cache!")
+        isUpdated = False
+        print("The update_route cannot find client:" + client_ip + " and server:" + server_ip + " in Client Table!")
+    return isUpdated
 
 
-def locate_anomaly(client_ip, client_route_str):
-    nodes = client_route_str.split('-')
-    print("All nodes in client route in locate_anomaly:" + client_route_str)
-    normal_hops = []
-    abnormal_hops = []
-    abnormal_hops.append(client_ip)
-    peers = []
-    srv_ip = nodes[-1]
-    try:
-        client_obj = Client.objects.get(ip=client_ip, server=srv_ip)
-        client_update_time = client_obj.latest_update
-        client_update_datetime = datetime.datetime(client_update_time.year, client_update_time.month, client_update_time.day, client_update_time.hour, client_update_time.minute, client_update_time.second)
-    except:
-        client_update_datetime = datetime.datetime.now() - datetime.timedelta(minutes=1)
-
-    past_min_datetime = datetime.datetime.now() - datetime.timedelta(minutes=1)
-    if client_update_datetime > past_min_datetime:
-        cmp_update_datetime = client_update_datetime
+def getNodeType(node_ip, node_AS, client_ip, client_AS, server_ip, server_AS):
+    if node_ip == client_ip:
+        node_type = 'client'
+    elif node_ip == server_ip:
+        node_type = 'server'
+    elif node_AS == client_AS:
+        node_type = 'client network'
+    elif node_AS == server_AS:
+        node_type = 'cloud network'
     else:
-        cmp_update_datetime = past_min_datetime
+        node_type = 'transit ISP'
+    return node_type
 
-    for node_ip in nodes:
-        print("Get latest time for node:" + node_ip)
-        try:
-            node_obj = Node.objects.get(ip=node_ip)
-            node_update_time = node_obj.latest_check
-            node_update_datetime = datetime.datetime(node_update_time.year, node_update_time.month, node_update_time.day, node_update_time.hour, node_update_time.minute, node_update_time.second)
-            #print("Latest check time for node " + node_ip + " is " + node_update_datetime.strftime("%Y-%m-%d %H:%M:%S"))
-            if node_update_datetime > cmp_update_datetime:
-                normal_hops.append(node_ip)
+
+def locate_anomaly(client_ip, server_ip, update):
+    normal_hops = {}
+    abnormal_hops = {}
+    peers = []
+    past_min_datetime = datetime.datetime.now() - datetime.timedelta(minutes=1)
+    try:
+        client_obj = Client.objects.get(ip=client_ip, server=server_ip)
+        client_AS = client_obj.AS
+        server_obj = Node.objects.get(ip=server_ip)
+        server_AS = server_obj.AS
+        route = client_obj.route.all()
+        for node in route:
+            # print("Checking update timestamp for node : %s" % node.ip)
+            try:
+                update_client_exist = node.updates.filter(client=update.client,server=update.server)
+                for u in update_client_exist:
+                      node.updates.remove(u)
+            except:
+                pass
+
+            node_updates = node.updates.all().order_by('-timestamp')
+
+            if node_updates.count() == 0:
+                node_type = getNodeType(node.ip, node.AS, client_ip, client_AS, server_ip, server_AS)
+                abnormal_hops[node.ip] = {'Name' : node.name, 'Type' : node_type, 'AS' : node.AS, 'ISP' : node.ISP}
+                # print("Abnormal Hop Added: %s" % node.ip)
+                node.updates.add(update)
+                continue
+
+            recent_update = node_updates[0]
+            recent_ts = recent_update.timestamp
+            # print("The most recent update timestamp is: %s and the previous minute ts is: %s" % (recent_ts, past_min_datetime))
+            recent_state = recent_update.state
+            recent_client = recent_update.client
+            recent_server = recent_update.server
+            recent_datetime = datetime.datetime(recent_ts.year, recent_ts.month, recent_ts.day, recent_ts.hour, recent_ts.minute, recent_ts.second)
+            if (recent_datetime > past_min_datetime) and recent_state:
+                node_type = getNodeType(node.ip, node.AS, client_ip, client_AS, server_ip, server_AS)
+                normal_hops[node.ip] = {'Name' : node.name, 'Type' : node_type, 'AS' : node.AS, 'ISP' : node.ISP}
+                # print("Normal Hop Added: %s" % node.ip)
+                cur_peer = {'client' : recent_client, 'server' : recent_server}
+                if cur_peer not in peers:
+                      peers.append({'client':recent_client, 'server':recent_server})
+                # print("Peer added (%s, %s)" % (recent_client, recent_server))
             else:
-                abnormal_hops.append(node_ip)
-            node_clients = node_obj.clients.split('-')
-            for peer_ip in node_clients:
-                if (peer_ip != client_ip) and (peer_ip not in peers):
-                       peers.append(peer_ip)
-        except:
-            print("Ingoring node: " + node_ip + " as it is not cached as it belongs to client whose route has not been cached!")
-    anomaly_info = {'client':client_ip, 'normal':normal_hops, 'abnormal':abnormal_hops, 'peers':peers}
+                node_type = getNodeType(node.ip, node.AS, client_ip, client_AS, server_ip, server_AS)
+                abnormal_hops[node.ip] = {'Name' : node.name, 'Type' : node_type, 'AS' : node.AS, 'ISP' : node.ISP}
+                # print("Abnormal Hop Added: %s" % node.ip)
+            while node.updates.count() > 2:
+                oldest_update = node.updates.order_by('timestamp')[0]
+                node.updates.remove(oldest_update)
+            node.updates.add(update)
+        anomaly_info = {'client':client_ip, 'normal':normal_hops, 'abnormal':abnormal_hops, 'peers':peers}
+        # print(anomaly_info)
+    except:
+        anomaly_info = {}
     return anomaly_info

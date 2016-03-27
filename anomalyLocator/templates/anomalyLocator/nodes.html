@@ -9,8 +9,7 @@
 	<td>City</td>
 	<td>Region</td>
 	<td>Country</td>
-	<td>Latest Update</td>
-	<td>Clients</td>
+	<td width="12%">Updates</td>
     </tr>
     {% for node in nodes %}
     <tr>
@@ -22,11 +21,16 @@
 	<td> {{ node.city }} </td> 
 	<td> {{ node.region }} </td> 
 	<td> {{ node.country }} </td> 
-	<td> {{ node.latest_check }}</td>
-	<td> {{ node.clients }}</td>
+	<td width="12%"> 
+        ==========================================<br>
+        {% for update in node.updates.all %}
+             ({{ update.client }}, {{ update.server }}) {{ update.state }}  {{ update.timestamp }}<br>
+    	{% endfor %}
+        ==========================================
+        </td>
     </tr>
     {% endfor %}
 </table>
 {% else %}
-    <p>No client's route cached.</p>
+    <p>No nodes have been added in the Node Table.</p>
 {% endif %}

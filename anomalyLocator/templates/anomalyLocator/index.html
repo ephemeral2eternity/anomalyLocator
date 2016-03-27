@@ -1,5 +1,5 @@
 {% if clients %}
-<table style="width:150%">
+<table style="width:100%">
     <tr>
 	<td>Name</td>
 	<td>IP</td>
@@ -17,7 +17,11 @@
 	<td> {{ client.AS }} </td> 
 	<td> {{ client.ISP }} </td> 
 	<td> {{ client.latest_update }} </td> 
-	<td> {{ client.route }}</td>
+	<td>
+	{% for node in client.route.all %}
+		{{ node.ip }} --
+    	{% endfor %}
+	</td>
     </tr>
     {% endfor %}
 </table>
