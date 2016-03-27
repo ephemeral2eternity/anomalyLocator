@@ -39,7 +39,7 @@ class Client(models.Model):
 	ISP = models.CharField(max_length=200)
 	longitude = models.DecimalField(max_digits=10, decimal_places=5)
 	latitude = models.DecimalField(max_digits=10, decimal_places=5)
-	route = models.ManyToManyField(Node)
+	route = models.ManyToManyField(Node, through='Hop')
 	latest_update = models.DateTimeField(auto_now=True)
 	
 	class Meta:
@@ -48,6 +48,15 @@ class Client(models.Model):
 	
 	def __str__(self):
 		return str(self.name + ", " + self.ip + ", " + self.server + ", " + self.ISP)
+
+class Hop(models.Model):
+	node = models.ForeignKey(Node, on_delete=models.CASCADE)
+	client = models.ForeignKey(Client, on_delete=models.CASCADE)
+	hopID =  models.PositiveIntegerField()
+	
+	def __str__(self):
+		return client.name + ": " + str(hopID) + ", " + node.name
+
 
 class Edge(models.Model):
 	src = models.ForeignKey(Node, on_delete=models.CASCADE, related_name='node_source')

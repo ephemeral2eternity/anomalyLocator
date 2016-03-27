@@ -18,8 +18,8 @@
 	<td> {{ client.ISP }} </td> 
 	<td> {{ client.latest_update }} </td> 
 	<td>
-	{% for node in client.route.all %}
-		{{ node.ip }} --
+	{% for hop in client.hop_set.all %}
+		{{ hop.node.ip }} --
     	{% endfor %}
 	</td>
     </tr>

@@ -4,7 +4,7 @@ from django.template import RequestContext, loader
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.utils import timezone
 from django.db import transaction
-from anomalyLocator.models import Client, Node, Edge, Anomaly
+from anomalyLocator.models import Client, Node, Hop, Edge, Anomaly
 from anomalyLocator.route_utils import *
 import operator
 import json
@@ -156,10 +156,11 @@ def anomalyGraphJson(request):
 	graph = {}
 	try:
 		client_obj = Client.objects.get(ip=client, server=server)
-		client_route = client_obj.route.all()
+		client_route = Hop.objects.filter(client=client_obj).order_by('hopID')
 		preID = -1
-		for node in client_route:
+		for hop in client_route:
 			# print("Processing node %s" % node.ip)
+			node = hop.node
 			if node.ip in abnormal_nodes.keys():
 				curNode = {'name' : node.name, 'group' : 'anomaly'}
 			else:
@@ -188,9 +189,10 @@ def anomalyGraphJson(request):
 	for peer in peers:
 		try:
 			peer_obj = Client.objects.get(ip=peer['client'],server=peer['server'])
-			peer_route = peer_obj.route.all()
+			peer_route = Hop.objects.filter(client=peer_obj).order_by('hopID')
 			preID = -1
-			for node in peer_route:
+			for hop in peer_route:
+				node = hop.node
 				if node.ip in abnormal_nodes.keys():
 					curNode = {'name' : node.name, 'group' : 'anomaly'}
 				else:
@@ -214,8 +216,6 @@ def anomalyGraphJson(request):
 				preID = curID
 		except:
 			pass
-	# print("Length of edge_list: " + str(len(edge_list)))
-	# print("Length of edge_json: " + str(len(edge_json)))
 	graph['nodes'] = node_json
 	graph['links'] = edge_json
 	rsp = JsonResponse(graph, safe=False)
@@ -268,9 +268,11 @@ def addRoute(request):
 			client_obj.ISP = client_info['ISP']
 			client_obj.latitude = client_info['latitude']
 			client_obj.longitude = client_info['longitude']
+			client_obj.route.clear()
 		except:
 			client_obj = Client(name=client_info['name'], ip=client_info['ip'], server=client_info['server'], city=client_info['city'], region=client_info['region'], country=client_info['country'], AS=client_info['AS'], ISP=client_info['ISP'], latitude=client_info['latitude'], longitude=client_info['longitude'])
 		client_obj.save()
+		print("Client %s route length %d " % (client_obj.name, client_obj.route.count()))
 
 		# time_elapsed = time.time() - start_time
 		# print("1.1 The total time to process an add route request is : " + str(time_elapsed) + " seconds!")
@@ -288,7 +290,11 @@ def addRoute(request):
 		except:
 			client_node_obj = Node(name=client_info['name'], ip=client_info['ip'], city=client_info['city'], region=client_info['region'], country=client_info['country'], AS=client_info['AS'], ISP=client_info['ISP'], latitude=client_info['latitude'], longitude=client_info['longitude'], nodeType="client")
 		client_node_obj.save()
-		client_obj.route.add(client_node_obj)
+		# client_obj.route.add(client_node_obj)
+		hop_id = 0
+		first_hop = Hop(client=client_obj, node=client_node_obj, hopID=hop_id)
+		first_hop.save()
+		print("Client %s route length %d " % (client_obj.name, client_obj.route.count()))
 		# time_elapsed = time.time() - start_time
 		# print("1.2 The total time to process an add route request is : " + str(time_elapsed) + " seconds!")
 
@@ -315,7 +321,11 @@ def addRoute(request):
 				node_obj = Node(name=node['name'], ip=node['ip'], city=node['city'], region=node['region'], country=node['country'], AS=node['AS'], ISP=node['ISP'], latitude=node['latitude'], longitude=node['longitude'], nodeType=node_type)
 	
 			node_obj.save()
-			client_obj.route.add(node_obj)
+			hop_id += 1
+			cur_hop = Hop(client=client_obj, node=node_obj, hopID=hop_id)
+			cur_hop.save()
+			# client_obj.route.add(node_obj)
+			# print("Client %s route length %d " % (client_obj.name, client_obj.route.count()))
 
 			## Add Edge Object
 			curNode = node_obj
@@ -334,7 +344,7 @@ def addRoute(request):
 			preNode = curNode
 			# time_elapsed = time.time() - start_time
 			# print("2.%d The total time to process an add route request is : %s seconds!" % (i, time_elapsed))
-		client_obj.save()
+		# client_obj.save()
 		# time_elapsed = time.time() - start_time
 		# print("3. The total time to process an add route request is : " + str(time_elapsed) + " seconds!")
 		return index(request)
