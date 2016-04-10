@@ -38,6 +38,9 @@ def showUpdates(request):
 	template = loader.get_template('anomalyLocator/updates.html')
 	return HttpResponse(template.render({'updates':updates}, request))
 
+def drawAnomalies(request):
+	return render_to_response("anomalyLocator/anomalyIndex.html")
+
 @csrf_exempt
 def getGraphJson(request):
 	edges = Edge.objects.all()
@@ -85,7 +88,57 @@ def showAnomaly(request):
 def statGraph(request):
 	return render_to_response("anomalyLocator/stat.html")
 
+@csrf_exempt
 def anomalyStatJson(request):
+	url = request.get_full_path()
+	hasPeer = 0
+	if '?' in url:
+		params = url.split('?')[1]
+		request_dict = urllib.parse.parse_qs(params)
+		if "days" in request_dict.keys():
+			num_days = int(request_dict["days"][0])
+			end_time = timezone.now()
+			start_time = end_time - timedelta(days=num_days)
+			# print(start_time)
+			anomalies = Anomaly.objects.filter(timestamp__range=[start_time, end_time])
+		elif "hours" in request_dict.keys():
+			num_hours = int(request_dict["hours"][0])
+			end_time = timezone.now()
+			start_time = end_time - timedelta(hours=num_hours)
+			anomalies = Anomaly.objects.filter(timestamp__range=[start_time, end_time])
+		elif ("start" in request_dict.keys()) and ("end" in request_dict.keys()):
+			start_time = timezone.make_aware(datetime.utcfromtimestamp(int(request_dict["start"][0])), timezone.get_current_timezone())
+			end_time = timezone.make_aware(datetime.utcfromtimestamp(int(request_dict["end"][0])), timezone.get_current_timezone())
+			anomalies = Anomaly.objects.filter(timestamp__range=[start_time, end_time])
+		if ("hasPeer" in request_dict.keys()):
+			hasPeer = int(request_dict["hasPeer"][0])
+			print("The hasPeer value is %d"%hasPeer)
+	else:
+		anomalies = Anomaly.objects.all()
+	# template = loader.get_template('anomalyLocator/anomalies.html')
+	anomaly_type = {'server' : 0, 'client' : 0, 'cloud network' : 0, 'client network' : 0, 'transit ISP' : 0}
+	for anomaly in anomalies:
+		client = anomaly.client
+		server = anomaly.server
+		anomaly_hops = json.loads(anomaly.abnormal)
+		anomaly_peer_num = len(json.loads(anomaly.peers))
+		if anomaly_peer_num < hasPeer:
+			# print("Excluding the anomaly because it has %d peers!" % anomaly_peer_num)
+			continue
+		anomaly_type_status = {'server' : False, 'client' : False, 'cloud network' : False, 'client network' : False, 'transit ISP' : False}
+		for anomaly_hop in anomaly_hops.keys():
+			hop_type = anomaly_hops[anomaly_hop]['Type']
+			anomaly_type_status[hop_type] = True
+		for typ_key in anomaly_type_status.keys():
+			if anomaly_type_status[typ_key]:
+				anomaly_type[typ_key] += 1
+
+	rsp = JsonResponse(anomaly_type, safe=False)
+	rsp["Access-Control-Allow-Origin"] = "*"
+	return rsp
+
+@csrf_exempt
+def anomalyCntPeerJson(request):
 	url = request.get_full_path()
 	if '?' in url:
 		params = url.split('?')[1]
@@ -101,25 +154,24 @@ def anomalyStatJson(request):
 			end_time = timezone.now()
 			start_time = end_time - timedelta(hours=num_hours)
 			anomalies = Anomaly.objects.filter(timestamp__range=[start_time, end_time])
+		elif ("start" in request_dict.keys()) and ("end" in request_dict.keys()):
+			start_time = timezone.make_aware(datetime.utcfromtimestamp(int(request_dict["start"][0])), timezone.get_current_timezone())
+			end_time = timezone.make_aware(datetime.utcfromtimestamp(int(request_dict["end"][0])), timezone.get_current_timezone())
+			anomalies = Anomaly.objects.filter(timestamp__range=[start_time, end_time])
 	else:
 		anomalies = Anomaly.objects.all()
-	# template = loader.get_template('anomalyLocator/anomalies.html')
-	anomaly_type = {'server' : 0, 'client' : 0, 'cloud network' : 0, 'client network' : 0, 'transit ISP' : 0}
+	anomalyPeerCnt = {}
 	for anomaly in anomalies:
-		client = anomaly.client
-		server = anomaly.server
-		anomaly_hops = json.loads(anomaly.abnormal)
-		anomaly_type_status = {'server' : False, 'client' : False, 'cloud network' : False, 'client network' : False, 'transit ISP' : False}
-		for anomaly_hop in anomaly_hops.keys():
-			hop_type = anomaly_hops[anomaly_hop]['Type']
-			anomaly_type_status[hop_type] = True
-		for typ_key in anomaly_type_status.keys():
-			if anomaly_type_status[typ_key]:
-				anomaly_type[typ_key] += 1
-
-	rsp = JsonResponse(anomaly_type, safe=False)
+		anomaly_peer_num = len(json.loads(anomaly.peers))
+		for i in range(anomaly_peer_num+1):
+			if i not in anomalyPeerCnt.keys():
+				anomalyPeerCnt[i] = 1
+			else:
+				anomalyPeerCnt[i] += 1
+	rsp = JsonResponse(anomalyPeerCnt, safe=False)
 	rsp["Access-Control-Allow-Origin"] = "*"
 	return rsp
+
 
 def anomalyGraph(request):
 	url = request.get_full_path()
@@ -153,6 +205,7 @@ def anomalyGraphJson(request):
 	edge_list = []
 	node_json = []
 	edge_json = []
+	suspect_nodes = []
 	graph = {}
 	try:
 		client_obj = Client.objects.get(ip=client, server=server)
@@ -162,9 +215,10 @@ def anomalyGraphJson(request):
 			# print("Processing node %s" % node.ip)
 			node = hop.node
 			if node.ip in abnormal_nodes.keys():
-				curNode = {'name' : node.name, 'group' : 'anomaly'}
+				curNode = {'name' : node.name, 'group' : 'Suspect'}
+				suspect_nodes.append(node.name)
 			else:
-				curNode = {'name' : node.name, 'group' : 'normal'}
+				curNode = {'name' : node.name, 'group' : 'Good'}
 			if node.ip not in node_list:
 				node_list.append(node.ip)
 				node_json.append(curNode)
@@ -182,6 +236,8 @@ def anomalyGraphJson(request):
 					cur_edge['value'] = 1
 					edge_json.append(cur_edge)
 			preID = curID
+		if len(suspect_nodes) == 1:
+			node_json[node_list.index(suspect_nodes[0])]['group'] = 'Bad'
 	except:
 		print("Failed to parse anomaly's (%s,%s) route into json format!" % (client, server))
 		pass
@@ -194,9 +250,9 @@ def anomalyGraphJson(request):
 			for hop in peer_route:
 				node = hop.node
 				if node.ip in abnormal_nodes.keys():
-					curNode = {'name' : node.name, 'group' : 'anomaly'}
+					curNode = {'name' : node.name, 'group' : 'Suspect'}
 				else:
-					curNode = {'name' : node.name, 'group' : 'normal'}
+					curNode = {'name' : node.name, 'group' : 'Good'}
 				if node.ip not in node_list:
 					node_list.append(node.ip)
 					node_json.append(curNode)

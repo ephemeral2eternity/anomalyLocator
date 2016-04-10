@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.3.6/proj4.js"></script>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/data.js"></script>
+<script src="https://code.highcharts.com/modules/drilldown.js"></script>
+<div class="container">
+    <div class="page-header">
+        <h2>Time Range Configuration</h2>
+    </div>
+    <p class="lead">To get started, enter a start time and a duration in the input boxes below and click <strong>Submit</strong>.</p>
+    
+    <div class="row">
+        <div class="col-xs-8">
+            Please input the start time: <input type="datetime-local" class="form-control" id="startTime"/><br>
+            Please input the duration (in minutes): <input type="number" class="form-control" id="duration" min="10" step="10" value="10"/> <br>
+        </div>
+        <div class="col-xs-8">
+            <input type="submit" class="btn btn-primary" value="Submit"/>
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="col-xs-8"><label>Show Anomalies between UTC Time <span id="startTS"></span> to <span id="endTS"></span></label></div>
+    </div>
+    <table>
+        <tr>
+             <td><div id="statChartAll"></div></td>
+             <td><div id="cntPeerChart"></div></td>
+        </tr>
+    </table>
+</div>
+<script>
+function drawCount(startTS, endTS, htmlTag) {
+	// Create the chart
+    var peerCntUrl=`/locator/anomalyCntPeer/?start=${startTS.getTime()/1000}&end=${endTS.getTime()/1000}`;
+    var anomalyPeerCnt={};
+    $.ajax({
+        url: peerCntUrl,
+        async: false,
+        dataType: 'json',
+        success: function (data) { anomalyPeerCnt=data;}
+    });
+    // console.log(anomalyPeerCnt);
+    var peerNum = Object.keys(anomalyPeerCnt);
+    // console.log(peerNum);
+    var anomalyCntPerPeer = [];
+    var perPeerCntAnomalyType = [];
+    var tmpName, tmpDrillDown, tmpVal, tmpUrl;
+    var tmpStat, tmpTypeName, tmpData;
+    for (var i=0; i<peerNum.length; i ++) {
+      tmpName = `>= ${peerNum[i]} Peers`;
+      tmpVal = anomalyPeerCnt[peerNum[i]];
+      tmpDrillDown = peerNum[i];
+      anomalyCntPerPeer.push({name: tmpName,y: tmpVal,drilldown:tmpDrillDown});
+      tmpUrl=`/locator/stat?start=${startTS.getTime()/1000}&end=${endTS.getTime()/1000}&hasPeer=${peerNum[i]}`;
+      $.ajax({
+        url: tmpUrl,
+        async: false,
+        dataType: 'json',
+        success: function (data) { tmpStat=data;}
+    });
+      console.log(tmpUrl);
+      console.log(tmpStat);
+      tmpData=[];
+      for (var typeName in tmpStat) {
+      	tmpData.push([typeName, tmpStat[typeName]]);
+      }
+      console.log(tmpData);
+      perPeerCntAnomalyType.push({name:tmpName,id:tmpDrillDown,data:tmpData})
+    }
+    console.log(anomalyCntPerPeer);
+    console.log(perPeerCntAnomalyType);
+    
+    $(htmlTag).highcharts({
+        chart: {
+            type: 'column'
+        },
+        title: {
+            text: 'Anomaly count vs # of peers used in localization'
+        },
+        subtitle: {
+            text: 'Click the columns to view anomaly types in each category.'
+        },
+        xAxis: {
+            type: 'category'
+        },
+        yAxis: {
+            title: {
+                text: 'The number of anomalies'
+            }
+
+        },
+        legend: {
+            enabled: false
+        },
+        plotOptions: {
+            series: {
+                borderWidth: 0,
+                dataLabels: {
+                    enabled: true,
+                    format: '{point.y:,.0f}'
+                }
+            }
+        },
+
+        tooltip: {
+            headerFormat: '<span style="font-size:11px">{series.name}</span><br>',
+            pointFormat: '<span style="color:{point.color}">{point.name}</span>: <b>{point.y:,.2f}</b> anomalies<br/>'
+        },
+
+        series: [{
+            name: '# of Peers',
+            colorByPoint: true,
+            data: anomalyCntPerPeer
+        }],
+        drilldown: {
+            series: perPeerCntAnomalyType
+        }
+    });
+}
+function drawStat(startTS, endTS, hasPeer, htmlTag) {
+    var url;
+    var title_str;
+    url = `/locator/stat?start=${startTS.getTime()/1000}&end=${endTS.getTime()/1000}&hasPeer=${hasPeer}`;
+    title_str = `The type of suspectable nodes responsible for anomalies located by at ${hasPeer} peer`;
+    console.log(url);
+
+    $.getJSON(url, function(json) {
+      console.log(json);
+      var type_names = Object.keys(json);
+      console.log(type_names);
+      var type_vals = [];
+      for(var d in json) type_vals.push(json[d]);
+      console.log(type_vals);
+      $(htmlTag).highcharts({
+          chart: {
+              type: 'bar'
+          },
+          title: {
+              text: title_str
+          },
+          subtitle: {
+              text: 'The number of anomalies with suspectable nodes in each type'
+          },
+          xAxis: {
+              categories: type_names,
+              title: {
+                  text: null
+              }
+          },
+          yAxis: {
+              min: 0,
+              title: {
+                  text: 'Number of anomalies',
+                  align: 'high'
+              },
+              labels: {
+                  overflow: 'justify'
+              }
+          },
+          tooltip: {
+              valueSuffix: 'Number'
+          },
+          plotOptions: {
+              bar: {
+                  dataLabels: {
+                      enabled: true
+                  }
+              }
+          },
+          legend: {
+              layout: 'vertical',
+              align: 'right',
+              verticalAlign: 'top',
+              x: -40,
+              y: 120,
+              floating: true,
+              borderWidth: 1,
+              backgroundColor: ((Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF'),
+              shadow: true
+          },
+          credits: {
+              enabled: false
+          },
+          series: [{
+              name: 'Number of Anomalies',
+              data: type_vals
+          }]
+      });
+    });
+}
+
+$('[type=submit]').click(function(e) {
+    var $startTime = $('#startTime');
+    var $duration = $('#duration');
+    var startTimeValue = $startTime.val();
+    var durationValue = $duration.val();
+    var date = new Date(startTimeValue);
+    var utcStart = new Date(Date.UTC(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+    date.getHours(),
+    date.getMinutes()));
+    var utcEnd = new Date(utcStart.getTime() + durationValue*60000);
+    $('#startTS').html(utcStart.toString());
+    $('#endTS').html(utcEnd.toString());
+    var hasPeer = 0;
+    var htmlTag='#statChartAll';
+    drawStat(utcStart, utcEnd, hasPeer, htmlTag);
+    htmlTag='#cntPeerChart';
+    drawCount(utcStart, utcEnd, htmlTag);
+});
+</script>
+</body>

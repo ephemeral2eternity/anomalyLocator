@@ -1,25 +1,25 @@
 {% if anomalies %}
-<table style="width:100%">
+<table style="width:120%">
     <tr>
 	<td>ID</td>
 	<td>Client</td>
 	<td>Server</td>
-	<td>Anomaly Graph</td>
 	<td>Normal Hops</td>
 	<td>Anomaly Hops</td>
 	<td>Time To Locate (Seconds)</td>
 	<td>Peers</td>
+	<td>Timestamp</td>
     </tr>
     {% for anomaly in anomalies %}
     <tr>
-        <td> {{ anomaly.id }} </td> 
+        <td><a href="/locator/anomalyGraph?id={{ anomaly.id }}"> {{ anomaly.id }} </a></td> 
         <td> {{ anomaly.client }} </td> 
         <td> {{ anomaly.server }} </td> 
-        <td><a href="/locator/anomalyGraph?id={{ anomaly.id }}">Show Graph</a></td> 
 	<td> {{ anomaly.normal }} </td> 
 	<td> {{ anomaly.abnormal }} </td> 
 	<td> {{ anomaly.timeToLocate }} </td> 
 	<td> {{ anomaly.peers }} </td> 
+	<td> {{ anomaly.timestamp }} </td> 
     </tr>
     {% endfor %}
 </table>
