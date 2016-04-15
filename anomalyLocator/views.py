@@ -34,7 +34,7 @@ def showEdges(request):
 
 # Show detailed info of all nodes.
 def showUpdates(request):
-	updates = Update.objects.all()
+	updates = Update.objects.all().order_by('-id')
 	template = loader.get_template('anomalyLocator/updates.html')
 	return HttpResponse(template.render({'updates':updates}, request))
 
