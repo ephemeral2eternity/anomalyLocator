@@ -38,6 +38,18 @@ def showUpdates(request):
 	template = loader.get_template('anomalyLocator/updates.html')
 	return HttpResponse(template.render({'updates':updates}, request))
 
+# Download all updates in csv files.
+def downloadUpdates(request):
+	updates = Update.objects.all()
+	response = HttpResponse(content_type='text/csv')
+	response['Content-Disposition'] = 'attachment; filename="updates.csv"'
+
+	writer = csv.writer(response)
+	writer.writerow(['timestamp', 'client', 'server', 'qoe', 'state'])
+	for update in updates:
+		writer.writerow([int(time.mktime(update.timestamp.timetuple())), update.client, update.server, update.qoe, update.state])
+	return response
+
 def drawAnomalies(request):
 	return render_to_response("anomalyLocator/anomalyIndex.html")
 

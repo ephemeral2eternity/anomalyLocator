@@ -16,6 +16,7 @@ urlpatterns = [
 	url(r'^stat$', views.anomalyStatJson, name='stat'),
 	url(r'^statGraph$', views.statGraph, name='statGraph'),
 	url(r'^download_anomalies$', views.downloadAnomaly, name='downloadAnomaly'),
+	url(r'^download_updates$', views.downloadUpdates, name='downloadUpdates'),
 	url(r'^add$', views.addRoute, name='addRoute'),
 	url(r'^exist$', views.checkRoute, name='checkRoute'),
 	url(r'^update$', views.updateRoute, name='updateRoute'),
