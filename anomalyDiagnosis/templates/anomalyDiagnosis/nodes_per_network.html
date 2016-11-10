@@ -1,0 +1,26 @@
+<h2>Show nodes in the following network</h2>
+<ul>
+    <li>Network Name: {{ network.name }}</li>
+    <li>Network AS: {{ network.ASNumber }}</li>
+    <li>Network Location: ({{ network.latitude }}, {{ network.longitude }})</li>
+    <li>Network City, Region, and Country: {{ network.city }}, {{ network.region }}, {{ network.country }}</li>
+</ul>
+{% if network.nodes %}
+<table style="width:100%">
+    <tr>
+	<td>Name</td>
+	<td>IP</td>
+	<td>Type</td>
+	<td>Latest Check</td>
+    </tr>
+    {% for node in network.nodes.all %}
+    <tr>
+        <td> {{ node.name }} </td>
+        <td> {{ node.ip }} </td>
+        <td> {{ node.type }} </td>
+        <td> {{ node.latest_check }} </td>
+    {% endfor %}
+</table>
+{% else %}
+    <p>No Nodes' obtained in the network.</p>
+{% endif %}

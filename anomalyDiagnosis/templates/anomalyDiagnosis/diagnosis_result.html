@@ -1,0 +1,17 @@
+{% if diagRst %}
+    <h2>Show diagnosis result for anomaly with id {{ diagRst.id }} and show similarity of possible causes to {{ diagRst.total }} recent anomalies </h2>
+    <table style="width:100%">
+        <tr>
+            <td>Possible Causes</td>
+            <td>Occurence in recent anomalies</td>
+        </tr>
+        {% for cause in diagRst.causes.all %}
+        <tr>
+            <td> {{ cause.descr }} </td>
+            <td> {{ cause.occurance }} </td>
+        </tr>
+        {% endfor %}
+    </table>
+{% else %}
+    <p>No anomalies have been detected.</p>
+{% endif %}

@@ -1,0 +1,23 @@
+{% if networks %}
+<table style="width:100%">
+    <tr>
+    <td>ID</td>
+	<td>Name</td>
+	<td>Type</td>
+	<td>AS</td>
+	<td>Location, City, Region, Country</td>
+    <td>Latest Update</td>
+    </tr>
+    {% for network in networks %}
+        <tr>
+        <td><a href="/diag/nodes_per_network?id={{ network.id }}"> {{ network.id }} </a></td>
+        <td> {{ network.name }} </td>
+        <td> {{ network.type }} </td>
+        <td> AS {{ network.ASNumber }} </td>
+        <td> ( {{ network.latitude }} , {{ network.longitude }} ), ({{ network.city }}, {{ network.region }}, {{ network.country }})</td>
+        <td>{{ network.updates.last.timestamp }}</td>
+    {% endfor %}
+</table>
+{% else %}
+    <p>No networks' info are available.</p>
+{% endif %}

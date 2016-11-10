@@ -1,0 +1,26 @@
+<h2>Show all available clients</h2>
+{% if clients %}
+<table style="width:100%">
+    <tr>
+        <td>Name</td>
+        <td>IP</td>
+        <td>Network ID</td>
+        <td>Server</td>
+        <td>Device</td>
+        <td>Path Length</td>
+        <td>Latest Check</td>
+    </tr>
+    {% for client in clients %}
+    <tr>
+        <td> {{ client.name }} </td>
+        <td> {{ client.ip }} </td>
+        <td> {{ client.network_id }} </td>
+        <td> {{ client.server }} </td>
+        <td> {{ client.device }} </td>
+        <td> {{ client.pathLen }} </td>
+        <td> {{ client.latest_check }} </td>
+    {% endfor %}
+</table>
+{% else %}
+    <p>No clients reported to the agent.</p>
+{% endif %}

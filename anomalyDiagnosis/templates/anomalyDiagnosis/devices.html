@@ -1,0 +1,22 @@
+{% if devices %}
+<table style="width:100%">
+    <tr>
+        <td>Device Info ID</td>
+        <td>Device Type</td>
+        <td>Device OS</td>
+        <td>Device Browser</td>
+        <td>Device Player Version</td>
+    </tr>
+    {% for device in devices %}
+    <tr>
+        <td> {{ device.id }} </td>
+        <td> {{ device.device }} </td>
+        <td> {{ device.os }} </td>
+        <td> {{ device.browser }} </td>
+        <td> {{ device.player }} </td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+    <p>No updates have been reported in the Update Table.</p>
+{% endif %}

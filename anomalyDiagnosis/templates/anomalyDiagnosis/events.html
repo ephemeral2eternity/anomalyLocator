@@ -1,0 +1,22 @@
+{% if events %}
+<table style="width:100%">
+    <tr>
+        <td>Event ID</td>
+        <td>Event Type</td>
+        <td>Value before Event</td>
+        <td>Value after Event</td>
+        <td>Timestamp</td>
+    </tr>
+    {% for event in events %}
+    <tr>
+        <td> {{ event.id }} </td>
+        <td> {{ event.type }} </td>
+        <td> {{ event.prevVal }} </td>
+        <td> {{ event.curVal }} </td>
+        <td> {{ event.timestamp }} </td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+    <p>No events have been reported.</p>
+{% endif %}

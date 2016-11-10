@@ -1,0 +1,22 @@
+{% if updates %}
+<table style="width:100%">
+    <tr>
+        <td>Update ID</td>
+        <td>Client IP</td>
+        <td>Server IP</td>
+        <td>QoE</td>
+        <td>Timestamp</td>
+    </tr>
+    {% for update in updates %}
+    <tr>
+        <td> {{ update.id }} </td>
+        <td> {{ update.client_ip }} </td>
+        <td> {{ update.server_ip }} </td>
+        <td> {{ update.qoe }} </td>
+        <td> {{ update.timestamp }} </td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+    <p>No updates have been reported in the Update Table.</p>
+{% endif %}

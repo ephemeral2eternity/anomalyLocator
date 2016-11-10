@@ -1,0 +1,22 @@
+{% if anomalies %}
+<table style="width:100%">
+    <tr>
+        <td>Anomaly ID</td>
+        <td>Anomaly Type</td>
+        <td>Client reporting Anomaly</td>
+        <td>Server in the video session</td>
+        <td>Anomaly Timestamp</td>
+    </tr>
+    {% for anomaly in anomalies %}
+    <tr>
+        <td><a href="/diag/show_diag_result?id={{ anomaly.id }}">  {{ anomaly.id }} </a></td>
+        <td> {{ anomaly.type }} </td>
+        <td> {{ anomaly.client }} </td>
+        <td> {{ anomaly.server }} </td>
+        <td> {{ anomaly.timestamp }} </td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+    <p>No anomalies have been detected.</p>
+{% endif %}

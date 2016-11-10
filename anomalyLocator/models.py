@@ -43,8 +43,8 @@ class Client(models.Model):
 	latest_update = models.DateTimeField(auto_now=True)
 	
 	class Meta:
-        	index_together = ["ip", "server"]
-        	unique_together = ("ip", "server")
+		index_together = ["ip", "server"]
+		unique_together = ("ip", "server")
 	
 	def __str__(self):
 		return str(self.name + ", " + self.ip + ", " + self.server + ", " + self.ISP)
@@ -55,7 +55,7 @@ class Hop(models.Model):
 	hopID =  models.PositiveIntegerField()
 	
 	def __str__(self):
-		return client.name + ": " + str(hopID) + ", " + node.name
+		return self.client.name + ": " + str(self.hopID) + ", " + self.node.name
 
 
 class Edge(models.Model):
@@ -64,7 +64,7 @@ class Edge(models.Model):
 	latest_check = models.DateTimeField(auto_now=True)
 	
 	class Meta:
-        	unique_together = ["src", "dst"]
+		unique_together = ["src", "dst"]
 	
 	def __str__(self):
 		return str(self.src.ip + "---" + self.dst.ip)

@@ -19,4 +19,5 @@ from django.contrib import admin
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^locator/', include('anomalyLocator.urls')),
+    url(r'^diag/', include('anomalyDiagnosis.urls')),
 ]
