@@ -42,6 +42,10 @@ def label_suspects(client_ip, server_ip, qoe, anomalyType):
     try:
         client = Client.objects.get(ip=client_ip)
         server = client.server
+        for et in client.events.all():
+            anomaly.suspect_events.add(et)
+        anomaly.suspect_path_length = client.pathLen
+        anomaly.save()
         try:
             latest_server_update = server.updates.latest(field_name='timestamp')
             latest_server_update_ts = time.mktime(latest_server_update.timestamp.timetuple())
@@ -60,7 +64,6 @@ def label_suspects(client_ip, server_ip, qoe, anomalyType):
                 anomaly.suspect_deviceInfo = device
         except:
             anomaly.suspect_deviceInfo = device
-        anomaly.save()
 
         # Label suspect network attribute to the anomaly
         for network in client.route_networks.all():
@@ -70,10 +73,6 @@ def label_suspects(client_ip, server_ip, qoe, anomalyType):
                     anomaly.suspect_networks.add(network)
             except:
                 anomaly.suspect_networks.add(network)
-
-        for et in client.events.all():
-            anomaly.suspect_events.add(et)
-        anomaly.suspect_path_length = client.pathLen
     except:
         print("Cannot get the client %s object" % client_ip)
 
@@ -120,7 +119,7 @@ def diagnose(anomaly):
                 if et in recent_anomaly.suspect_events.all():
                     diagRst[str(et)] += 1
 
-        if (anomaly.suspect_path_length >= recent_anomaly.suspect_path_length):
+        if (anomaly.suspect_path_length <= recent_anomaly.suspect_path_length):
             diagRst["Route Length: " + str(anomaly.suspect_path_length)] += 1
 
     return (total, diagRst)
