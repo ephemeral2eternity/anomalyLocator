@@ -7,6 +7,7 @@ from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.utils import timezone
 from django.db import transaction
 import json
+import socket
 import csv
 import time
 from datetime import date, datetime, timedelta
@@ -15,8 +16,14 @@ import urllib
 
 # Show detailed info of all clients connecting to this agent.
 def index(request):
-    networks = Network.objects.all()
+    hostname = socket.gethostname()
+    ip = get_exp_ip()
     template = loader.get_template('anomalyDiagnosis/index.html')
+    return HttpResponse(template.render({'name': hostname, 'ip': ip}, request))
+
+def showNetworks(request):
+    networks = Network.objects.all()
+    template = loader.get_template('anomalyDiagnosis/networks.html')
     return HttpResponse(template.render({'networks': networks}, request))
 
 def showClients(request):
@@ -86,7 +93,7 @@ def showAnomalies(request):
     template = loader.get_template('anomalyDiagnosis/anomalies.html')
     return HttpResponse(template.render({'anomalies': anomalies}, request))
 
-def showDiagnosisResult(request):
+def getDiagnosisResult(request):
     url = request.get_full_path()
     params = url.split('?')[1]
     request_dict = urllib.parse.parse_qs(params)
@@ -97,6 +104,27 @@ def showDiagnosisResult(request):
         diagRst = Network.objects.last()
     template = loader.get_template('anomalyDiagnosis/diagnosis_result.html')
     return HttpResponse(template.render({'diagRst': diagRst}, request))
+
+def dumpAnomalies(request):
+    anomalies_json = {}
+    anomalies = Anomaly.objects.all()
+    for anomaly in anomalies:
+        diag_result = Diagnosis.objects.get(id=anomaly.id)
+        anomalies_json[anomaly.id] = {"type": anomaly.type, "client": anomaly.client, "server": anomaly.server,
+                                      "qoe": "{:.4f}".format(anomaly.qoe), "timestamp": anomaly.timestamp.timestamp()}
+        anomalies_json[anomaly.id]["causes"] = {}
+        total_anomalies = diag_result.total
+        for cause in diag_result.causes.all():
+            anomalies_json[anomaly.id]["causes"][cause.descr] = "{:.4f}".format(cause.occurance / float(total_anomalies))
+
+    output_filename = "anomalies.json"
+    response = HttpResponse(content_type='application/json')
+    response['Content-Disposition'] = 'attachment; filename=' + output_filename
+    json.dump(anomalies_json, response, indent=4, sort_keys=True)
+
+    Diagnosis.objects.all().delete()
+    Anomaly.objects.all().delete()
+    return response
 
 # Add the hops in the Client's route and get the client's route networks, server, and device info.
 @csrf_exempt
@@ -182,6 +210,8 @@ def addRoute(request):
         client.save()
 
         ## Client add route
+        client.route.clear()
+        client.route_networks.clear()
         hop_id = 0
         first_hop = Hop(client=client, node=client_node, hopID=hop_id)
         first_hop.save()

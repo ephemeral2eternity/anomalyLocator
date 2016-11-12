@@ -329,7 +329,7 @@ def checkRoute(request):
     url = request.get_full_path()
     params = url.split('?')[1]
     request_dict = urllib.parse.parse_qs(params)
-    # print(request_dict.keys())
+    # print(request_dict.keys()F)
     client_info = {}
     if ('client' in request_dict.keys()) and ('server' in request_dict.keys()):
         try:

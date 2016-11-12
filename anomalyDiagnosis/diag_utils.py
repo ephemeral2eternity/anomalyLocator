@@ -2,8 +2,14 @@
 # By Chen Wang, March 4, 2016
 import datetime
 import time
+import socket
 from anomalyDiagnosis.models import Client, Anomaly, Network, Server, DeviceInfo, Update, Event
 from anomalyDiagnosis.thresholds import *
+
+def get_exp_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(('google.com', 0))
+    return s.getsockname()[0]
 
 def update_attributes(client_ip, update):
     isUpdated = False
@@ -39,13 +45,18 @@ def add_event(client_ip, event_dict):
 def label_suspects(client_ip, server_ip, qoe, anomalyType):
     anomaly = Anomaly(type=anomalyType, client=client_ip, server=server_ip, qoe=qoe)
     curTS = time.mktime(datetime.datetime.utcnow().timetuple())
+    anomaly.save()
     try:
         client = Client.objects.get(ip=client_ip)
         server = client.server
-        for et in client.events.all():
-            anomaly.suspect_events.add(et)
+        try:
+            et = client.events.latest(field_name='timestamp')
+            latest_event_ts = time.mktime(et.timestamp.timetuple())
+            if curTS - latest_event_ts < event_suspect_th:
+                anomaly.suspect_events.add(et)
+        except:
+            print("No recent events that might be the cause of the anomaly!")
         anomaly.suspect_path_length = client.pathLen
-        anomaly.save()
         try:
             latest_server_update = server.updates.latest(field_name='timestamp')
             latest_server_update_ts = time.mktime(latest_server_update.timestamp.timetuple())
@@ -119,7 +130,7 @@ def diagnose(anomaly):
                 if et in recent_anomaly.suspect_events.all():
                     diagRst[str(et)] += 1
 
-        if (anomaly.suspect_path_length <= recent_anomaly.suspect_path_length):
+        if (anomaly.suspect_path_length > recent_anomaly.suspect_path_length):
             diagRst["Route Length: " + str(anomaly.suspect_path_length)] += 1
 
     return (total, diagRst)

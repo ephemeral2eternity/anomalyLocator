@@ -8,3 +8,6 @@ device_suspect_th = 3600    # 1 hour
 
 # Define the threshold for QoE anomaly diagnosis
 diagnosis_time_window_minutes = 10
+
+# Define the time window for an event to be suspectable
+event_suspect_th = 600
