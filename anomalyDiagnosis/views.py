@@ -294,7 +294,7 @@ def addRoute(request):
         client.save()
         # time_elapsed = time.time() - start_time
         # print("3. The total time to process an add route request is : " + str(time_elapsed) + " seconds!")
-        return index(request)
+        return HttpResponse("Add successfully!")
     else:
         return HttpResponse(
             "Please use the POST method for http://locator_ip/diag/add request to add new info for a client!")
