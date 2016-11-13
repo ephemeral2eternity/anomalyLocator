@@ -13,7 +13,7 @@
         <td> {{ node.name }} </td>
         <td> {{ node.ip }} </td>
         <td> {{ node.type }} </td>
-        <td><a href="/diag/get_network$?id={{ node.network_id }}"> Click to show its network {{ node.network_id }} </a></td>
+        <td><a href="/diag/get_network?id={{ node.network_id }}"> Click to show its network {{ node.network_id }} </a></td>
         <td> {{ node.latest_check }} </td>
     {% endfor %}
 </table>
