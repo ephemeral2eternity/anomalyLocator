@@ -9,7 +9,7 @@
     </tr>
     {% for anomaly in anomalies %}
     <tr>
-        <td><a href="/diag/show_diag_result?id={{ anomaly.id }}">  {{ anomaly.id }} </a></td>
+        <td><a href="/diag/get_diag_result?id={{ anomaly.id }}">  {{ anomaly.id }} </a></td>
         <td> {{ anomaly.type }} </td>
         <td> {{ anomaly.client }} </td>
         <td> {{ anomaly.server }} </td>
