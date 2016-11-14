@@ -1223,7 +1223,7 @@ codename</columns>
     </column>
     <column id="284" parent="33" name="username">
       <mandatory>1</mandatory>
-      <data-type>VARCHAR(30)(0,-1)|12</data-type>
+      <data-type>VARCHAR(150)(0,-1)|12</data-type>
     </column>
     <index id="285" parent="33" name="sqlite_autoindex_auth_user_1">
       <name-surrogate>1</name-surrogate>

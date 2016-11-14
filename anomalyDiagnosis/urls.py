@@ -1,4 +1,4 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 from anomalyDiagnosis import views
 
 urlpatterns = [
@@ -19,4 +19,6 @@ urlpatterns = [
 	url(r'^show_anomalies', views.showAnomalies, name='showAnomalies'),
 	url(r'^get_diag_result', views.getDiagnosisResult, name='getDiagnosisResult'),
 	url(r'^dump_anomalies', views.dumpAnomalies, name='dumpAnomalies'),
+	url(r'^delete_anomalies', views.deleteAnomalies, name='deleteAnomalies'),
+	url(r'^edit_network', views.editNetwork, name='editNetwork'),
 ]

@@ -37,24 +37,52 @@ def showServers(request):
     return HttpResponse(template.render({'servers': servers}, request))
 
 def getNetwork(request):
-    network_dict = {}
+    # network_dict = {}
     url = request.get_full_path()
     params = url.split('?')[1]
     request_dict = urllib.parse.parse_qs(params)
     if ('id' in request_dict.keys()):
         network_id = int(request_dict['id'][0])
         network = Network.objects.get(id=network_id)
-        network_dict['type'] = network.type
-        network_dict['name'] = network.name
-        network_dict['as'] = network.ASNumber
-        network_dict['latitude'] = network.latitude
-        network_dict['longitude'] = network.longitude
-        network_dict['city'] = network.city
-        network_dict['region'] = network.region
-        network_dict['country'] = network.country
-        network_dict['latest_update'] = str(network.updates.latest('timestamp'))
+        # network_dict['type'] = network.type
+        # network_dict['name'] = network.name
+        # network_dict['as'] = network.ASNumber
+        # network_dict['latitude'] = network.latitude
+        # network_dict['longitude'] = network.longitude
+        # network_dict['city'] = network.city
+        # network_dict['region'] = network.region
+        # network_dict['country'] = network.country
+        # network_dict['latest_update'] = str(network.updates.latest('timestamp'))
 
-    return JsonResponse(network_dict)
+    template = loader.get_template('anomalyDiagnosis/network.html')
+    return HttpResponse(template.render({'network': network}, request))
+
+@csrf_exempt
+def editNetwork(request):
+    url = request.get_full_path()
+    params = url.split('?')[1]
+    request_dict = urllib.parse.parse_qs(params)
+    if ('id' in request_dict.keys()):
+        network_id = int(request_dict['id'][0])
+        network = Network.objects.get(id=network_id)
+        if request.method == "POST":
+            network_info = request.POST.dict()
+            print(network_info)
+            network = Network.objects.get(id=network_id)
+            network.isp = network_info['isp']
+            network.ASNumber = int(network_info['asn'])
+            network.city = network_info['city']
+            network.region = network_info['region']
+            network.country = network_info['country']
+            network.save()
+            template = loader.get_template('anomalyDiagnosis/network.html')
+            return HttpResponse(template.render({'network':network}, request))
+        else:
+            template = loader.get_template('anomalyDiagnosis/edit_network.html')
+            return HttpResponse(template.render({'network':network}, request))
+    else:
+        return HttpResponse("Wrong network id denoted!")
+
 
 def showNodesPerNetwork(request):
     url = request.get_full_path()
@@ -121,10 +149,12 @@ def dumpAnomalies(request):
     response = HttpResponse(content_type='application/json')
     response['Content-Disposition'] = 'attachment; filename=' + output_filename
     json.dump(anomalies_json, response, indent=4, sort_keys=True)
+    return response
 
+def deleteAnomalies(request):
     Diagnosis.objects.all().delete()
     Anomaly.objects.all().delete()
-    return response
+    return showAnomalies(request)
 
 # Add the hops in the Client's route and get the client's route networks, server, and device info.
 @csrf_exempt

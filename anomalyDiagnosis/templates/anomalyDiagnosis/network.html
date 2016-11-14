@@ -1,0 +1,17 @@
+{% if network %}
+<ul>
+    <li>Network ID: {{ network.id }}</li>
+    <li>Network Name: {{ network.name }}</li>
+    <li>Network Type: {{ network.type }}</li>
+    <li>Network AS #: {{ network.ASNumber }}</li>
+    <li>Network location: ({{ network.latitude }}, {{ network.longitude }})</li>
+	<li>City: {{ network.city }}</li>
+	<li>Region: {{ network.region }}</li>
+	<li>Country: {{ network.country }}</li>
+</ul>
+{% else %}
+    <p>No network information denoted by {{ networkID }}.</p>
+{% endif %}
+<div>
+    <a href="/diag/edit_network?id={{ network.id }}">Edit</a>
+</div>
