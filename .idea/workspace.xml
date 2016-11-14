@@ -2,16 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d01fb9b1-0ac8-43b1-8f96-d2ba906f5d41" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/edit_network.html" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/network.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/dataSources/2c678b4f-4941-4cb9-bf4f-3035a8e03eee.xml" afterPath="$PROJECT_DIR$/.idea/dataSources/2c678b4f-4941-4cb9-bf4f-3035a8e03eee.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/networks.html" afterPath="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/networks.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/anomalyDiagnosis/urls.py" afterPath="$PROJECT_DIR$/anomalyDiagnosis/urls.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/anomalyDiagnosis/views.py" afterPath="$PROJECT_DIR$/anomalyDiagnosis/views.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/anomalyLocator/urls.py" afterPath="$PROJECT_DIR$/anomalyLocator/urls.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/locator/settings.py" afterPath="$PROJECT_DIR$/locator/settings.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/locator/urls.py" afterPath="$PROJECT_DIR$/locator/urls.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/index.html" afterPath="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/index.html" />
     </list>
     <ignored path="anomalyLocator.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -59,11 +50,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="views.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="views.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/views.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="255">
-              <caret line="153" column="29" selection-start-line="153" selection-start-column="29" selection-end-line="153" selection-end-column="29" />
+            <state relative-caret-position="2567">
+              <caret line="151" column="19" selection-start-line="151" selection-start-column="19" selection-end-line="151" selection-end-column="19" />
               <folding>
                 <element signature="e#0#35#0" expanded="true" />
               </folding>
@@ -123,6 +114,16 @@
           </provider>
         </entry>
       </file>
+      <file leaf-file-name="index.html" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/index.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="187">
+              <caret line="11" column="63" selection-start-line="11" selection-start-column="63" selection-end-line="11" selection-end-column="63" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
     </leaf>
   </component>
   <component name="FileTemplateManagerImpl">
@@ -152,7 +153,6 @@
         <option value="$PROJECT_DIR$/anomalyLocator/views.py" />
         <option value="$PROJECT_DIR$/anomalyDiagnosis/models.py" />
         <option value="$PROJECT_DIR$/anomalyDiagnosis/diag_utils.py" />
-        <option value="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/index.html" />
         <option value="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/anomalies.html" />
         <option value="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/nodes.html" />
         <option value="$PROJECT_DIR$/anomalyLocator/urls.py" />
@@ -164,6 +164,7 @@
         <option value="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/networks.html" />
         <option value="$PROJECT_DIR$/anomalyDiagnosis/views.py" />
         <option value="$PROJECT_DIR$/anomalyDiagnosis/urls.py" />
+        <option value="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/index.html" />
       </list>
     </option>
   </component>
@@ -174,8 +175,7 @@
     <sorting>DEFINITION_ORDER</sorting>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="-8" />
-    <option name="y" value="-8" />
+    <option name="x" value="6" />
     <option name="width" value="1616" />
     <option name="height" value="876" />
   </component>
@@ -281,6 +281,10 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="templates" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="anomalyDiagnosis" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -666,10 +670,10 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1616" height="876" extended-state="6" />
-    <editor active="false" />
+    <frame x="6" y="0" width="1616" height="876" extended-state="0" />
+    <editor active="true" />
     <layout>
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.20667523" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.20667523" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32977462" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3991655" sideWeight="0.3979461" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -964,14 +968,6 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/anomalies.json" />
-    <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="258">
-          <caret line="23" column="61" selection-start-line="23" selection-start-column="61" selection-end-line="23" selection-end-column="61" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/models.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="629">
@@ -1122,11 +1118,19 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/views.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="255">
-          <caret line="153" column="29" selection-start-line="153" selection-start-column="29" selection-end-line="153" selection-end-column="29" />
+        <state relative-caret-position="2567">
+          <caret line="151" column="19" selection-start-line="151" selection-start-column="19" selection-end-line="151" selection-end-column="19" />
           <folding>
             <element signature="e#0#35#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="187">
+          <caret line="11" column="63" selection-start-line="11" selection-start-column="63" selection-end-line="11" selection-end-column="63" />
+          <folding />
         </state>
       </provider>
     </entry>

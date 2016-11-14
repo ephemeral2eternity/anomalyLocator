@@ -11,12 +11,16 @@
     <li><a href="/diag/show_updates">Show all updates that have been sent to current cloud agent</a></li>
     <li><a href="/diag/show_events">Show all events that have been reported to current cloud agent</a></li>
     <li><a href="/diag/show_anomalies">Show all anomalies that have been detected on clients and diagnosed on current cloud agent</a></li>
+    <li><a href="/diag/dump_anomalies">Dump all anomalies and their diagnosis results in a json file named, "anomalies.json"</a></li>
+    <li><a href="/diag/delete_anomalies">Delete all anomalies in the database</a></li>
 </ul>
 <br>
 <h2>Following APIs are called to show details of a particular variable</h2>
 <ul>
     <li>http://{{ ip }}/diag/get_network?id=network_id</li>
     Get the details of the network information by its ID.
+    <li>http://{{ ip }}/diag/edit_network?id=network_id</li>
+    Edit the network information.
     <li>http://{{ ip }}/diag/get_diag_result?id=anomaly_id</li>
     Get the details of diagnosis results for QoE anomaly with ID.
 </ul>
