@@ -68,7 +68,6 @@ def editNetwork(request):
         if request.method == "POST":
             network_info = request.POST.dict()
             print(network_info)
-            network = Network.objects.get(id=network_id)
             network.isp = network_info['isp']
             network.ASNumber = int(network_info['asn'])
             network.city = network_info['city']
