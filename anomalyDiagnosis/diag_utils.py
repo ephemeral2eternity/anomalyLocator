@@ -113,9 +113,9 @@ def diagnose(anomaly):
     if (anomaly.suspect_path_length > long_route_th):
         diagRst["Route Length: " + str(anomaly.suspect_path_length)] = 1
 
-    latest_anomaly_time = anomaly.timestamp
+    latest_anomaly_time = anomaly.timestamp - datetime.timedelta(milliseconds=1)
     time_window_start = latest_anomaly_time - datetime.timedelta(minutes=diagnosis_time_window_minutes)
-    recent_anomalies = Anomaly.objects.filter(timestamp__range=(time_window_start, latest_anomaly_time - 0.01))
+    recent_anomalies = Anomaly.objects.filter(timestamp__range=(time_window_start, latest_anomaly_time))
     total = recent_anomalies.count() + 1
     for recent_anomaly in recent_anomalies.all():
         if anomaly.suspect_server:
