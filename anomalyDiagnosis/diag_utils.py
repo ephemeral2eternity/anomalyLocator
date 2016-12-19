@@ -111,7 +111,7 @@ def diagnose(anomaly):
     long_route_th = 12
 
     if (anomaly.suspect_path_length > long_route_th):
-        diagRst["Route Length: " + str(anomaly.suspect_path_length)] = 1
+        diagRst["Long route " + str(anomaly.suspect_path_length)] = 1
 
     latest_anomaly_time = anomaly.timestamp - datetime.timedelta(milliseconds=1)
     time_window_start = latest_anomaly_time - datetime.timedelta(minutes=diagnosis_time_window_minutes)
@@ -133,6 +133,9 @@ def diagnose(anomaly):
             for et in anomaly.suspect_events.all():
                 if et in recent_anomaly.suspect_events.all():
                     diagRst[str(et)] += 1
+
+        if (recent_anomaly.suspect_path_length > long_route_th):
+            diagRst["Long route " + str(anomaly.suspect_path_length)] += 1
 
 
     return (total, diagRst)
