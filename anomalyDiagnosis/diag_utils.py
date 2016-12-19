@@ -94,18 +94,18 @@ def diagnose(anomaly):
     diagRst = {}
 
     if anomaly.suspect_server:
-        diagRst[str(anomaly.suspect_server)] = 0
+        diagRst[str(anomaly.suspect_server)] = 1
 
     if anomaly.suspect_deviceInfo:
-        diagRst[str(anomaly.suspect_deviceInfo)] = 0
+        diagRst[str(anomaly.suspect_deviceInfo)] = 1
 
     if anomaly.suspect_networks:
         for nt in anomaly.suspect_networks.all():
-            diagRst[str(nt)] = 0
+            diagRst[str(nt)] = 1
 
     if anomaly.suspect_events:
         for et in anomaly.suspect_events.all():
-            diagRst[str(et)] = 0
+            diagRst[str(et)] = 1
 
     # diagRst["Route Length: " + str(anomaly.suspect_path_length)] = 0
     long_route_th = 12
@@ -115,8 +115,8 @@ def diagnose(anomaly):
 
     latest_anomaly_time = anomaly.timestamp
     time_window_start = latest_anomaly_time - datetime.timedelta(minutes=diagnosis_time_window_minutes)
-    recent_anomalies = Anomaly.objects.filter(timestamp__range=(time_window_start, latest_anomaly_time))
-    total = recent_anomalies.count()
+    recent_anomalies = Anomaly.objects.filter(timestamp__range=(time_window_start, latest_anomaly_time - 0.01))
+    total = recent_anomalies.count() + 1
     for recent_anomaly in recent_anomalies.all():
         if anomaly.suspect_server:
             if (anomaly.suspect_server == recent_anomaly.suspect_server):
