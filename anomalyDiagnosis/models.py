@@ -8,7 +8,7 @@ class Event(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return str("[ Event: " + self.type + "]" +self.prevVal + " ---> " + str(self.curVal))
+        return str("[" + self.type + "]" +self.prevVal + " ---> " + str(self.curVal))
 
     class Meta:
         ordering = ('timestamp', )
@@ -51,7 +51,7 @@ class Network(models.Model):
     country = models.CharField(max_length=100, default="")
 
     def __str__(self):
-        return "Network " + str(self.id) + " AS " + str(self.ASNumber) + " at (" + str(self.latitude) + ", " + str(self.longitude) + ")"
+        return self.type + ":AS " + str(self.ASNumber) + "@(" + str(self.latitude) + ", " + str(self.longitude) + ")"
 
     class Meta:
         index_together = ["ASNumber", "latitude", "longitude"]
@@ -74,7 +74,7 @@ class Server(models.Model):
     updates = models.ManyToManyField(Update, blank=True)
 
     def __str__(self):
-        return "Server: " + self.ip + "(" + self.name + ")"
+        return self.ip + "(" + self.name + ")"
 
 # Client class defines all events, server, route and path for a client's video session
 class Client(models.Model):
