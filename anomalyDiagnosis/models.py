@@ -121,7 +121,6 @@ class Anomaly(models.Model):
     suspect_networks = models.ManyToManyField(Network)
     suspect_deviceInfo = models.ForeignKey(DeviceInfo, blank=True, null=True)
     suspect_server = models.ForeignKey(Server, blank=True, null=True)
-    suspect_server = models.ForeignKey(Server, blank=True, null=True)
     suspect_events = models.ManyToManyField(Event)
     suspect_path_length = models.IntegerField(default=-1)
     timestamp = models.DateTimeField(auto_now_add=True)
