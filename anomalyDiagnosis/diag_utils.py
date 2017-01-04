@@ -3,7 +3,7 @@
 import datetime
 import time
 import socket
-from anomalyDiagnosis.models import Client, Anomaly, Network, Server, DeviceInfo, Update, Event
+from anomalyDiagnosis.models import Node, User, Session, Event, Anomaly, Status, Path
 from anomalyDiagnosis.thresholds import *
 
 def get_exp_ip():
@@ -11,37 +11,56 @@ def get_exp_ip():
     s.connect(('google.com', 0))
     return s.getsockname()[0]
 
-def update_attributes(client_ip, update):
+def update_attributes(client_ip, server_ip, update):
     isUpdated = False
+
     try:
-        client = Client.objects.get(ip=client_ip)
-        client.server.updates.add(update)
-        for network in client.route_networks.all():
+        user = User.objects.get(ip=client_ip)
+        if user.device:
+            user.device.updates.add(update)
+            user.device.save()
+
+        if user.server:
+            user.server.updates.add(update)
+            user.server.save()
+        user.save()
+
+        user_updated = True
+        print("Successfully update user with " + client_ip)
+    except:
+        user_updated = False
+        print("Cannot obtain user with ip: " + client_ip)
+
+    try:
+        session = Session.objects.get(client_ip=client_ip, server_ip=server_ip)
+        for network in session.sub_networks.all():
             network.updates.add(update)
             network.save()
-        client.device.updates.add(update)
-        client.save()
-        isUpdated = True
-        print("Successfully update the client's attribute!")
-    except:
-        print("Failed to update the client's attribute!")
 
-    return isUpdated
+        session.save()
+        session_updated = True
+        print("Successfully send update for session: "+ client_ip + "<--->" + server_ip)
+    except:
+        session_updated = False
+        print("Failed to send update for session: " + client_ip + "<--->" + server_ip)
+
+    return (user_updated and session_updated)
 
 def add_event(client_ip, event_dict):
-    isAdded = False
     try:
-        client = Client.objects.get(ip=client_ip)
+        user = User.objects.get(ip=client_ip)
         event = Event(type=event_dict['type'], prevVal=event_dict['prevVal'], curVal=event_dict['curVal'])
         event.save()
-        client.events.add(event)
-        client.save()
+        user.events.add(event)
+        user.save()
         isAdded = True
     except:
+        isAdded = False
         print("Failed to add the client: %s with event %s!" % (client_ip, event_dict['type']))
 
     return isAdded
 
+'''
 def label_suspects(client_ip, server_ip, qoe, anomalyType):
     anomaly = Anomaly(type=anomalyType, client=client_ip, server=server_ip, qoe=qoe)
     curTS = time.mktime(datetime.datetime.utcnow().timetuple())
@@ -89,53 +108,97 @@ def label_suspects(client_ip, server_ip, qoe, anomalyType):
 
     anomaly.save()
     return anomaly
+'''
 
-def diagnose(anomaly):
+def check_status(updates):
+    if updates.count() == 0:
+        return 1
+    else:
+        poor_update_cnt = 0
+        for update in updates.all():
+            if not update.satisfied:
+                poor_update_cnt += 1
+        health = float(poor_update_cnt) / updates.count()
+        return health
+
+def check_path_length(curPathLength, cur_time):
+    ## Long path issues
+    path_time_window_start = cur_time - datetime.timedelta(hours=path_time_window)
+    all_paths = Path.objects.filter(timestamp__range=(path_time_window_start, cur_time))
+    ordered_paths = all_paths.order_by('-length')
+
+    rank = 0
+    for tmp_path in ordered_paths.all():
+        if tmp_path.length > curPathLength:
+            rank += 1
+        else:
+            break
+
+    long_path_issue = 1 - float(rank)/all_paths.count()
+    return long_path_issue
+
+
+def diagnose(client_ip, server_ip, qoe, anomalyTyp):
     diagRst = {}
+    try:
+        user = User.objects.get(ip=client_ip)
+    except:
+        diagRst['error'] = "No user with " + client_ip + " in database!"
+        return diagRst
 
-    if anomaly.suspect_server:
-        diagRst[str(anomaly.suspect_server)] = 1
+    try:
+        session = Session.objects.get(client_ip=client_ip, server_ip=server_ip)
+    except:
+        diagRst['error'] = "No session " + client_ip + "<--->" + server_ip + " in database!"
+        return diagRst
 
-    if anomaly.suspect_deviceInfo:
-        diagRst[str(anomaly.suspect_deviceInfo)] = 1
+    anomaly = Anomaly(user_id=user.id, session_id=session.id, qoe=qoe, anomalyType=anomalyTyp)
 
-    if anomaly.suspect_networks:
-        for nt in anomaly.suspect_networks.all():
-            diagRst[str(nt)] = 1
+    element_status = {}
+    cur_time = time.time()
 
-    if anomaly.suspect_events:
-        for et in anomaly.suspect_events.all():
-            diagRst[str(et)] = 1
+    ## Check device health status
+    device_time_window_start = cur_time - datetime.timedelta(minutes=device_time_window)
+    device_health = check_status(user.device.updates.filter(timestamp__range=(device_time_window_start, cur_time)))
+    device_health_status = Status(component_id="device_" + str(user.device.id), health=device_health)
+    device_health_status.save()
+    element_status["device_" + str(user.device.id)] = device_health
+    anomaly.element_health.add(device_health_status)
 
-    # diagRst["Route Length: " + str(anomaly.suspect_path_length)] = 0
-    long_route_th = 12
+    ## Check network health status
+    network_time_window_start = cur_time - datetime.timedelta(minutes=network_time_window)
+    for network in session.sub_networks.all():
+        network_health = check_status(network.updates.filter(timestamp__range=(network_time_window_start, cur_time)))
+        network_health_status = Status(component_id="network_" + str(network.id), health=network_health)
+        network_health_status.save()
+        element_status["network_" + str(network.id)] = network_health
+        anomaly.element_health.add(network_health_status)
 
-    if (anomaly.suspect_path_length > long_route_th):
-        diagRst["Long route " + str(anomaly.suspect_path_length)] = 1
+    ## Check server health status
+    server_time_window_start = cur_time - datetime.timedelta(minutes=server_time_window)
+    server_health = check_status(user.server.updates.filter(timestamp__range=(server_time_window_start, cur_time)))
+    server_health_status = Status(component_id="server_" + str(user.server.id), health=server_health)
+    server_health_status.save()
+    element_status["server_" + str(user.server.id)] = server_health
+    anomaly.element_health.add(server_health_status)
 
-    latest_anomaly_time = anomaly.timestamp - datetime.timedelta(milliseconds=1)
-    time_window_start = latest_anomaly_time - datetime.timedelta(minutes=diagnosis_time_window_minutes)
-    recent_anomalies = Anomaly.objects.filter(timestamp__range=(time_window_start, latest_anomaly_time))
-    total = recent_anomalies.count() + 1
-    for recent_anomaly in recent_anomalies.all():
-        if anomaly.suspect_server:
-            if (anomaly.suspect_server == recent_anomaly.suspect_server):
-                diagRst[str(anomaly.suspect_server)] += 1
-        if anomaly.suspect_deviceInfo:
-            if (anomaly.suspect_deviceInfo == recent_anomaly.suspect_deviceInfo):
-                diagRst[str(anomaly.suspect_deviceInfo)] += 1
-        if anomaly.suspect_networks:
-            for nt in anomaly.suspect_networks.all():
-                if nt in recent_anomaly.suspect_networks.all():
-                    diagRst[str(nt)] += 1
+    ## Check event proximity
+    event_time_window_start = cur_time - datetime.timedelta(minutes=event_time_window)
+    for event in user.events.filter(timestamp__range=(event_time_window_start, cur_time)).all():
+        proximity = 1 - (cur_time - event.timestamp.time())/float(event_time_window*60)
+        element_status["event_" + str(event.id)] = proximity
+        event_proximity_status = Status(component_id="event_" + str(event.id), health=proximity)
+        event_proximity_status.save()
+        anomaly.element_health.add(event_proximity_status)
 
-        if anomaly.suspect_events:
-            for et in anomaly.suspect_events.all():
-                if et in recent_anomaly.suspect_events.all():
-                    diagRst[str(et)] += 1
+    long_path = check_path_length(session.path.length, cur_time)
+    element_status["path_" + str(session.path.length)] = long_path
+    long_path_status = Status(component_id="path_" + str(session.path.length), health=long_path)
+    anomaly.element_health.add(long_path_status)
 
-        if (recent_anomaly.suspect_path_length > long_route_th):
-            diagRst["Long route " + str(anomaly.suspect_path_length)] += 1
-
-
-    return (total, diagRst)
+    time_to_diagnose = time.time() - cur_time
+    anomaly.timeToDiagnose = time_to_diagnose
+    anomaly.save()
+    diagRst['causes'] = element_status
+    diagRst['duration'] = time_to_diagnose
+    return diagRst

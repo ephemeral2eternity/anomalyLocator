@@ -1,0 +1,40 @@
+<h2>Show all available users</h2>
+{% if users %}
+<table style="width:100%">
+    <tr>
+        <td>User Name</td>
+        <td>User IP</td>
+        <td>User Network ID</td>
+        <td>Device</td>
+        <td>Latest Check</td>
+        <td>Events<td>
+        <td>Sessions</td>
+        <td>Anomalies</td>
+    </tr>
+    {% for user in users %}
+    <tr>
+        <td> {{ user.client.name }} </td>
+        <td> {{ user.client.ip }} </td>
+        <td> {{ user.client.network_id }} </td>
+        <td> {{ user.device }} </td>
+        <td>{{ user.latest_check }}</td>
+        <td><ul>
+            {% for event in user.events %}
+                <li>{{ event }}</li>>
+            {% endfor %}
+        </ul></td>
+        <td><ul>
+            {% for session in user.sessions %}
+                <li>{{ session }}</li>>
+            {% endfor %}
+        </ul></td>
+        <td><ul>
+            {% for anomaly in user.anomalies %}
+                <li>{{ anomaly }}</li>>
+            {% endfor %}
+        </ul></td>
+    {% endfor %}
+</table>
+{% else %}
+    <p>No users monitored by the agent.</p>
+{% endif %}
