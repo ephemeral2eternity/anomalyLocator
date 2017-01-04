@@ -2,13 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d01fb9b1-0ac8-43b1-8f96-d2ba906f5d41" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/anomalyDiagnosis/add_user.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/anomalyDiagnosis/diag_utils.py" afterPath="$PROJECT_DIR$/anomalyDiagnosis/diag_utils.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/anomalyDiagnosis/models.py" afterPath="$PROJECT_DIR$/anomalyDiagnosis/models.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/anomalyDiagnosis/thresholds.py" afterPath="$PROJECT_DIR$/anomalyDiagnosis/thresholds.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/anomalyDiagnosis/views.py" afterPath="$PROJECT_DIR$/anomalyDiagnosis/views.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/clients.html" afterPath="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/users.html" />
     </list>
     <ignored path="anomalyLocator.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -56,11 +52,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="views.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="views.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/views.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="895">
-              <caret line="211" column="23" lean-forward="true" selection-start-line="211" selection-start-column="23" selection-end-line="211" selection-end-column="23" />
+            <state relative-caret-position="1870">
+              <caret line="110" column="75" lean-forward="false" selection-start-line="110" selection-start-column="75" selection-end-line="110" selection-end-column="75" />
               <folding>
                 <element signature="e#0#35#0" expanded="true" />
               </folding>
@@ -68,13 +64,13 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="diag_utils.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="diag_utils.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/diag_utils.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="288">
-              <caret line="116" column="27" lean-forward="true" selection-start-line="116" selection-start-column="27" selection-end-line="116" selection-end-column="27" />
+            <state relative-caret-position="17">
+              <caret line="1" column="27" lean-forward="false" selection-start-line="1" selection-start-column="27" selection-end-line="1" selection-end-column="27" />
               <folding>
-                <element signature="e#47#62#0" expanded="true" />
+                <element signature="e#45#60#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -148,10 +144,10 @@
         <option value="$PROJECT_DIR$/anomalyLocator/views.py" />
         <option value="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/users.html" />
         <option value="$PROJECT_DIR$/anomalyDiagnosis/add_user.py" />
-        <option value="$PROJECT_DIR$/anomalyDiagnosis/views.py" />
         <option value="$PROJECT_DIR$/anomalyDiagnosis/models.py" />
         <option value="$PROJECT_DIR$/anomalyDiagnosis/thresholds.py" />
         <option value="$PROJECT_DIR$/anomalyDiagnosis/diag_utils.py" />
+        <option value="$PROJECT_DIR$/anomalyDiagnosis/views.py" />
       </list>
     </option>
   </component>
@@ -705,13 +701,6 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/anomalyDiagnosis/diag_utils.py</url>
-          <line>64</line>
-          <option name="timeStamp" value="26" />
-        </line-breakpoint>
-      </breakpoints>
       <breakpoints-dialog>
         <breakpoints-dialog />
       </breakpoints-dialog>
@@ -995,22 +984,22 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/views.py">
+    <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/diag_utils.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="895">
-          <caret line="211" column="23" lean-forward="true" selection-start-line="211" selection-start-column="23" selection-end-line="211" selection-end-column="23" />
+        <state relative-caret-position="17">
+          <caret line="1" column="27" lean-forward="false" selection-start-line="1" selection-start-column="27" selection-end-line="1" selection-end-column="27" />
           <folding>
-            <element signature="e#0#35#0" expanded="true" />
+            <element signature="e#45#60#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/diag_utils.py">
+    <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/views.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="288">
-          <caret line="116" column="27" lean-forward="true" selection-start-line="116" selection-start-column="27" selection-end-line="116" selection-end-column="27" />
+        <state relative-caret-position="1870">
+          <caret line="110" column="75" lean-forward="false" selection-start-line="110" selection-start-column="75" selection-end-line="110" selection-end-column="75" />
           <folding>
-            <element signature="e#47#62#0" expanded="true" />
+            <element signature="e#0#35#0" expanded="true" />
           </folding>
         </state>
       </provider>

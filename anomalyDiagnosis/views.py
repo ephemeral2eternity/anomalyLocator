@@ -110,43 +110,6 @@ def showAnomalies(request):
     template = loader.get_template('anomalyDiagnosis/anomalies.html')
     return HttpResponse(template.render({'anomalies': anomalies}, request))
 
-'''
-def getDiagnosisResult(request):
-    url = request.get_full_path()
-    params = url.split('?')[1]
-    request_dict = urllib.parse.parse_qs(params)
-    if ('id' in request_dict.keys()):
-        anomaly_id = int(request_dict['id'][0])
-        diagRst = Diagnosis.objects.get(id=anomaly_id)
-    else:
-        diagRst = Network.objects.last()
-    template = loader.get_template('anomalyDiagnosis/diagnosis_result.html')
-    return HttpResponse(template.render({'diagRst': diagRst}, request))
-
-def dumpAnomalies(request):
-    anomalies_json = {}
-    anomalies = Anomaly.objects.all()
-    for anomaly in anomalies:
-        diag_result = Diagnosis.objects.get(id=anomaly.id)
-        anomalies_json[anomaly.id] = {"type": anomaly.type, "client": anomaly.client, "server": anomaly.server,
-                                      "qoe": "{:.4f}".format(anomaly.qoe), "timestamp": anomaly.timestamp.timestamp()}
-        anomalies_json[anomaly.id]["causes"] = {}
-        total_anomalies = diag_result.total
-        for cause in diag_result.causes.all():
-            anomalies_json[anomaly.id]["causes"][cause.descr] = "{:.4f}".format(cause.occurance / float(total_anomalies))
-
-    output_filename = "anomalies.json"
-    response = HttpResponse(content_type='application/json')
-    response['Content-Disposition'] = 'attachment; filename=' + output_filename
-    json.dump(anomalies_json, response, indent=4, sort_keys=True)
-    return response
-
-def deleteAnomalies(request):
-    Diagnosis.objects.all().delete()
-    Anomaly.objects.all().delete()
-    return showAnomalies(request)
-'''
-
 # Add the hops in the Client's route and get the client's route networks, server, and device info.
 @csrf_exempt
 @transaction.atomic

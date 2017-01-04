@@ -1,5 +1,5 @@
 ## diag_utils.py
-# By Chen Wang, March 4, 2016
+# By Chen Wang, Jan 3, 2017
 import datetime
 import time
 import socket
@@ -59,56 +59,6 @@ def add_event(client_ip, event_dict):
         print("Failed to add the client: %s with event %s!" % (client_ip, event_dict['type']))
 
     return isAdded
-
-'''
-def label_suspects(client_ip, server_ip, qoe, anomalyType):
-    anomaly = Anomaly(type=anomalyType, client=client_ip, server=server_ip, qoe=qoe)
-    curTS = time.mktime(datetime.datetime.utcnow().timetuple())
-    anomaly.save()
-    try:
-        client = Client.objects.get(ip=client_ip)
-        server = client.server
-        try:
-            et = client.events.latest(field_name='timestamp')
-            latest_event_ts = time.mktime(et.timestamp.timetuple())
-            if curTS - latest_event_ts < event_suspect_th:
-                anomaly.suspect_events.add(et)
-        except:
-            print("No recent events that might be the cause of the anomaly!")
-        anomaly.suspect_path_length = client.pathLen
-        try:
-            latest_server_update = server.updates.latest(field_name='timestamp')
-            latest_server_update_ts = time.mktime(latest_server_update.timestamp.timetuple())
-
-            # Label suspect server attribute to the anomaly
-            if curTS - latest_server_update_ts > server_suspect_th:
-                anomaly.suspect_server = server
-        except:
-            anomaly.suspect_server = server
-
-        # Label suspect device attribute to the anomaly
-        device = client.device
-        try:
-            latest_device_update_ts = time.mktime(device.updates.latest(field_name='timestamp').timestamp.timetuple())
-            if curTS - latest_device_update_ts > device_suspect_th:
-                anomaly.suspect_deviceInfo = device
-        except:
-            anomaly.suspect_deviceInfo = device
-
-        # Label suspect network attribute to the anomaly
-        for network in client.route_networks.all():
-            try:
-                latest_network_update_ts = time.mktime(network.updates.latest(field_name='timestamp').timestamp.timetuple())
-                if curTS - latest_network_update_ts > network_suspect_th:
-                    anomaly.suspect_networks.add(network)
-            except:
-                anomaly.suspect_networks.add(network)
-    except:
-        print("Cannot get the client %s object" % client_ip)
-
-    anomaly.save()
-    return anomaly
-'''
 
 def check_status(updates):
     if updates.count() == 0:
