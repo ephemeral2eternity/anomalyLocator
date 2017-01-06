@@ -1,17 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="d01fb9b1-0ac8-43b1-8f96-d2ba906f5d41" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/anomalyDiagnosis/add_user.py" afterPath="$PROJECT_DIR$/anomalyDiagnosis/add_user.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/anomalyDiagnosis/diag_utils.py" afterPath="$PROJECT_DIR$/anomalyDiagnosis/diag_utils.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/anomalyDiagnosis/models.py" afterPath="$PROJECT_DIR$/anomalyDiagnosis/models.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/index.html" afterPath="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/index.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/users.html" afterPath="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/users.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/anomalyDiagnosis/thresholds.py" afterPath="$PROJECT_DIR$/anomalyDiagnosis/thresholds.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/anomalyDiagnosis/urls.py" afterPath="$PROJECT_DIR$/anomalyDiagnosis/urls.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/anomalyDiagnosis/views.py" afterPath="$PROJECT_DIR$/anomalyDiagnosis/views.py" />
-    </list>
+    <list default="true" id="d01fb9b1-0ac8-43b1-8f96-d2ba906f5d41" name="Default" comment="" />
     <ignored path="anomalyLocator.iws" />
     <ignored path=".idea/workspace.xml" />
     <ignored path=".idea/dataSources.local.xml" />
@@ -50,11 +40,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="diag_utils.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="diag_utils.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/diag_utils.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="301">
-              <caret line="168" column="26" lean-forward="false" selection-start-line="168" selection-start-column="26" selection-end-line="168" selection-end-column="26" />
+            <state relative-caret-position="98">
+              <caret line="153" column="65" lean-forward="true" selection-start-line="153" selection-start-column="65" selection-end-line="153" selection-end-column="65" />
               <folding>
                 <element signature="e#45#60#0" expanded="true" />
               </folding>
@@ -99,6 +89,16 @@
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="243">
               <caret line="123" column="84" lean-forward="false" selection-start-line="123" selection-start-column="84" selection-end-line="123" selection-end-column="84" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="network.html" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/network.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="272">
+              <caret line="16" column="6" lean-forward="true" selection-start-line="16" selection-start-column="6" selection-end-line="16" selection-end-column="6" />
               <folding />
             </state>
           </provider>
@@ -652,15 +652,15 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1616" height="876" extended-state="6" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.28498074" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.22528884" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32977462" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3991655" sideWeight="0.3979461" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32962447" sideWeight="0.49743262" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32962447" sideWeight="0.4948652" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.30876216" sideWeight="0.48973042" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.30876216" sideWeight="0.48973042" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.27955493" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="manage.py@anomalyLocator" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.41029206" sideWeight="0.67265725" order="7" side_tool="false" content_ui="tabs" />
@@ -924,13 +924,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/network.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="272">
-          <caret line="16" column="6" lean-forward="false" selection-start-line="16" selection-start-column="6" selection-end-line="16" selection-end-column="6" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/locator/settings.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="148">
@@ -1042,11 +1035,19 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/diag_utils.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="301">
-          <caret line="168" column="26" lean-forward="false" selection-start-line="168" selection-start-column="26" selection-end-line="168" selection-end-column="26" />
+        <state relative-caret-position="98">
+          <caret line="153" column="65" lean-forward="true" selection-start-line="153" selection-start-column="65" selection-end-line="153" selection-end-column="65" />
           <folding>
             <element signature="e#45#60#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/network.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="272">
+          <caret line="16" column="6" lean-forward="true" selection-start-line="16" selection-start-column="6" selection-end-line="16" selection-end-column="6" />
+          <folding />
         </state>
       </provider>
     </entry>
