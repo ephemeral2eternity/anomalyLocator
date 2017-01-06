@@ -1,35 +1,35 @@
 <h2>Show all available users</h2>
 {% if users %}
-<table style="width:100%">
+<table style="width:100%" border="1">
     <tr>
         <td>User Name</td>
         <td>User IP</td>
-        <td>User Network ID</td>
+        <td>User Server</td>
         <td>Device</td>
         <td>Latest Check</td>
-        <td>Events<td>
+        <td>Events</td>
         <td>Sessions</td>
         <td>Anomalies</td>
     </tr>
-    {% for user in users %}
+    {% for user in users.all %}
     <tr>
-        <td> {{ user.client.name }} </td>
-        <td> {{ user.client.ip }} </td>
-        <td> {{ user.client.network_id }} </td>
+        <td> {{ user.name }} </td>
+        <td> {{ user.ip }} </td>
+        <td> {{ user.server.ip }} </td>
         <td> {{ user.device }} </td>
         <td>{{ user.latest_check }}</td>
         <td><ul>
-            {% for event in user.events %}
+            {% for event in user.events.all %}
                 <li>{{ event }}</li>>
             {% endfor %}
         </ul></td>
         <td><ul>
-            {% for session in user.sessions %}
+            {% for session in user.sessions.all %}
                 <li>{{ session }}</li>>
             {% endfor %}
         </ul></td>
         <td><ul>
-            {% for anomaly in user.anomalies %}
+            {% for anomaly in user.anomalies.all %}
                 <li>{{ anomaly }}</li>>
             {% endfor %}
         </ul></td>

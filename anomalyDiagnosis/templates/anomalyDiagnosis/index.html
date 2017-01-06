@@ -3,7 +3,7 @@
 <br>
 <h2>Following APIs show data on webpages</h2>
 <ul>
-    <li><a href="/diag/show_clients">Show all clients connecting to the cloud agent</a></li>
+    <li><a href="/diag/show_users">Show all users connecting to the cloud agent</a></li>
     <li><a href="/diag/show_networks">Show all networks that are involved in the video sessions that are managed by current cloud agent</a></li>
     <li><a href="/diag/show_nodes">Show all nodes that are involved in the video sessions that are managed by current cloud agent</a></li>
     <li><a href="/diag/show_servers">Show all servers that are involved in the video sessions that are managed by current cloud agent</a></li>
@@ -11,8 +11,6 @@
     <li><a href="/diag/show_updates">Show all updates that have been sent to current cloud agent</a></li>
     <li><a href="/diag/show_events">Show all events that have been reported to current cloud agent</a></li>
     <li><a href="/diag/show_anomalies">Show all anomalies that have been detected on clients and diagnosed on current cloud agent</a></li>
-    <li><a href="/diag/dump_anomalies">Dump all anomalies and their diagnosis results in a json file named, "anomalies.json"</a></li>
-    <li><a href="/diag/delete_anomalies">Delete all anomalies in the database</a></li>
 </ul>
 <br>
 <h2>Following APIs are called to show details of a particular variable</h2>
@@ -27,7 +25,7 @@
 <br>
 <h2>Following APIs are called by clients for diagnosis purpose</h2>
 <ul>
-    <li><b>POST method</b>http://{{ ip }}/diag/add</li>
+    <li><b>POST method</b>: http://{{ ip }}/diag/add</li>
     Post the client information to the cloud agent. The API will update the client's server, route, network, device info, etc.
     <li><b>GET method</b>http://{{ ip }}/diag/update?client=client_ip&server=server_ip&qoe=mean_qoe_value <br>
     When the client is experiencing acceptable QoE, the client send good QoE updates to the cloud agent. The cloud agent appends such updates to important attributes that are involved in streaming, including device info, networks, server, etc.
@@ -37,7 +35,7 @@
             <li><b>mean_qoe_value</b> The average QoE value in the previous detection period which do not have QoE anomalies detected.</li>
         </ul>
     </li>
-    <li><b>GET method</b>http://{{ ip }}/diag/addEvent?client=client_ip&typ=event_type&prev=previous_value&cur=current_value<br>
+    <li><b>GET method</b>: http://{{ ip }}/diag/addEvent?client=client_ip&typ=event_type&prev=previous_value&cur=current_value<br>
     When the client has an event, such as changing server, upgrade video player software, etc, it reports the event to the cloud agent.
         <ul>
             <li><b>client_ip</b> The client ip address</li>
@@ -46,7 +44,7 @@
             <li><b>current_value</b> The attribute value after the event happens, such as the server ip after server changing.</li>
         </ul>
     </li>
-    <li><b>GET method</b>http://{{ ip }}/diag/diag?client=client_ip&server=server_ip&qoe=mean_qoe_value&type=anomaly_type <br>
+    <li><b>GET method</b>: http://{{ ip }}/diag/diag?client=client_ip&server=server_ip&qoe=mean_qoe_value&type=anomaly_type <br>
     When a QoE anomaly is detected by the client agent, the client send diag request to the cloud agent to diagnose the causes of the anomaly.
         <ul>
             <li><b>client_ip</b> The client ip address</li>

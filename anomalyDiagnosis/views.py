@@ -9,6 +9,7 @@ import json
 import socket
 import csv
 import time
+from anomalyDiagnosis.thresholds import satisfied_qoe
 from datetime import date, datetime, timedelta
 from anomalyDiagnosis.diag_utils import *
 from anomalyDiagnosis.add_user import *
@@ -139,9 +140,13 @@ def update(request):
         client = request_dict['client'][0]
         server = request_dict['server'][0]
         qoe = float(request_dict['qoe'][0])
-        update = Update(client_ip=client, server_ip=server, qoe=qoe)
-        update.save()
-        isUpdated = update_attributes(client, server, update)
+        try:
+            session = Session.objects.get(client_ip=client, server_ip=server)
+            update = Update(session_id=session.id, qoe=qoe, satisfied=(qoe >= satisfied_qoe))
+            update.save()
+            isUpdated = update_attributes(client, server, update)
+        except:
+            return HttpResponse("No")
     if isUpdated:
         return HttpResponse("Yes")
     else:

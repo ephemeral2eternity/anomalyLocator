@@ -3,7 +3,7 @@
 import datetime
 import time
 import socket
-from anomalyDiagnosis.models import Node, User, Session, Event, Anomaly, Status, Path
+from anomalyDiagnosis.models import Node, Server, DeviceInfo, User, Session, Event, Anomaly, Status, Path
 from anomalyDiagnosis.thresholds import *
 
 def get_exp_ip():
@@ -49,9 +49,27 @@ def update_attributes(client_ip, server_ip, update):
 def add_event(client_ip, event_dict):
     try:
         user = User.objects.get(ip=client_ip)
-        event = Event(type=event_dict['type'], prevVal=event_dict['prevVal'], curVal=event_dict['curVal'])
+        event = Event(user_id=user.id, type=event_dict['type'], prevVal=event_dict['prevVal'], curVal=event_dict['curVal'])
         event.save()
         user.events.add(event)
+
+        if str(event_dict['type']).startswith("SRV"):
+            try:
+                srv = Server.objects.get(ip=event_dict['curVal'])
+            except:
+                srv = Server(ip=event_dict['curVal'])
+                srv.save()
+            user.server = srv
+
+        if str(event_dict['type']).startswith("DEVICE"):
+            device_vals = event_dict['curVal'].split(',')
+            try:
+                device = DeviceInfo.objects.get(device=device_vals[0], os=device_vals[1], player=device_vals[2], browser=device_vals[3])
+            except:
+                device = DeviceInfo(device=device_vals[0], os=device_vals[1], player=device_vals[2], browser=device_vals[3])
+                device.save()
+            user.device = device
+
         user.save()
         isAdded = True
     except:
@@ -102,10 +120,14 @@ def diagnose(client_ip, server_ip, qoe, anomalyTyp):
         diagRst['error'] = "No session " + client_ip + "<--->" + server_ip + " in database!"
         return diagRst
 
-    anomaly = Anomaly(user_id=user.id, session_id=session.id, qoe=qoe, anomalyType=anomalyTyp)
+    anomaly = Anomaly(user_id=user.id, session_id=session.id, qoe=qoe, type=anomalyTyp)
+    anomaly.save()
 
     element_status = {}
-    cur_time = time.time()
+    # cur_time = time.time()
+    # cur_time = time.mktime(datetime.datetime.utcnow().timetuple())
+    cur_time = datetime.datetime.now()
+    cur_timestamp = cur_time.timestamp()
 
     ## Check device health status
     device_time_window_start = cur_time - datetime.timedelta(minutes=device_time_window)
@@ -135,7 +157,7 @@ def diagnose(client_ip, server_ip, qoe, anomalyTyp):
     ## Check event proximity
     event_time_window_start = cur_time - datetime.timedelta(minutes=event_time_window)
     for event in user.events.filter(timestamp__range=(event_time_window_start, cur_time)).all():
-        proximity = 1 - (cur_time - event.timestamp.time())/float(event_time_window*60)
+        proximity = 1 - (cur_timestamp - event.timestamp.timestamp())/float(event_time_window*60)
         element_status["event_" + str(event.id)] = proximity
         event_proximity_status = Status(component_id="event_" + str(event.id), health=proximity)
         event_proximity_status.save()
@@ -144,9 +166,10 @@ def diagnose(client_ip, server_ip, qoe, anomalyTyp):
     long_path = check_path_length(session.path.length, cur_time)
     element_status["path_" + str(session.path.length)] = long_path
     long_path_status = Status(component_id="path_" + str(session.path.length), health=long_path)
+    long_path_status.save()
     anomaly.element_health.add(long_path_status)
 
-    time_to_diagnose = time.time() - cur_time
+    time_to_diagnose = time.time() - cur_timestamp
     anomaly.timeToDiagnose = time_to_diagnose
     anomaly.save()
     diagRst['causes'] = element_status

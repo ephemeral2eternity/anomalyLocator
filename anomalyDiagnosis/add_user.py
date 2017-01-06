@@ -36,21 +36,6 @@ def add_user(client_info):
                             player=device_info['player'], browser=device_info['browser'])
     device.save()
 
-    # Update User Info
-    try:
-        user = User.objects.get(ip=client_info['ip'])
-        user_existed = True
-
-        if user.device != device:
-            device_event = Event(user_id=user.id, type="DEVICE_CHANGE", prevVal=str(user.device), curVal=str(device))
-            device_event.save()
-            user.device = device
-            user.events.add(device_event)
-    except:
-        user = User(ip=client_info['ip'], device=device, name=client_info['name'])
-        user_existed = False
-    user.save()
-
     ###############################################################################################################
     ## Update the server side object, node and network
     # Update server network
@@ -81,6 +66,20 @@ def add_user(client_info):
         server = Server(ip=server_info['ip'])
     server.save()
 
+    # Update User Info
+    try:
+        user = User.objects.get(ip=client_info['ip'])
+        user_existed = True
+
+        if user.device != device:
+            device_event = Event(user_id=user.id, type="DEVICE_CHANGE", prevVal=str(user.device), curVal=str(device))
+            device_event.save()
+            user.device = device
+            user.events.add(device_event)
+    except:
+        user = User(ip=client_info['ip'], device=device, name=client_info['name'])
+        user_existed = False
+
     if user_existed:
         if user.server != server:
             srv_event = Event(user_id=user.id, type="SRV_CHANGE", prevVal=user.server.ip, curVal=server.ip)
@@ -101,6 +100,7 @@ def add_user(client_info):
         session_exist = False
         print("Add new session " + str(session))
     session.save()
+    user.save()
 
     ## Session update route
     hop_id = 0
@@ -222,10 +222,11 @@ def add_user(client_info):
                 dstNet = curNet
 
             try:
-                net_edge = NetEdge.objects.get(src_net=srcNet, dst_net=dstNet)
+                net_edge = NetEdge.objects.get(srcNet=srcNet, dstNet=dstNet)
             except:
-                net_edge = NetEdge(src_net=srcNet, dst_net=dstNet)
+                net_edge = NetEdge(srcNet=srcNet, dstNet=dstNet)
             net_edge.save()
+            preNet = curNet
 
     cur_path_len = hop_id + 1
     try:
