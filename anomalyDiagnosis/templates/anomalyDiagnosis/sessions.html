@@ -1,0 +1,27 @@
+<h2>Show all available sessions</h2>
+{% if sessions %}
+<table style="width:100%" border="1">
+    <tr>
+        <td>Session ID</td>
+        <td>Client IP</td>
+        <td>Server IP</td>
+        <td>Route Length</td>
+        <td># of subnetworks</td>
+        <td># of updates</td>
+        <td>Latest Check</td>
+    </tr>
+    {% for session in sessions.all %}
+    <tr>
+        <td><a href="/diag/get_session?id={{ session.id }}"> {{ session.id }} </a></td>
+        <td> {{ session.client_ip }} </td>
+        <td> {{ session.server_ip }} </td>
+        <td> {{ session.route.count }} </td>
+        <td> {{ session.sub_networks.count }} </td>
+        <td>{{ session.updates.count }}</td>
+        <td>{{ session.latest_check }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+    <p>No sessions monitored by the agent.</p>
+{% endif %}

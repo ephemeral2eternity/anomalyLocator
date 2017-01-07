@@ -19,7 +19,7 @@ class Server(models.Model):
     latest_check = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return str(self.node)
+        return str(self.ip)
 
 # Node class defines a node that is either a router, or a client , or a server
 class Node(models.Model):

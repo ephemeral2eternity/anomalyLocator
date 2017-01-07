@@ -7,32 +7,24 @@
         <td>User Server</td>
         <td>Device</td>
         <td>Latest Check</td>
-        <td>Events</td>
         <td>Sessions</td>
+        <td>Events</td>
         <td>Anomalies</td>
     </tr>
     {% for user in users.all %}
     <tr>
         <td> {{ user.name }} </td>
-        <td> {{ user.ip }} </td>
-        <td> {{ user.server.ip }} </td>
-        <td> {{ user.device }} </td>
-        <td>{{ user.latest_check }}</td>
-        <td><ul>
-            {% for event in user.events.all %}
-                <li>{{ event }}</li>>
-            {% endfor %}
-        </ul></td>
+        <td><a href="/diag/get_user?id={{ user.id }}"> {{ user.ip }} </a></td>
+        <td><a href="/diag/get_server?id={{ user.server.id }}"> {{ user.server.ip }} </a></td>
+        <td><a href="/diag/get_device?id={{ user.device.id }}"> {{ user.device }} </a></td>
+        <td> {{ user.latest_check }}</td>
         <td><ul>
             {% for session in user.sessions.all %}
-                <li>{{ session }}</li>>
+                <li><a href="/diag/get_session?id={{ session.id }}">{{ session }}</a></li>
             {% endfor %}
         </ul></td>
-        <td><ul>
-            {% for anomaly in user.anomalies.all %}
-                <li>{{ anomaly }}</li>>
-            {% endfor %}
-        </ul></td>
+        <td><a href="/diag/get_events?id={{ user.id }}"> Get events for{{ user.name }} </a></td>
+        <td><a href="/diag/get_anomalies?id={{ user.id }}">Get anomalies for {{ user.name }}</a></td>
     {% endfor %}
 </table>
 {% else %}

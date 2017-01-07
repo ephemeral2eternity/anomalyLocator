@@ -5,6 +5,7 @@ from django.template import RequestContext, loader
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.utils import timezone
 from django.db import transaction
+from django.db.models import Q
 import json
 import socket
 import csv
@@ -32,10 +33,53 @@ def showUsers(request):
     template = loader.get_template('anomalyDiagnosis/users.html')
     return HttpResponse(template.render({'users': users}, request))
 
+def getUser(request):
+    url = request.get_full_path()
+    params = url.split('?')[1]
+    request_dict = urllib.parse.parse_qs(params)
+    if ('id' in request_dict.keys()):
+        user_id = int(request_dict['id'][0])
+        user = User.objects.get(id=user_id)
+        template = loader.get_template('anomalyDiagnosis/user.html')
+        return HttpResponse(template.render({'user':user}, request))
+    else:
+        return HttpResponse('Please denote user_id in url: http://locator/diag/get_user?id=user_id!')
+
+def showSessions(request):
+    sessions = Session.objects.all()
+    template = loader.get_template('anomalyDiagnosis/sessions.html')
+    return HttpResponse(template.render({'sessions': sessions}, request))
+
+def getSession(request):
+    url = request.get_full_path()
+    params = url.split('?')[1]
+    request_dict = urllib.parse.parse_qs(params)
+    if ('id' in request_dict.keys()):
+        session_id = int(request_dict['id'][0])
+        session = Session.objects.get(id=session_id)
+        hops = Hop.objects.filter(session=session)
+        subnets = Subnetwork.objects.filter(session=session)
+        template = loader.get_template('anomalyDiagnosis/session.html')
+        return HttpResponse(template.render({'session': session, 'hops': hops, 'subnets':subnets}, request))
+    else:
+        return showSessions(request)
+
 def showServers(request):
     servers = Server.objects.all()
     template = loader.get_template('anomalyDiagnosis/servers.html')
     return HttpResponse(template.render({'servers': servers}, request))
+
+def getServer(request):
+    url = request.get_full_path()
+    params = url.split('?')[1]
+    request_dict = urllib.parse.parse_qs(params)
+    if ('id' in request_dict.keys()):
+        server_id = int(request_dict['id'][0])
+        server = Server.objects.get(id=server_id)
+        template = loader.get_template('anomalyDiagnosis/server.html')
+        return HttpResponse(template.render({'server':server}), request)
+    else:
+        return HttpResponse("Please denote the server_id in the url: http://locator/diag/get_server?id=server_id")
 
 def getNetwork(request):
     url = request.get_full_path()
@@ -44,8 +88,9 @@ def getNetwork(request):
     if ('id' in request_dict.keys()):
         network_id = int(request_dict['id'][0])
         network = Network.objects.get(id=network_id)
+        edges = Edge.objects.filter(Q(src__in=network.nodes.all())|Q(dst__in=network.nodes.all()))
         template = loader.get_template('anomalyDiagnosis/network.html')
-        return HttpResponse(template.render({'network': network}, request))
+        return HttpResponse(template.render({'network': network, 'edges':edges}, request))
     else:
         return showNetworks(request)
 
@@ -101,15 +146,53 @@ def showDevices(request):
     template = loader.get_template('anomalyDiagnosis/devices.html')
     return HttpResponse(template.render({'devices': devices}, request))
 
+def getDevice(request):
+    url = request.get_full_path()
+    params = url.split('?')[1]
+    request_dict = urllib.parse.parse_qs(params)
+    if ('id' in request_dict.keys()):
+        device_id = int(request_dict['id'][0])
+        device = DeviceInfo.objects.get(id=device_id)
+        template = loader.get_template('anomalyDiagnosis/device.html')
+        return HttpResponse(template.render({'device':device}, request))
+    else:
+        return HttpResponse("Please denote the device_id in the URL: http://locator/diag/get_device?id=device_id")
+
 def showEvents(request):
     events = Event.objects.all()
     template = loader.get_template('anomalyDiagnosis/events.html')
     return HttpResponse(template.render({'events': events}, request))
 
+def getEvents(request):
+    url = request.get_full_path()
+    params = url.split('?')[1]
+    request_dict = urllib.parse.parse_qs(params)
+    if ('id' in request_dict.keys()):
+        user_id = int(request_dict['id'][0])
+        user = User.objects.get(id=user_id)
+        events = user.events.all()
+        template = loader.get_template('anomalyDiagnosis/events.html')
+        return HttpResponse(template.render({'user':user, 'events':events}, request))
+    else:
+        return HttpResponse("Please denote the user_id in url: http://locator/diag/get_events?id=user_id")
+
 def showAnomalies(request):
     anomalies = Anomaly.objects.all()
     template = loader.get_template('anomalyDiagnosis/anomalies.html')
     return HttpResponse(template.render({'anomalies': anomalies}, request))
+
+def getAnomalies(request):
+    url = request.get_full_path()
+    params = url.split('?')[1]
+    request_dict = urllib.parse.parse_qs(params)
+    if ('id' in request_dict.keys()):
+        user_id = int(request_dict['id'][0])
+        user = User.objects.get(id=user_id)
+        anomalies = user.anomalies.all()
+        template = loader.get_template('anomalyDiagnosis/anomalies.html')
+        return HttpResponse(template.render({'user': user, 'anomalies': anomalies}, request))
+    else:
+        return HttpResponse("Please denote the user_id in url: http://locator/diag/get_anomalies?id=user_id")
 
 # Add the hops in the Client's route and get the client's route networks, server, and device info.
 @csrf_exempt
@@ -151,7 +234,6 @@ def update(request):
         return HttpResponse("Yes")
     else:
         return HttpResponse("No")
-
 
 @csrf_exempt
 @transaction.atomic

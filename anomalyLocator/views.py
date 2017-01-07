@@ -96,10 +96,8 @@ def getGraphJson(request):
     rsp["Access-Control-Allow-Origin"] = "*"
     return rsp
 
-
 def getGraph(request):
     return render_to_response("anomalyLocator/topology.html")
-
 
 # Show detailed info of anomalies.
 def showAnomaly(request):
@@ -107,10 +105,8 @@ def showAnomaly(request):
     template = loader.get_template('anomalyLocator/anomalies.html')
     return HttpResponse(template.render({'anomalies': anomalies}, request))
 
-
 def statGraph(request):
     return render_to_response("anomalyLocator/stat.html")
-
 
 @csrf_exempt
 def anomalyStatJson(request):
@@ -163,7 +159,6 @@ def anomalyStatJson(request):
     rsp = JsonResponse(anomaly_type, safe=False)
     rsp["Access-Control-Allow-Origin"] = "*"
     return rsp
-
 
 @csrf_exempt
 def anomalyCntPeerJson(request):

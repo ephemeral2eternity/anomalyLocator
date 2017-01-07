@@ -1,18 +1,23 @@
+{% if user %}
+    <h1>Show anomalies for user : {{ user.name }} </h1>
+{% endif %}
 {% if anomalies %}
 <table style="width:100%">
     <tr>
         <td>Anomaly ID</td>
         <td>Anomaly Type</td>
-        <td>Client reporting Anomaly</td>
-        <td>Server in the video session</td>
+        <td>Session reporting anomaly</td>
+        <td>User reporting anomaly</td>
+        <td>Diagnosis time</td>
         <td>Anomaly Timestamp</td>
     </tr>
     {% for anomaly in anomalies %}
     <tr>
-        <td><a href="/diag/get_diag_result?id={{ anomaly.id }}">  {{ anomaly.id }} </a></td>
+        <td> {{ anomaly.id }} </td>
         <td> {{ anomaly.type }} </td>
-        <td> {{ anomaly.client }} </td>
-        <td> {{ anomaly.server }} </td>
+        <td><a href="/diag/get_session?id={{ anomaly.session_id }}"> Session {{ anomaly.session_id }} </a></td>
+        <td><a href="/diag/get_user?id={{ anomaly.user_id }}"> User {{ anomaly.user_id }} </a></td>
+        <td> {{ anomaly.timeToDiagnose }} </td>
         <td> {{ anomaly.timestamp }} </td>
     </tr>
     {% endfor %}

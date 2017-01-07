@@ -172,6 +172,8 @@ def diagnose(client_ip, server_ip, qoe, anomalyTyp):
     time_to_diagnose = time.time() - cur_timestamp
     anomaly.timeToDiagnose = time_to_diagnose
     anomaly.save()
+    user.anomalies.add(anomaly)
+    user.save()
     diagRst['causes'] = element_status
     diagRst['duration'] = time_to_diagnose
     return diagRst

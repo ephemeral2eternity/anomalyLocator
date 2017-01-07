@@ -1,0 +1,30 @@
+{% if device %}
+    <ul>
+        <li>Device info id: {{ device.id }}</li>
+        <li>Device type: {{ device.device }}</li>
+        <li>Device OS: {{ device.os }}</li>
+        <li>Device Browser: {{ device.browser }}</li>
+        <li>Device Player: {{ device.player }}</li>
+    </ul>
+    <h2>Show updates for the device</h2>
+    <table style="width:100%">
+    <tr>
+        <td>Update ID</td>
+        <td>Client IP</td>
+        <td>Server IP</td>
+        <td>QoE</td>
+        <td>Timestamp</td>
+    </tr>
+    {% for update in device.updates.all|dictsortreversed:"timestamp" %}
+    <tr>
+        <td> {{ update.id }} </td>
+        <td> {{ update.client_ip }} </td>
+        <td> {{ update.server_ip }} </td>
+        <td> {{ update.qoe }} </td>
+        <td> {{ update.timestamp }} </td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+    <p>No updates have been reported in the Update Table.</p>
+{% endif %}

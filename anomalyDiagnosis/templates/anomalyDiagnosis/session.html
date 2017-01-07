@@ -1,0 +1,54 @@
+{% if session %}
+    <h1>Show details of session {{ session.id }}</h1>
+    <ul>
+        <li>Session Client IP: {{ session.client_ip }}</li>
+        <li>Session Server IP: {{ session.server_ip }}</li>
+        <li>Session Path Length: {{ session.path.length }}</li>
+    </ul>
+    <h2>Show route of the session</h2>
+    <table style="width:100%" border="1">
+        <tr>
+            <td>Hop ID</td>
+            <td>Hop Name</td>
+            <td>Hop IP</td>
+            <td>Hop Network ID</td>
+            <td>Node type</td>
+            <td>Timestamp</td>
+        </tr>
+        {% for hop in hops.all %}
+            <tr>
+                <td> {{ hop.hopID }}</td>
+                <td> {{ hop.node.name }} </td>
+                <td> {{ hop.node.ip }} </td>
+                <td><a href="/diag/get_network?id={{ hop.node.network_id }}"> Network {{ hop.node.network_id }} </a></td>
+                <td> {{ hop.node.type }} </td>
+                <td>{{ hop.timestamp }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+    <h2>Show subnetworks of the session</h2>
+    <table style="width:100%" border="1">
+        <tr>
+            <td>Subnetwork ID</td>
+            <td>Network ID</td>
+            <td>Network Name</td>
+            <td>Network AS #</td>
+            <td>Network Type</td>
+            <td>Network Location</td>
+            <td>Network City, Region, Country</td>
+        </tr>
+        {% for subnet in subnets.all %}
+            <tr>
+                <td> {{ subnet.netID }}</td>
+                <td><a href="/diag/get_network?id={{ subnet.network.id }}"> Network {{ subnet.network.id}} </a></td>
+                <td> {{ subnet.network.name }} </td>
+                <td> {{ subnet.network.ASNumber }} </td>
+                <td> {{ subnet.network.type }} </td>
+                <td> ({{ subnet.network.latitude }}, {{ subnet.network.longitude }}) </td>
+                <td> ({{ subnet.network.city }}, {{ subnet.network.region }}, {{ subnet.network.country }}) </td>
+            </tr>
+        {% endfor %}
+    </table>
+{% else %}
+    <p>Please denote the session id in http://locator/diag/get_session?id=session_id.</p>
+{% endif %}

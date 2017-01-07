@@ -1,0 +1,49 @@
+{% if user %}
+<h1>Show info for user: {{ user.name }}</h1>
+    <ul>
+        <li>User ID: {{ user.id }}</li>
+        <li>User ip: {{ user.ip }}</li>
+        <li>User server: <a href="/diag/get_server?id={{ user.server.id }}">{{ user.server }} </a></li>
+        <li>User device: <a href="/diag/get_device?id={{ user.device.id }}"> {{ user.device }} </a></li>
+    </ul>
+    <h2>Show latest events on the user</h2>
+    <table style="width:100%">
+        <tr>
+            <td>Event ID</td>
+            <td>Event Type</td>
+            <td>Value before Event</td>
+            <td>Value after Event</td>
+            <td>Timestamp</td>
+        </tr>
+        {% for event in user.events.all|dictsortreversed:"timestamp"|slice:"10" %}
+        <tr>
+            <td> {{ event.id }} </td>
+            <td> {{ event.type }} </td>
+            <td> {{ event.prevVal }} </td>
+            <td> {{ event.curVal }} </td>
+            <td> {{ event.timestamp }} </td>
+        </tr>
+        {% endfor %}
+    </table>
+    <h2>Show latest anomalies on the user</h2>
+    <table style="width:100%">
+        <tr>
+            <td>Anomaly ID</td>
+            <td>Anomaly Type</td>
+            <td>Session reporting anomaly</td>
+            <td>Diagnosis time</td>
+            <td>Anomaly Timestamp</td>
+        </tr>
+        {% for anomaly in user.anomalies.all|dictsortreversed:"timestamp"|slice:"10"  %}
+        <tr>
+            <td> {{ anomaly.id }} </td>
+            <td> {{ anomaly.type }} </td>
+            <td><a href="/diag/get_session?id={{ anomaly.session_id }}"> Session {{ anomaly.session_id }} </a></td>
+            <td> {{ anomaly.timeToDiagnose }} </td>
+            <td> {{ anomaly.timestamp }} </td>
+        </tr>
+        {% endfor %}
+    </table>
+{% else %}
+    <p>No users monitored by the agent.</p>
+{% endif %}
