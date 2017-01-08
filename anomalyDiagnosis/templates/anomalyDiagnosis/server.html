@@ -3,16 +3,14 @@
     <table style="width:100%">
     <tr>
         <td>Update ID</td>
-        <td>Client IP</td>
-        <td>Server IP</td>
+        <td>Session ID</td>
         <td>QoE</td>
         <td>Timestamp</td>
     </tr>
     {% for update in server.updates.all|dictsortreversed:"timestamp" %}
     <tr>
         <td> {{ update.id }} </td>
-        <td> {{ update.client_ip }} </td>
-        <td> {{ update.server_ip }} </td>
+        <td><a href="/diag/get_session?id={{ update.session_id }}"> {{ update.session_id }} </a></td>
         <td> {{ update.qoe }} </td>
         <td> {{ update.timestamp }} </td>
     </tr>
