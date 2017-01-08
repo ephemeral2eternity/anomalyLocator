@@ -23,6 +23,7 @@ urlpatterns = [
 	url(r'^show_events', views.showEvents, name='showEvents'),
 	url(r'^get_events', views.getEvents, name='getEvents'),
 	url(r'^show_anomalies', views.showAnomalies, name='showAnomalies'),
-	url(r'^get_anomalies', views.getAnomalies, name='getAnomalies'),
+	url(r'^get_anomalies_by_user', views.getAnomaliesByUser, name='getAnomaliesByUser'),
+	url(r'^get_anomaly', views.getAnomalyByID, name='getAnomalyByID'),
 	url(r'^edit_network', views.editNetwork, name='editNetwork'),
 ]

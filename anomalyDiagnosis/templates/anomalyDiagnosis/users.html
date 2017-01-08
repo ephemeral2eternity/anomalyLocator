@@ -24,7 +24,7 @@
             {% endfor %}
         </ul></td>
         <td><a href="/diag/get_events?id={{ user.id }}"> Get events for{{ user.name }} </a></td>
-        <td><a href="/diag/get_anomalies?id={{ user.id }}">Get anomalies for {{ user.name }}</a></td>
+        <td><a href="/diag/get_anomalies_by_user?id={{ user.id }}">Get anomalies for {{ user.name }}</a></td>
     {% endfor %}
 </table>
 {% else %}

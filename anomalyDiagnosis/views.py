@@ -181,7 +181,19 @@ def showAnomalies(request):
     template = loader.get_template('anomalyDiagnosis/anomalies.html')
     return HttpResponse(template.render({'anomalies': anomalies}, request))
 
-def getAnomalies(request):
+def getAnomalyByID(request):
+    url = request.get_full_path()
+    params = url.split('?')[1]
+    request_dict = urllib.parse.parse_qs(params)
+    if ('id' in request_dict.keys()):
+        anomaly_id = int(request_dict['id'][0])
+        anomaly = Anomaly.objects.get(id=anomaly_id)
+        template = loader.get_template('anomalyDiagnosis/anomaly.html')
+        return HttpResponse(template.render({'anomaly':anomaly}, request))
+    else:
+        return HttpResponse('Please denote the anomaly_id in the url: http://locator/diag/get_anomaly?id=anomaly_id')
+
+def getAnomaliesByUser(request):
     url = request.get_full_path()
     params = url.split('?')[1]
     request_dict = urllib.parse.parse_qs(params)

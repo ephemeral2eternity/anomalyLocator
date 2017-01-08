@@ -1,0 +1,26 @@
+{% if anomaly %}
+    <h1>Brief of the anomaly</h1>
+    <ul>
+        <li>Anomaly ID: {{ anomaly.id }}</li>
+        <li>Anomaly type: {{ anomaly.type }}</li>
+        <li>User reported anomaly: <a href="/diag/get_user?id={{ anomaly.user_id }}">{{ anomaly.user_id }}</a></li>
+        <li>Session reported anomaly:<a href="/diag/get_session?id={{ anomaly.sesion_id }}">{{ anomaly.sesion_id }}</a></li>
+        <li>Diagnosis time: {{ anomaly.timeToDiagnose }} seconds</li>
+        <li>Timestamp: {{ anomaly.timestamp }}</li>
+    </ul>
+    <h2>Show causes for the anomaly </h2>
+    <table style="width:100%">
+        <tr>
+            <td>Possible Causes</td>
+            <td>Probablity to cause the anomaly</td>
+        </tr>
+        {% for cause in anomaly.element_health.all|dictsortreversed: "health" %}
+        <tr>
+            <td> {{ cause.component_id }} </td>
+            <td> {{ cause.health }} </td>
+        </tr>
+        {% endfor %}
+    </table>
+{% else %}
+    <p>Please denote the anomaly_id in the url: http://locator/diag/get_anomaly?id=anomaly_id</p>
+{% endif %}

@@ -13,7 +13,7 @@
     </tr>
     {% for anomaly in anomalies %}
     <tr>
-        <td> {{ anomaly.id }} </td>
+        <td><a href="/diag/get_anomaly?id={{ anomaly.id }}"> {{ anomaly.id }} </a></td>
         <td> {{ anomaly.type }} </td>
         <td><a href="/diag/get_session?id={{ anomaly.session_id }}"> Session {{ anomaly.session_id }} </a></td>
         <td><a href="/diag/get_user?id={{ anomaly.user_id }}"> User {{ anomaly.user_id }} </a></td>
