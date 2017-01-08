@@ -33,6 +33,7 @@ def update_attributes(client_ip, server_ip, update):
 
     try:
         session = Session.objects.get(client_ip=client_ip, server_ip=server_ip)
+        session.updates.add(update)
         for network in session.sub_networks.all():
             network.updates.add(update)
             network.save()
