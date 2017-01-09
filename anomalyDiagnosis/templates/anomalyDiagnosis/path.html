@@ -1,0 +1,9 @@
+{% if path %}
+<ul>
+    <li>Session for the path: <a href="/diag/get_session?id={{ path.session_id }}">{{ path.session_id }}</a></li>
+    <li>Session path length: {{ path.length }}</li>
+    <li>Timestamp: {{ path.timestamp }}</li>
+</ul>
+{% else %}
+    <p>No path id have been denoted.</p>
+{% endif %}

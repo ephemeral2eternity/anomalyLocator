@@ -2,12 +2,27 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d01fb9b1-0ac8-43b1-8f96-d2ba906f5d41" name="Default" comment="">
+<<<<<<< HEAD
       <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/netGraph.html" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/sessions.html" afterPath="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/sessions.html" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/anomalyDiagnosis/urls.py" afterPath="$PROJECT_DIR$/anomalyDiagnosis/urls.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/anomalyDiagnosis/views.py" afterPath="$PROJECT_DIR$/anomalyDiagnosis/views.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/anomalyLocator/views.py" afterPath="$PROJECT_DIR$/anomalyLocator/views.py" />
+=======
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/event.html" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/path.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/anomalyLocator.iml" afterPath="$PROJECT_DIR$/.idea/anomalyLocator.iml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/anomalyDiagnosis/diag_utils.py" afterPath="$PROJECT_DIR$/anomalyDiagnosis/diag_utils.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/anomalyDiagnosis/models.py" afterPath="$PROJECT_DIR$/anomalyDiagnosis/models.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/anomaly.html" afterPath="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/anomaly.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/device.html" afterPath="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/device.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/index.html" afterPath="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/index.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/anomalyDiagnosis/urls.py" afterPath="$PROJECT_DIR$/anomalyDiagnosis/urls.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/anomalyDiagnosis/views.py" afterPath="$PROJECT_DIR$/anomalyDiagnosis/views.py" />
+>>>>>>> 871f4fe9b06eff0bf6a0350564372402cc8f8455
     </list>
     <ignored path="anomalyLocator.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -35,43 +50,18 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+<<<<<<< HEAD
       <file leaf-file-name="edit_network.html" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/edit_network.html">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="102">
               <caret line="6" column="35" lean-forward="false" selection-start-line="6" selection-start-column="35" selection-end-line="6" selection-end-column="35" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="devices.html" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/devices.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="374">
-              <caret line="22" column="0" lean-forward="false" selection-start-line="22" selection-start-column="0" selection-end-line="22" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
+=======
       <file leaf-file-name="views.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/views.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="458">
-              <caret line="276" column="67" lean-forward="true" selection-start-line="276" selection-start-column="67" selection-end-line="276" selection-end-column="67" />
-              <folding>
-                <element signature="e#0#55#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="sessions.html" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/sessions.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="442">
-              <caret line="26" column="12" lean-forward="false" selection-start-line="26" selection-start-column="12" selection-end-line="26" selection-end-column="12" />
+            <state relative-caret-position="444">
+              <caret line="230" column="91" lean-forward="false" selection-start-line="230" selection-start-column="91" selection-end-line="230" selection-end-column="91" />
               <folding />
             </state>
           </provider>
@@ -80,28 +70,140 @@
       <file leaf-file-name="urls.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/urls.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="407">
-              <caret line="29" column="71" lean-forward="false" selection-start-line="29" selection-start-column="71" selection-end-line="29" selection-end-column="71" />
+            <state relative-caret-position="324">
+              <caret line="25" column="50" lean-forward="false" selection-start-line="25" selection-start-column="50" selection-end-line="25" selection-end-column="50" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
+      <file leaf-file-name="event.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/event.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="0">
+              <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="12" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="path.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/path.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="105">
+              <caret line="7" column="40" lean-forward="false" selection-start-line="7" selection-start-column="40" selection-end-line="7" selection-end-column="40" />
+>>>>>>> 871f4fe9b06eff0bf6a0350564372402cc8f8455
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+<<<<<<< HEAD
+      <file leaf-file-name="devices.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/devices.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="374">
+              <caret line="22" column="0" lean-forward="false" selection-start-line="22" selection-start-column="0" selection-end-line="22" selection-end-column="0" />
+=======
+      <file leaf-file-name="models.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/models.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="158">
+              <caret line="56" column="25" lean-forward="false" selection-start-line="56" selection-start-column="25" selection-end-line="56" selection-end-column="25" />
+>>>>>>> 871f4fe9b06eff0bf6a0350564372402cc8f8455
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="views.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/views.py">
+          <provider selected="true" editor-type-id="text-editor">
+<<<<<<< HEAD
+            <state relative-caret-position="458">
+              <caret line="276" column="67" lean-forward="true" selection-start-line="276" selection-start-column="67" selection-end-line="276" selection-end-column="67" />
+              <folding>
+                <element signature="e#0#55#0" expanded="true" />
+              </folding>
+=======
+            <state relative-caret-position="190">
+              <caret line="65" column="0" lean-forward="false" selection-start-line="65" selection-start-column="0" selection-end-line="68" selection-end-column="34" />
+              <folding />
+>>>>>>> 871f4fe9b06eff0bf6a0350564372402cc8f8455
+            </state>
+          </provider>
+        </entry>
+      </file>
+<<<<<<< HEAD
+      <file leaf-file-name="sessions.html" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/sessions.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="442">
+              <caret line="26" column="12" lean-forward="false" selection-start-line="26" selection-start-column="12" selection-end-line="26" selection-end-column="12" />
+              <folding />
+=======
+      <file leaf-file-name="diag_utils.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/diag_utils.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="210">
+              <caret line="14" column="25" lean-forward="false" selection-start-line="14" selection-start-column="25" selection-end-line="14" selection-end-column="25" />
+              <folding>
+                <element signature="e#45#60#0" expanded="true" />
+              </folding>
+>>>>>>> 871f4fe9b06eff0bf6a0350564372402cc8f8455
+            </state>
+          </provider>
+        </entry>
+      </file>
+<<<<<<< HEAD
+      <file leaf-file-name="urls.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/urls.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="407">
+              <caret line="29" column="71" lean-forward="false" selection-start-line="29" selection-start-column="71" selection-end-line="29" selection-end-column="71" />
+=======
+      <file leaf-file-name="index.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/index.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="90">
+              <caret line="6" column="63" lean-forward="false" selection-start-line="6" selection-start-column="63" selection-end-line="6" selection-end-column="63" />
+>>>>>>> 871f4fe9b06eff0bf6a0350564372402cc8f8455
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+<<<<<<< HEAD
       <file leaf-file-name="netGraph.html" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/netGraph.html">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="-401">
               <caret line="45" column="33" lean-forward="false" selection-start-line="45" selection-start-column="33" selection-end-line="45" selection-end-column="33" />
+=======
+      <file leaf-file-name="anomaly.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/anomaly.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="315">
+              <caret line="21" column="31" lean-forward="false" selection-start-line="21" selection-start-column="31" selection-end-line="21" selection-end-column="31" />
+>>>>>>> 871f4fe9b06eff0bf6a0350564372402cc8f8455
               <folding />
             </state>
           </provider>
         </entry>
       </file>
+<<<<<<< HEAD
       <file leaf-file-name="topology.html" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/anomalyLocator/templates/anomalyLocator/topology.html">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="194">
               <caret line="70" column="0" lean-forward="true" selection-start-line="70" selection-start-column="0" selection-end-line="70" selection-end-column="0" />
+=======
+      <file leaf-file-name="device.html" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/device.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="181">
+              <caret line="14" column="25" lean-forward="true" selection-start-line="14" selection-start-column="25" selection-end-line="14" selection-end-column="25" />
+>>>>>>> 871f4fe9b06eff0bf6a0350564372402cc8f8455
               <folding />
             </state>
           </provider>
@@ -130,6 +232,11 @@
       <find>get_session</find>
       <find>getSession</find>
       <find>showAnom</find>
+      <find>getNet</find>
+      <find>get_event</find>
+      <find>getEvents</find>
+      <find>Event</find>
+      <find>Path</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -151,16 +258,14 @@
         <option value="$PROJECT_DIR$/locator/settings.py" />
         <option value="$PROJECT_DIR$/anomalyDiagnosis/forms.py" />
         <option value="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/edit_network.html" />
-        <option value="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/index.html" />
         <option value="$PROJECT_DIR$/anomalyDiagnosis/thresholds.py" />
         <option value="$PROJECT_DIR$/anomalyDiagnosis/add_user.py" />
         <option value="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/network.html" />
         <option value="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/events.html" />
-        <option value="$PROJECT_DIR$/anomalyDiagnosis/models.py" />
         <option value="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/user.html" />
-        <option value="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/device.html" />
         <option value="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/updates.html" />
         <option value="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/networks.html" />
+<<<<<<< HEAD
         <option value="$PROJECT_DIR$/anomalyDiagnosis/diag_utils.py" />
         <option value="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/session.html" />
         <option value="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/server.html" />
@@ -172,6 +277,22 @@
         <option value="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/netGraph.html" />
         <option value="$PROJECT_DIR$/anomalyDiagnosis/urls.py" />
         <option value="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/sessions.html" />
+=======
+        <option value="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/sessions.html" />
+        <option value="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/session.html" />
+        <option value="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/server.html" />
+        <option value="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/anomalies.html" />
+        <option value="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/users.html" />
+        <option value="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/event.html" />
+        <option value="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/path.html" />
+        <option value="$PROJECT_DIR$/anomalyDiagnosis/views.py" />
+        <option value="$PROJECT_DIR$/anomalyDiagnosis/urls.py" />
+        <option value="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/index.html" />
+        <option value="$PROJECT_DIR$/anomalyDiagnosis/models.py" />
+        <option value="$PROJECT_DIR$/anomalyDiagnosis/diag_utils.py" />
+        <option value="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/anomaly.html" />
+        <option value="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/device.html" />
+>>>>>>> 871f4fe9b06eff0bf6a0350564372402cc8f8455
       </list>
     </option>
   </component>
@@ -182,10 +303,10 @@
     <sorting>DEFINITION_ORDER</sorting>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="-8" />
-    <option name="y" value="-8" />
-    <option name="width" value="1616" />
-    <option name="height" value="876" />
+    <option name="x" value="1441" />
+    <option name="y" value="27" />
+    <option name="width" value="1444" />
+    <option name="height" value="873" />
   </component>
   <component name="ProjectView">
     <navigator currentView="ProjectPane" proportions="" version="1">
@@ -304,6 +425,7 @@
         </subPane>
       </pane>
       <pane id="Scratches" />
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -315,6 +437,7 @@
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis" />
       <recent name="D:\GitHub\anomalyLocator\anomalyDiagnosis\templates\anomalyDiagnosis" />
       <recent name="D:\GitHub\anomalyLocator\anomalyDiagnosis" />
     </key>
@@ -356,17 +479,6 @@
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/anomalyLocator/models.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
-      <method />
-    </configuration>
-    <configuration default="true" type="BashConfigurationType" factoryName="Bash">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="INTERPRETER_PATH" value="C:\cygwin64\bin\bash.exe" />
-      <option name="WORKING_DIRECTORY" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <option name="SCRIPT_NAME" value="" />
-      <option name="PARAMETERS" value="" />
-      <module name="" />
-      <envs />
       <method />
     </configuration>
     <configuration default="true" type="DjangoTestsConfigurationType" factoryName="Django tests">
@@ -627,10 +739,10 @@
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
         <env name="DJANGO_SETTINGS_MODULE" value="locator.settings" />
+        <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
-      <option name="SDK_HOME" value="C:\Python34\python.exe" />
+      <option name="SDK_HOME" value="/usr/local/Cellar/python3/3.5.2_3/Frameworks/Python.framework/Versions/3.5/bin/python3.5" />
       <option name="WORKING_DIRECTORY" value="" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -690,28 +802,32 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1616" height="876" extended-state="6" />
+    <frame x="1441" y="27" width="1444" height="873" extended-state="1" />
     <editor active="true" />
     <layout>
+<<<<<<< HEAD
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.23299101" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+=======
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.2360913" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+>>>>>>> 871f4fe9b06eff0bf6a0350564372402cc8f8455
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32977462" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3991655" sideWeight="0.3979461" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32962447" sideWeight="0.49743262" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32962447" sideWeight="0.4948652" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.3175416" sideWeight="0.48973042" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.27955493" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.2778489" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="manage.py@anomalyLocator" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.37307692" sideWeight="0.67265725" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.29485396" sideWeight="0.60205394" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.30876216" sideWeight="0.48973042" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="manage.py@anomalyLocator" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.41029206" sideWeight="0.67265725" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32962447" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.29485396" sideWeight="0.60205394" order="3" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -733,12 +849,20 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/anomalyDiagnosis/views.py</url>
+<<<<<<< HEAD
           <line>345</line>
+=======
+          <line>299</line>
+>>>>>>> 871f4fe9b06eff0bf6a0350564372402cc8f8455
           <option name="timeStamp" value="38" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/anomalyDiagnosis/views.py</url>
+<<<<<<< HEAD
           <line>356</line>
+=======
+          <line>310</line>
+>>>>>>> 871f4fe9b06eff0bf6a0350564372402cc8f8455
           <option name="timeStamp" value="42" />
         </line-breakpoint>
       </breakpoints>
@@ -750,7 +874,10 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
+<<<<<<< HEAD
     <entry file="file://C:/Python34/Lib/site-packages/django/conf/__init__.py" />
+=======
+>>>>>>> 871f4fe9b06eff0bf6a0350564372402cc8f8455
     <entry file="file://$PROJECT_DIR$/anomalyLocator/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -829,13 +956,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://C:/Python34/Lib/site-packages/django/core/handlers/base.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1146">
-          <caret line="185" column="0" lean-forward="false" selection-start-line="185" selection-start-column="0" selection-end-line="185" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://C:/Python34/Lib/site-packages/django/core/handlers/base.py" />
     <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/thresholds.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="255">
@@ -850,20 +971,8 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://C:/Python34/Lib/contextlib.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="242">
-          <caret line="29" column="0" lean-forward="false" selection-start-line="29" selection-start-column="0" selection-end-line="29" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/Python34/Lib/site-packages/django/views/decorators/csrf.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="328">
-          <caret line="57" column="0" lean-forward="false" selection-start-line="57" selection-start-column="0" selection-end-line="57" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://C:/Python34/Lib/contextlib.py" />
+    <entry file="file://C:/Python34/Lib/site-packages/django/views/decorators/csrf.py" />
     <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -879,36 +988,20 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/device.html">
+    <entry file="file://$PROJECT_DIR$/anomalyLocator/views.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="292">
-          <caret line="19" column="34" lean-forward="false" selection-start-line="19" selection-start-column="34" selection-end-line="19" selection-end-column="34" />
+        <state relative-caret-position="155">
+          <caret line="130" column="58" lean-forward="false" selection-start-line="130" selection-start-column="58" selection-end-line="130" selection-end-column="58" />
           <folding />
         </state>
       </provider>
     </entry>
+<<<<<<< HEAD
     <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/anomaly.html">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="408">
           <caret line="24" column="93" lean-forward="false" selection-start-line="24" selection-start-column="7" selection-end-line="24" selection-end-column="93" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/models.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="187">
-          <caret line="110" column="16" lean-forward="false" selection-start-line="110" selection-start-column="4" selection-end-line="110" selection-end-column="16" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/diag_utils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="147">
-          <caret line="36" column="19" lean-forward="false" selection-start-line="36" selection-start-column="19" selection-end-line="36" selection-end-column="19" />
-        </state>
-      </provider>
-    </entry>
+=======
     <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/anomalies.html">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="255">
@@ -921,7 +1014,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="289">
           <caret line="26" column="48" lean-forward="false" selection-start-line="26" selection-start-column="48" selection-end-line="26" selection-end-column="48" />
-          <folding />
+>>>>>>> 871f4fe9b06eff0bf6a0350564372402cc8f8455
         </state>
       </provider>
     </entry>
@@ -929,15 +1022,27 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="305">
           <caret line="43" column="13" lean-forward="true" selection-start-line="43" selection-start-column="13" selection-end-line="43" selection-end-column="13" />
-          <folding />
         </state>
       </provider>
     </entry>
+<<<<<<< HEAD
+    <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/diag_utils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="147">
+          <caret line="36" column="19" lean-forward="false" selection-start-line="36" selection-start-column="19" selection-end-line="36" selection-end-column="19" />
+=======
     <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/updates.html">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="323">
           <caret line="19" column="11" lean-forward="false" selection-start-line="19" selection-start-column="11" selection-end-line="19" selection-end-column="11" />
-          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/sessions.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="323">
+          <caret line="19" column="27" lean-forward="false" selection-start-line="19" selection-start-column="27" selection-end-line="19" selection-end-column="27" />
+>>>>>>> 871f4fe9b06eff0bf6a0350564372402cc8f8455
         </state>
       </provider>
     </entry>
@@ -949,17 +1054,21 @@
         </state>
       </provider>
     </entry>
+<<<<<<< HEAD
+    <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/users.html">
+=======
     <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/servers.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="255">
+        <state relative-caret-position="225">
           <caret line="15" column="9" lean-forward="false" selection-start-line="15" selection-start-column="9" selection-end-line="15" selection-end-column="9" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/server.html">
+>>>>>>> 871f4fe9b06eff0bf6a0350564372402cc8f8455
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="323">
+        <state relative-caret-position="285">
           <caret line="19" column="33" lean-forward="false" selection-start-line="19" selection-start-column="33" selection-end-line="19" selection-end-column="33" />
           <folding />
         </state>
@@ -967,7 +1076,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/nodes_per_network.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="34">
+        <state relative-caret-position="30">
           <caret line="2" column="25" lean-forward="false" selection-start-line="2" selection-start-column="25" selection-end-line="2" selection-end-column="25" />
           <folding />
         </state>
@@ -975,47 +1084,35 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/nodes.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="272">
+        <state relative-caret-position="240">
           <caret line="16" column="42" lean-forward="false" selection-start-line="16" selection-start-column="42" selection-end-line="16" selection-end-column="42" />
           <folding />
         </state>
       </provider>
     </entry>
+<<<<<<< HEAD
+    <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/session.html">
+=======
     <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/networks.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="289">
+        <state relative-caret-position="255">
           <caret line="17" column="43" lean-forward="false" selection-start-line="17" selection-start-column="43" selection-end-line="17" selection-end-column="43" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/network.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1275">
-          <caret line="75" column="51" lean-forward="false" selection-start-line="75" selection-start-column="51" selection-end-line="75" selection-end-column="51" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/events.html">
+>>>>>>> 871f4fe9b06eff0bf6a0350564372402cc8f8455
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="204">
+        <state relative-caret-position="180">
           <caret line="12" column="26" lean-forward="false" selection-start-line="12" selection-start-column="26" selection-end-line="12" selection-end-column="26" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="459">
-          <caret line="27" column="28" lean-forward="false" selection-start-line="27" selection-start-column="28" selection-end-line="27" selection-end-column="28" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/edit_network.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="102">
+        <state relative-caret-position="90">
           <caret line="6" column="35" lean-forward="false" selection-start-line="6" selection-start-column="35" selection-end-line="6" selection-end-column="35" />
           <folding />
         </state>
@@ -1023,12 +1120,122 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/devices.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="374">
+<<<<<<< HEAD
+        <state relative-caret-position="323">
+          <caret line="19" column="33" lean-forward="false" selection-start-line="19" selection-start-column="33" selection-end-line="19" selection-end-column="33" />
+=======
+        <state relative-caret-position="330">
           <caret line="22" column="0" lean-forward="false" selection-start-line="22" selection-start-column="0" selection-end-line="22" selection-end-column="0" />
+>>>>>>> 871f4fe9b06eff0bf6a0350564372402cc8f8455
           <folding />
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/event.html">
+      <provider selected="true" editor-type-id="text-editor">
+<<<<<<< HEAD
+        <state relative-caret-position="34">
+          <caret line="2" column="25" lean-forward="false" selection-start-line="2" selection-start-column="25" selection-end-line="2" selection-end-column="25" />
+=======
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="12" selection-end-column="0" />
+>>>>>>> 871f4fe9b06eff0bf6a0350564372402cc8f8455
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/path.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="105">
+          <caret line="7" column="40" lean-forward="false" selection-start-line="7" selection-start-column="40" selection-end-line="7" selection-end-column="40" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/views.py">
+      <provider selected="true" editor-type-id="text-editor">
+<<<<<<< HEAD
+        <state relative-caret-position="289">
+          <caret line="17" column="43" lean-forward="false" selection-start-line="17" selection-start-column="43" selection-end-line="17" selection-end-column="43" />
+=======
+        <state relative-caret-position="444">
+          <caret line="230" column="91" lean-forward="false" selection-start-line="230" selection-start-column="91" selection-end-line="230" selection-end-column="91" />
+>>>>>>> 871f4fe9b06eff0bf6a0350564372402cc8f8455
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/urls.py">
+      <provider selected="true" editor-type-id="text-editor">
+<<<<<<< HEAD
+        <state relative-caret-position="1275">
+          <caret line="75" column="51" lean-forward="false" selection-start-line="75" selection-start-column="51" selection-end-line="75" selection-end-column="51" />
+=======
+        <state relative-caret-position="324">
+          <caret line="25" column="50" lean-forward="false" selection-start-line="25" selection-start-column="50" selection-end-line="25" selection-end-column="50" />
+>>>>>>> 871f4fe9b06eff0bf6a0350564372402cc8f8455
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+<<<<<<< HEAD
+        <state relative-caret-position="204">
+          <caret line="12" column="26" lean-forward="false" selection-start-line="12" selection-start-column="26" selection-end-line="12" selection-end-column="26" />
+=======
+        <state relative-caret-position="90">
+          <caret line="6" column="63" lean-forward="false" selection-start-line="6" selection-start-column="63" selection-end-line="6" selection-end-column="63" />
+>>>>>>> 871f4fe9b06eff0bf6a0350564372402cc8f8455
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/models.py">
+      <provider selected="true" editor-type-id="text-editor">
+<<<<<<< HEAD
+        <state relative-caret-position="459">
+          <caret line="27" column="28" lean-forward="false" selection-start-line="27" selection-start-column="28" selection-end-line="27" selection-end-column="28" />
+=======
+        <state relative-caret-position="158">
+          <caret line="56" column="25" lean-forward="false" selection-start-line="56" selection-start-column="25" selection-end-line="56" selection-end-column="25" />
+>>>>>>> 871f4fe9b06eff0bf6a0350564372402cc8f8455
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/diag_utils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="210">
+          <caret line="14" column="25" lean-forward="false" selection-start-line="14" selection-start-column="25" selection-end-line="14" selection-end-column="25" />
+          <folding>
+            <element signature="e#45#60#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/anomaly.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="315">
+          <caret line="21" column="31" lean-forward="false" selection-start-line="21" selection-start-column="31" selection-end-line="21" selection-end-column="31" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/network.html">
+      <provider selected="true" editor-type-id="text-editor">
+<<<<<<< HEAD
+        <state relative-caret-position="374">
+          <caret line="22" column="0" lean-forward="false" selection-start-line="22" selection-start-column="0" selection-end-line="22" selection-end-column="0" />
+=======
+        <state relative-caret-position="190">
+          <caret line="65" column="0" lean-forward="false" selection-start-line="65" selection-start-column="0" selection-end-line="68" selection-end-column="34" />
+>>>>>>> 871f4fe9b06eff0bf6a0350564372402cc8f8455
+          <folding />
+        </state>
+      </provider>
+    </entry>
+<<<<<<< HEAD
     <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/views.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="458">
@@ -1091,6 +1298,12 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="442">
           <caret line="26" column="12" lean-forward="false" selection-start-line="26" selection-start-column="12" selection-end-line="26" selection-end-column="12" />
+=======
+    <entry file="file://$PROJECT_DIR$/anomalyDiagnosis/templates/anomalyDiagnosis/device.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="181">
+          <caret line="14" column="25" lean-forward="true" selection-start-line="14" selection-start-column="25" selection-end-line="14" selection-end-column="25" />
+>>>>>>> 871f4fe9b06eff0bf6a0350564372402cc8f8455
           <folding />
         </state>
       </provider>
