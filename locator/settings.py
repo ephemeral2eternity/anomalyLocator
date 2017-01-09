@@ -152,5 +152,4 @@ STATIC_ROOT = '/home/chenw/anomalyLocator'
 
 STATICFILES_DIRS = (
 	os.path.join(BASE_DIR, "static"),
-	'/home/chenw/anomalyLocator/anomalyDiagnosis/static',
 )
