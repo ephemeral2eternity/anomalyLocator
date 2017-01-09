@@ -39,12 +39,13 @@
         var idsNum = ids.length;
         for (var i=0; i<idsNum - 1; i++) {
             url.concat("id=");
-            url.concat(ids[i].toString());
+            url.concat(ids[i]);
             url.concat("&");
         }
         url.concat("id=");
         url.concat(ids[idsNum - 1].toString());
 
+        console.log(url);
 
         $.getJSON(url, function (json) {
             var org_nodes = json['nodes'];
