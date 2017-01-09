@@ -56,6 +56,7 @@
                 nodes.push({
                     id: i,
                     label: org_nodes[i]['name'],
+                    type: org_nodes[i]['type'],
                     image: "/static/" + org_nodes[i]['type'] + ".png",
                     shape: 'image'
                 });
@@ -83,10 +84,13 @@
 
             network.on('selectNode', function (params) {
                 console.log(params);
-                var netID = params['nodes'][0]['id'];
+                var nodeID = params['nodes'][0];
+                console.log(nodeID);
+                var node = nodes[nodeID];
+                console.log(node);
                 var url = "/diag/";
                 console.log(url);
-                document.location.href=url + "get_" + params['nodes'][0]['type'] + "?id=" + netID;
+                document.location.href=url + "get_" + node['type'] + "?id=" + node['id'];
             });
         });
     }
