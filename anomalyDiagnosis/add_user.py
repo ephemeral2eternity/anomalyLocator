@@ -23,6 +23,10 @@ def add_user(client_info):
     except:
         client_node = Node(name=client_info['name'], ip=client_info['ip'], type='client', network_id=client_network.id)
     client_node.save()
+    if client_node not in client_network.nodes.all():
+        client_network.nodes.add(client_node)
+        client_network.save()
+
 
     ###############################################################################################################
     ## Update the user and the device
@@ -58,6 +62,10 @@ def add_user(client_info):
     except:
         server_node = Node(ip=server_info['ip'], name=server_info['name'], type="server", network_id=srv_network.id)
     server_node.save()
+
+    if server_node not in srv_network.nodes.all():
+        srv_network.nodes.add(server_node)
+        srv_network.save()
 
     ## Update Server Object
     try:

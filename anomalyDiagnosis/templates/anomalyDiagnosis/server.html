@@ -7,7 +7,7 @@
         <td>QoE</td>
         <td>Timestamp</td>
     </tr>
-    {% for update in server.updates.all|dictsortreversed:"timestamp" %}
+    {% for update in server.updates.all|dictsortreversed:"timestamp"|slice:"20" %}
     <tr>
         <td> {{ update.id }} </td>
         <td><a href="/diag/get_session?id={{ update.session_id }}"> {{ update.session_id }} </a></td>
