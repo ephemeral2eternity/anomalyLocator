@@ -14,7 +14,7 @@
             <td>Possible Causes</td>
             <td>Probablity to cause the anomaly</td>
         </tr>
-        {% for cause in anomaly.element_health.all|dictsortreversed: "health" %}
+        {% for cause in anomaly.element_health.all|dictsortreversed:"health" %}
         <tr>
             <td> {{ cause.component_id }} </td>
             <td> {{ cause.health }} </td>
