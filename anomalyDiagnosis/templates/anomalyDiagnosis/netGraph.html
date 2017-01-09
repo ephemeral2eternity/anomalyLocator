@@ -46,7 +46,7 @@
         url.concat(ids[idsNum - 1].toString());
 
 
-        $.getJSON("graph2.json", function (json) {
+        $.getJSON(url, function (json) {
             var org_nodes = json['nodes'];
             var nodes = [];
 
