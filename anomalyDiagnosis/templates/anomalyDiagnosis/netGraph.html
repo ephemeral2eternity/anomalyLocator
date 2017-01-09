@@ -16,7 +16,7 @@
     </style>
 </head>
 <body onload="draw()">
-
+{% load staticfiles %}
 <p>
     Create a simple network with some nodes and edges.
 </p>
@@ -56,7 +56,7 @@
                 nodes.push({
                     id: i,
                     label: org_nodes[i]['name'],
-                    image: org_nodes[i]['type'].concat(".png"),
+                    image: "/static/" + org_nodes[i]['type'] + ".png",
                     shape: 'image'
                 });
             }
