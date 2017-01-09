@@ -34,7 +34,7 @@
     // Called when the Visualization API is loaded.
     function draw() {
         // Create a data table with nodes.
-        var ids = "{{ ids }}";
+        var ids = {{ ids|safe }};
         var url = '/diag/get_net_graph_json?';
         var idsNum = ids.length;
         for (var i=0; i<idsNum - 1; i++) {
