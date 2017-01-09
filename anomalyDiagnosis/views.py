@@ -238,7 +238,7 @@ def getJsonNetworkGraph(request):
                     nodes.append("user_" + str(user.id))
                     graph["nodes"].append({"name": user.name, "type": "user", "id": user.id})
 
-                preID = nodes.index("client_" + str(user.id))
+                preID = nodes.index("user" + str(user.id))
 
                 if "server_" + str(server.id) not in nodes:
                     nodes.append("server_" + str(server.id))
