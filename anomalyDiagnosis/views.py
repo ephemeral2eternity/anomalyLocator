@@ -244,7 +244,7 @@ def getJsonNetworkGraph(request):
 
                 lastID = nodes.index("server_" + str(server_node.id))
 
-                for net in session.route_networks.all():
+                for net in session.sub_networks.all():
                     if "network_" + str(net.id) not in nodes:
                         nodes.append("network_" + str(net.id))
                         graph["nodes"].append({"name": net.name, "type": "network", "id": net.id})
