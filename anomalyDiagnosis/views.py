@@ -229,8 +229,8 @@ def getJsonNetworkGraph(request):
         if ('id' in request_dict.keys()):
             for session_id in request_dict['id']:
                 session = Session.objects.get(id=session_id)
-                client_node = Node.objects.get(ip=session.src_ip)
-                server_node = Node.objects.get(ip=session.dst_ip)
+                client_node = Node.objects.get(ip=session.client_ip)
+                server_node = Node.objects.get(ip=session.server_ip)
 
                 if "client_" + str(client_node.id) not in nodes:
                     nodes.append("client_" + str(client_node.id))
