@@ -83,7 +83,7 @@
 
             network.on('selectNode', function (params) {
                 var netID = params['nodes'][0]['id'];
-                var url = "{% url 'anomalyDiagnosis' %}";
+                var url = "/diag/";
                 console.log(url);
                 document.location.href=url + "get_" + params['nodes'][0]['type'] + "?id=" + netID;
             });
