@@ -58,7 +58,7 @@ def downloadUpdates(request):
 
 
 def drawAnomalies(request):
-    return render_to_response("anomalyLocator/anomalyIndex.html")
+    return render(request, "anomalyLocator/anomalyIndex.html")
 
 
 @csrf_exempt

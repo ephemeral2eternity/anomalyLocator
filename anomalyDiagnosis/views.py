@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, render_to_response
 from django.http import HttpResponse, JsonResponse
 from anomalyDiagnosis.models import Update, Event
 from django.template import RequestContext, loader
@@ -205,6 +205,76 @@ def getAnomaliesByUser(request):
         return HttpResponse(template.render({'user': user, 'anomalies': anomalies}, request))
     else:
         return HttpResponse("Please denote the user_id in url: http://locator/diag/get_anomalies?id=user_id")
+
+@csrf_exempt
+def getJsonNetworkGraph(request):
+    url = request.get_full_path()
+    graph = {"links": [], "nodes": []}
+    nodes = []
+    if '?' in url:
+        params = url.split('?')[1]
+        request_dict = urllib.parse.parse_qs(params)
+        if ('id' in request_dict.keys()):
+            for session_id in request_dict['id']:
+                session = Session.objects.get(id=session_id)
+                client_node = Node.objects.get(ip=session.src_ip)
+                server_node = Node.objects.get(ip=session.dst_ip)
+
+                if "client_" + str(client_node.id) not in nodes:
+                    nodes.append("client_" + str(client_node.id))
+                    graph["nodes"].append({"name": client_node.name, "type": "client", "id": client_node.id})
+
+                preID = nodes.index("client_" + str(client_node.id))
+
+                if "server_" + str(server_node.id) not in nodes:
+                    nodes.append("server_" + str(server_node.id))
+                    graph["nodes"].append({"name": server_node.name, "type": "server", "id": server_node.id})
+
+                lastID = nodes.index("server_" + str(server_node.id))
+
+                for net in session.route_networks.all():
+                    if "network_" + str(net.id) not in nodes:
+                        nodes.append("network_" + str(net.id))
+                        graph["nodes"].append({"name": net.name, "type": "network", "id": net.id})
+                    curID = nodes.index("network_" + str(net.id))
+                    if preID <= curID:
+                        curEdge = {"source": preID, "target": curID}
+                    else:
+                        curEdge = {"source": curID, "target": preID}
+                    if curEdge not in graph["links"]:
+                        graph["links"].append(curEdge)
+                    preID = curID
+
+                if preID <= lastID:
+                    lastEdge = {"source": preID, "target": lastID}
+                else:
+                    lastEdge = {"source": lastID, "target": preID}
+
+                if lastEdge not in graph["links"]:
+                    graph["links"].append(lastEdge)
+
+            return JsonResponse(graph)
+        else:
+            return HttpResponse("No session is selected!")
+    else:
+        return HttpResponse(
+            "Please select the checkboxes in the url: http://manage.cmu-agens.com/verify/show_sessions")
+
+def getNetworkGraph(request):
+    url = request.get_full_path()
+    if '?' in url:
+        params = url.split('?')[1]
+        request_dict = urllib.parse.parse_qs(params)
+        ids = request_dict['id']
+        template = loader.get_template("anomalyDiagnosis/netGraph.html")
+        return HttpResponse(template.render({'ids': ids}, request))
+    else:
+        sessions = Session.objects.all()
+        ids = []
+        for session in sessions:
+            ids.append(session.id)
+        template = loader.get_template("anomalyDiagnosis/netGraph.html")
+        return HttpResponse(template.render({'ids': ids}, request))
 
 # Add the hops in the Client's route and get the client's route networks, server, and device info.
 @csrf_exempt
