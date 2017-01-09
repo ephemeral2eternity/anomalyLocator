@@ -163,7 +163,7 @@ def showEvents(request):
     template = loader.get_template('anomalyDiagnosis/events.html')
     return HttpResponse(template.render({'events': events}, request))
 
-def getEvents(request):
+def getEventsByUser(request):
     url = request.get_full_path()
     params = url.split('?')[1]
     request_dict = urllib.parse.parse_qs(params)
@@ -175,6 +175,18 @@ def getEvents(request):
         return HttpResponse(template.render({'user':user, 'events':events}, request))
     else:
         return HttpResponse("Please denote the user_id in url: http://locator/diag/get_events?id=user_id")
+
+def getEventByID(request):
+    url = request.get_full_path()
+    params = url.split('?')[1]
+    request_dict = urllib.parse.parse_qs(params)
+    if ('id' in request_dict.keys()):
+        event_id = int(request_dict['id'][0])
+        event = Event.objects.get(id=event_id)
+        template = loader.get_template('anomalyDiagnosis/event.html')
+        return HttpResponse(template.render({'event': event}, request))
+    else:
+        return HttpResponse("Please denote the event_id in url: http://locator/diag/get_event?id=event_id")
 
 def showAnomalies(request):
     anomalies = Anomaly.objects.all()
@@ -205,6 +217,18 @@ def getAnomaliesByUser(request):
         return HttpResponse(template.render({'user': user, 'anomalies': anomalies}, request))
     else:
         return HttpResponse("Please denote the user_id in url: http://locator/diag/get_anomalies?id=user_id")
+
+def getPath(request):
+    url = request.get_full_path()
+    params = url.split('?')[1]
+    request_dict = urllib.parse.parse_qs(params)
+    if ('id' in request_dict.keys()):
+        path_id = int(request_dict['id'][0])
+        path = Path.objects.get(id=path_id)
+        template = loader.get_template('anomalyDiagnosis/path.html')
+        return HttpResponse(template.render({'path': path}, request))
+    else:
+        return HttpResponse("Please denote the path_id in url: http://locator/diag/get_path?id=path_id")
 
 # Add the hops in the Client's route and get the client's route networks, server, and device info.
 @csrf_exempt

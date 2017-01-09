@@ -1,0 +1,12 @@
+{% if event %}
+<ul>
+    <li>User reporting event: <a href="/diag/get_user?id={{ event.user_id }}">{{ event.user_id }}</a></li>
+    <li>Event ID: {{ event.id }}</li>
+    <li>Event Type: {{ event.type }}</li>
+    <li>Value before Event: {{ event.preVal }}</li>
+    <li>Value after Event: {{ event.curVal }}</li>
+    <li>Timestamp: {{ event.timestamp }}</li>
+</ul>
+{% else %}
+    <p>No event have been denoted.</p>
+{% endif %}

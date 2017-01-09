@@ -19,7 +19,7 @@ class Server(models.Model):
     latest_check = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return str(self.ip)
+        return "server:" + str(self.ip)
 
 # Node class defines a node that is either a router, or a client , or a server
 class Node(models.Model):
@@ -47,7 +47,7 @@ class Network(models.Model):
     latest_check = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.type + ":AS " + str(self.ASNumber) + "@(" + str(self.latitude) + ", " + str(
+        return self.type + ", AS " + str(self.ASNumber) + ", (" + str(self.latitude) + ", " + str(
             self.longitude) + ")"
 
     class Meta:
@@ -60,7 +60,7 @@ class Path(models.Model):
     timestamp = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return str(self.session_id) + "," + str(self.length)
+        return "( session " + str(self.session_id) + "," + str(self.length) + ")"
 
     class Meta:
         ordering = ('length',)
@@ -91,7 +91,7 @@ class Event(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.type + "," + self.prevVal + "," + str(self.curVal)
+        return "(" + self.type + "," + self.prevVal + "," + str(self.curVal) + ")"
 
     class Meta:
         ordering = ('timestamp',)
@@ -105,15 +105,17 @@ class DeviceInfo(models.Model):
     latest_check = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.device + ", " + self.os + ", " + self.player + ", " + self.browser
+        return "(" + self.device + ", " + self.os + ", " + self.player + ", " + self.browser + ")"
 
 class Status(models.Model):
-    component_id = models.CharField(max_length=100)
+    component = models.CharField(max_length=100)
+    comp_id= models.IntegerField()
+    comp_value = models.CharField(max_length=100)
     health = models.DecimalField(decimal_places=4, max_digits=5)
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.component_id + ":" + str(self.health)
+        return self.component + ":" + str(self.comp_value) + ":" + str(self.health)
 
 class Anomaly(models.Model):
     type = models.CharField(max_length=100)
