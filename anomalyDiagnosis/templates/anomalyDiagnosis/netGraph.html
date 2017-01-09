@@ -57,6 +57,7 @@
                     id: i,
                     label: org_nodes[i]['name'],
                     type: org_nodes[i]['type'],
+                    cid: org_nodes[i]['id'],
                     image: "/static/" + org_nodes[i]['type'] + ".png",
                     shape: 'image'
                 });
@@ -90,7 +91,7 @@
                 console.log(node);
                 var url = "/diag/";
                 console.log(url);
-                document.location.href=url + "get_" + node['type'] + "?id=" + node['id'];
+                document.location.href=url + "get_" + node['type'] + "?id=" + node['cid'];
             });
         });
     }

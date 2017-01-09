@@ -229,20 +229,22 @@ def getJsonNetworkGraph(request):
         if ('id' in request_dict.keys()):
             for session_id in request_dict['id']:
                 session = Session.objects.get(id=session_id)
-                client_node = Node.objects.get(ip=session.client_ip)
+                # client_node = Node.objects.get(ip=session.client_ip)
+                user = User.objects.get(ip=session.client_ip)
                 server_node = Node.objects.get(ip=session.server_ip)
+                server = Server.objects.get(ip=session.server_ip)
 
-                if "client_" + str(client_node.id) not in nodes:
-                    nodes.append("client_" + str(client_node.id))
-                    graph["nodes"].append({"name": client_node.name, "type": "client", "id": client_node.id})
+                if "user_" + str(user.id) not in nodes:
+                    nodes.append("user_" + str(user.id))
+                    graph["nodes"].append({"name": user.name, "type": "user", "id": user.id})
 
-                preID = nodes.index("client_" + str(client_node.id))
+                preID = nodes.index("client_" + str(user.id))
 
-                if "server_" + str(server_node.id) not in nodes:
-                    nodes.append("server_" + str(server_node.id))
-                    graph["nodes"].append({"name": server_node.name, "type": "server", "id": server_node.id})
+                if "server_" + str(server.id) not in nodes:
+                    nodes.append("server_" + str(server.id))
+                    graph["nodes"].append({"name": server_node.name, "type": "server", "id": server.id})
 
-                lastID = nodes.index("server_" + str(server_node.id))
+                lastID = nodes.index("server_" + str(server.id))
 
                 for net in session.sub_networks.all():
                     if "network_" + str(net.id) not in nodes:
