@@ -82,6 +82,7 @@
             network = new vis.Network(container, data, options);
 
             network.on('selectNode', function (params) {
+                console.log(params);
                 var netID = params['nodes'][0]['id'];
                 var url = "/diag/";
                 console.log(url);
