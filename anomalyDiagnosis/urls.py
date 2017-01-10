@@ -8,6 +8,7 @@ urlpatterns = [
 	url(r'^addEvent$', views.addEvent, name='addEvent'),
 	url(r'^diag$', views.diagnosis, name='diagnosis'),
 	url(r'^get_network$', views.getNetwork, name='getNetwork'),
+	url(r'^get_network_json$', views.getNetworkJson, name='getNetworkJson'),
 	url(r'^nodes_per_network', views.showNodesPerNetwork, name='showNodesPerNetwork'),
 	url(r'^show_nodes', views.showNodes, name='showNodes'),
 	url(r'^show_networks', views.showNetworks, name='showNetworks'),

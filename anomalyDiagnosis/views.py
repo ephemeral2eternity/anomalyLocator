@@ -94,6 +94,52 @@ def getNetwork(request):
     else:
         return showNetworks(request)
 
+def getNetworkJson(request):
+    url = request.get_full_path()
+    params = url.split('?')[1]
+    request_dict = urllib.parse.parse_qs(params)
+    if ('id' in request_dict.keys()):
+        network_id = int(request_dict['id'][0])
+        network = Network.objects.get(id=network_id)
+        edges = Edge.objects.filter(Q(src__in=network.nodes.all())|Q(dst__in=network.nodes.all()))
+
+        nodes_in_network = []
+        all_nodes = []
+        node_list = []
+        for node in network.nodes.all():
+            nodes_in_network.append(node.ip)
+            all_nodes.append(node.ip)
+            node_list.append({"name":node.name, "network_id":node.network_id, "ip":node.ip, "type": "in"})
+
+        edge_list = []
+        for edge in edges.all():
+            if edge.src not in nodes_in_network:
+                node = Node.objects.get(ip=edge.src)
+                if edge.src not in all_nodes:
+                    all_nodes.append(node.ip)
+                src_id = all_nodes.index(node.ip)
+                node_list.append({"name": node.name, "network_id": node.network_id, "ip": node.ip, "type": "out"})
+            else:
+                src_id = all_nodes.index(edge.src)
+
+            if edge.dst not in nodes_in_network:
+                node = Node.objects.get(ip=edge.dst)
+                if edge.dst not in all_nodes:
+                    all_nodes.append(node.ip)
+                dst_id = all_nodes.index(node.ip)
+                node_list.append({"name": node.name, "network_id": node.network_id, "ip": node.ip, "type": "out"})
+            else:
+                dst_id = all_nodes.index(edge.dst)
+
+            edge_list.append({"source":src_id, "target":dst_id})
+
+        graph = {}
+        graph["nodes"] = node_list
+        graph["edges"] = edge_list
+        return JsonResponse(graph)
+    else:
+        return JsonResponse({})
+
 @csrf_exempt
 def editNetwork(request):
     url = request.get_full_path()
