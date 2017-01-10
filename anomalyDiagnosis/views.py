@@ -114,20 +114,28 @@ def getNetworkJson(request):
         edge_list = []
         for edge in edges.all():
             if edge.src not in nodes_in_network:
-                node = Node.objects.get(ip=edge.src)
-                if edge.src not in all_nodes:
-                    all_nodes.append(node.ip)
-                src_id = all_nodes.index(node.ip)
-                node_list.append({"name": node.name, "network_id": node.network_id, "ip": node.ip, "type": "out"})
+                try:
+                    node = Node.objects.get(ip=edge.src)
+                    if edge.src not in all_nodes:
+                        all_nodes.append(node.ip)
+                    src_id = all_nodes.index(node.ip)
+                    node_list.append({"name": node.name, "network_id": node.network_id, "ip": node.ip, "type": "out"})
+                except:
+                    print("Cannot find node with ip in edge.src: " + edge.src)
+                    return HttpResponse("Cannot find node with ip: " + edge.src)
             else:
                 src_id = all_nodes.index(edge.src)
 
             if edge.dst not in nodes_in_network:
-                node = Node.objects.get(ip=edge.dst)
-                if edge.dst not in all_nodes:
-                    all_nodes.append(node.ip)
-                dst_id = all_nodes.index(node.ip)
-                node_list.append({"name": node.name, "network_id": node.network_id, "ip": node.ip, "type": "out"})
+                try:
+                    node = Node.objects.get(ip=edge.dst)
+                    if edge.dst not in all_nodes:
+                        all_nodes.append(node.ip)
+                    dst_id = all_nodes.index(node.ip)
+                    node_list.append({"name": node.name, "network_id": node.network_id, "ip": node.ip, "type": "out"})
+                except:
+                    print("Cannot find node with ip in edge.dst: " + edge.dst)
+                    return HttpResponse("Cannot find node with ip: " + edge.dst)
             else:
                 dst_id = all_nodes.index(edge.dst)
 
