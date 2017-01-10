@@ -103,41 +103,25 @@ def getNetworkJson(request):
         network = Network.objects.get(id=network_id)
         edges = Edge.objects.filter(Q(src__in=network.nodes.all())|Q(dst__in=network.nodes.all()))
 
-        nodes_in_network = []
         all_nodes = []
         node_list = []
         for node in network.nodes.all():
-            nodes_in_network.append(node.ip)
             all_nodes.append(node.ip)
             node_list.append({"name":node.name, "network_id":node.network_id, "ip":node.ip, "type": "in"})
 
         edge_list = []
         for edge in edges.all():
-            if edge.src not in nodes_in_network:
-                try:
-                    node = Node.objects.get(ip=edge.src)
-                    if edge.src not in all_nodes:
-                        all_nodes.append(node.ip)
-                    src_id = all_nodes.index(node.ip)
-                    node_list.append({"name": node.name, "network_id": node.network_id, "ip": node.ip, "type": "out"})
-                except:
-                    print("Cannot find node with ip in edge.src: " + edge.src)
-                    return HttpResponse("Cannot find node with ip: " + edge.src)
-            else:
-                src_id = all_nodes.index(edge.src)
+            if edge.src not in network.nodes.all():
+                if edge.src.ip not in all_nodes:
+                    all_nodes.append(edge.src.ip)
+                    node_list.append({"name": edge.src.name, "network_id": edge.src.network_id, "ip": edge.src.ip, "type": "out"})
+            src_id = all_nodes.index(edge.src.ip)
 
-            if edge.dst not in nodes_in_network:
-                try:
-                    node = Node.objects.get(ip=edge.dst)
-                    if edge.dst not in all_nodes:
-                        all_nodes.append(node.ip)
-                    dst_id = all_nodes.index(node.ip)
-                    node_list.append({"name": node.name, "network_id": node.network_id, "ip": node.ip, "type": "out"})
-                except:
-                    print("Cannot find node with ip in edge.dst: " + edge.dst)
-                    return HttpResponse("Cannot find node with ip: " + edge.dst)
-            else:
-                dst_id = all_nodes.index(edge.dst)
+            if edge.dst not in network.nodes.all():
+                if edge.dst.ip not in all_nodes:
+                    all_nodes.append(edge.dst.ip)
+                    node_list.append({"name": edge.dst.name, "network_id": edge.dst.network_id, "ip": edge.dst.ip, "type": "out"})
+            dst_id = all_nodes.index(edge.dst.ip)
 
             edge_list.append({"source":src_id, "target":dst_id})
 
