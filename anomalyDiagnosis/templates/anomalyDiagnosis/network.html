@@ -105,8 +105,11 @@
     // Called when the Visualization API is loaded.
     function draw() {
         // Create a data table with nodes.
-        // var url = 'http://manage.cmu-agens.com/verify/get_net_graph_json?id=39&id=204&id=1392&id=1393&id=1402'
-        $.getJSON("graph2.json", function (json) {
+        var url = '/diag/get_network_json?id=';
+        var network_id = {{ network.id }};
+        url = url + network_id.toString();
+        console.log(url);
+        $.getJSON(url, function (json) {
             var org_nodes = json['nodes'];
             var nodes = [];
 
