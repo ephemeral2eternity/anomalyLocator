@@ -12,6 +12,7 @@
         }
     </style>
 </head>
+<body onload="draw()">
 {% if network %}
 <ul>
     <li>Network ID: {{ network.id }}</li>
@@ -30,7 +31,7 @@
     <a href="/diag/edit_network?id={{ network.id }}">Edit</a>
 </div>
 <hr>
-<div id="mynetwork" onload="draw()"></div>
+<div id="mynetwork"></div>
 <hr>
 <div>
     <h2>Show nodes in the network</h2>
@@ -160,3 +161,4 @@
         });
     }
 </script>
+</body>
