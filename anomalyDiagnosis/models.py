@@ -15,7 +15,6 @@ class Update(models.Model):
 
 class Server(models.Model):
     ip = models.CharField(max_length=100, unique=True)
-    updates = models.ManyToManyField(Update, blank=True)
     latest_check = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -27,6 +26,7 @@ class Node(models.Model):
     ip = models.CharField(max_length=100, unique=True)
     type = models.CharField(max_length=100)
     network_id = models.IntegerField(default=-1)
+    updates = models.ManyToManyField(Update, blank=True)
     latest_check = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -107,11 +107,12 @@ class DeviceInfo(models.Model):
     def __str__(self):
         return "(" + self.device + ", " + self.os + ", " + self.player + ", " + self.browser + ")"
 
-class Status(models.Model):
-    component = models.CharField(max_length=100)
-    comp_id= models.IntegerField()
-    comp_value = models.CharField(max_length=100)
-    health = models.DecimalField(decimal_places=4, max_digits=5)
+class Cause(models.Model):
+    node = models.ForeignKey(Node, null=True)
+    attribute = models.CharField(max_length=100)
+    attribute_id = models.IntegerField()
+    attribute_value = models.CharField(max_length=100)
+    prob = models.DecimalField(decimal_places=4, max_digits=5)
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -122,7 +123,7 @@ class Anomaly(models.Model):
     user_id = models.IntegerField()
     session_id = models.IntegerField()
     qoe = models.DecimalField(max_digits=5, decimal_places=4, default=0.0)
-    element_health = models.ManyToManyField(Status)
+    causes = models.ManyToManyField(Cause)
     timeToDiagnose = models.DecimalField(max_digits=10, decimal_places=5, default=-1)
     timestamp = models.DateTimeField(auto_now_add=True)
 

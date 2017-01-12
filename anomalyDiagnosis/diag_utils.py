@@ -3,7 +3,7 @@
 import datetime
 import time
 import socket
-from anomalyDiagnosis.models import Node, Server, DeviceInfo, User, Session, Event, Anomaly, Status, Path
+from anomalyDiagnosis.models import Node, Server, DeviceInfo, User, Session, Event, Anomaly, Cause, Path
 from anomalyDiagnosis.thresholds import *
 
 def get_exp_ip():
@@ -82,16 +82,11 @@ def add_event(client_ip, event_dict):
 
     return isAdded
 
-def check_status(updates):
-    if updates.count() == 0:
-        return 1
-    else:
-        poor_update_cnt = 0
-        for update in updates.all():
-            if not update.satisfied:
-                poor_update_cnt += 1
-        health = float(poor_update_cnt) / updates.count()
-        return health
+def check_status(updates, session_id):
+    for update in updates.all():
+        if update.satisfied and (update.session_id != session_id):
+            return False, update
+    return True, None
 
 def check_path_length(curPathLength, cur_time):
     ## Long path issues
@@ -108,6 +103,37 @@ def check_path_length(curPathLength, cur_time):
 
     long_path_issue = 1 - float(rank)/all_paths.count()
     return long_path_issue
+
+def get_suspect_prob(updates):
+    cur_time = datetime.datetime.now()
+    time_window_start = cur_time - datetime.timedelta(minutes=network_time_window)
+    recent_updates = updates.objects.filter(timestamp__range=(time_window_start, cur_time))
+
+    total = recent_updates.count()
+    unsatisfied = 0
+    for update in recent_updates.all():
+        if not update.satisfied:
+            unsatisfied += 1
+
+    prob = float(unsatisfied) / total
+    return prob
+
+
+def get_suspects(session):
+    cur_time = datetime.datetime.now()
+    time_window_start = cur_time - datetime.timedelta(minutes=node_time_window)
+    suspect_nodes = []
+    related_sessions = []
+    for node in session.route.all():
+        recent_updates = node.updates.objects.filter(timestamp__range=(time_window_start, cur_time))
+        suspect, update = check_status(recent_updates, session.id)
+        if not suspect:
+            if update.session_id not in related_sessions:
+                related_sessions.append(update.session_id)
+            break
+        else:
+            suspect_nodes.append(node)
+    return suspect_nodes, related_sessions
 
 
 def diagnose(client_ip, server_ip, qoe, anomalyTyp):
@@ -127,12 +153,38 @@ def diagnose(client_ip, server_ip, qoe, anomalyTyp):
     anomaly = Anomaly(user_id=user.id, session_id=session.id, qoe=qoe, type=anomalyTyp)
     anomaly.save()
 
-    element_status = []
+    suspect_nodes, related_sessions = get_suspects(session)
+
+    ## Diagnose the probability of the suspect nodes.
+    processed = []
+    for node in suspect_nodes:
+        if node.type == "client":
+            attribute = "device"
+            attribute_id = user.device.id
+        elif node.type == "server":
+            attribute = "server"
+            attribute_id = user.server.id
+        else:
+            attribute = "network"
+            attribute_id = node.network_id
+
+        processed_code = attribute + "_" + attribute_id
+        prob = get_suspect_prob(user.device.updates)
+        cause = Cause(node=node, attribute=attribute, attribute_id=attribute_id, attribute_value=str(user.device),
+                      prob=prob)
+        cause.save()
+        anomaly.causes.add(cause)
+        processed.append(processed_code)
+
+
+
     # cur_time = time.time()
     # cur_time = time.mktime(datetime.datetime.utcnow().timetuple())
     cur_time = datetime.datetime.now()
     cur_timestamp = cur_time.timestamp()
 
+
+    '''
     ## Check device health status
     device_time_window_start = cur_time - datetime.timedelta(minutes=device_time_window)
     device_health = check_status(user.device.updates.filter(timestamp__range=(device_time_window_start, cur_time)))
@@ -177,12 +229,15 @@ def diagnose(client_ip, server_ip, qoe, anomalyTyp):
     long_path_status = Status(component="path", comp_id=session.id, comp_value=str(session.path), health=long_path)
     long_path_status.save()
     anomaly.element_health.add(long_path_status)
-
+    '''
     time_to_diagnose = time.time() - cur_timestamp
     anomaly.timeToDiagnose = time_to_diagnose
     anomaly.save()
     user.anomalies.add(anomaly)
     user.save()
-    diagRst['causes'] = element_status
+
+
+    diagRst['causes'] = node_status
     diagRst['duration'] = time_to_diagnose
+
     return diagRst

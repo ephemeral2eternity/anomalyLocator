@@ -413,7 +413,6 @@ def diagnosis(request):
     url = request.get_full_path()
     params = url.split('?')[1]
     request_dict = urllib.parse.parse_qs(params)
-    start_time = time.time()
     if ('client' in request_dict.keys()) and ('server' in request_dict.keys()) \
             and ('qoe' in request_dict.keys()) and ('type' in request_dict.keys()):
         client_ip = request_dict['client'][0]
