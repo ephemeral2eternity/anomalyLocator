@@ -7,7 +7,7 @@ network_time_window = 10    # 5 minutes
 device_time_window = 60    # 1 hour
 
 # Define the time window for an event to be suspectable
-event_time_window = 60      # 6 minutes
+event_time_window = 60      # 60 minutes = 1 hour
 
 # Define the time window for an event to be suspectable
 path_time_window = 24       ## 1 day

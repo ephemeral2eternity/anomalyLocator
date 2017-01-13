@@ -153,10 +153,14 @@ def diagnose(client_ip, server_ip, qoe, anomalyTyp):
     anomaly = Anomaly(user_id=user.id, session_id=session.id, qoe=qoe, type=anomalyTyp)
     anomaly.save()
 
+    cur_time = datetime.datetime.now()
+    cur_timestamp = cur_time.timestamp()
+
     suspect_nodes, related_sessions = get_suspects(session)
 
     ## Diagnose the probability of the suspect nodes.
     processed = []
+    causes_list = []
     for node in suspect_nodes:
         if node.type == "client":
             attribute = "device"
@@ -169,67 +173,38 @@ def diagnose(client_ip, server_ip, qoe, anomalyTyp):
             attribute_id = node.network_id
 
         processed_code = attribute + "_" + attribute_id
-        prob = get_suspect_prob(user.device.updates)
-        cause = Cause(node=node, attribute=attribute, attribute_id=attribute_id, attribute_value=str(user.device),
+        if processed_code not in processed:
+            prob = get_suspect_prob(user.device.updates)
+            cause = Cause(node=node, attribute=attribute, attribute_id=attribute_id, attribute_value=str(user.device),
                       prob=prob)
-        cause.save()
-        anomaly.causes.add(cause)
-        processed.append(processed_code)
+            cause.save()
+            causes_list.append({"attribute": attribute, "id":attribute_id, "value": str(user.device), "prob": prob})
+            anomaly.causes.add(cause)
+            processed.append(processed_code)
 
-
-
-    # cur_time = time.time()
-    # cur_time = time.mktime(datetime.datetime.utcnow().timetuple())
-    cur_time = datetime.datetime.now()
-    cur_timestamp = cur_time.timestamp()
-
-
-    '''
-    ## Check device health status
-    device_time_window_start = cur_time - datetime.timedelta(minutes=device_time_window)
-    device_health = check_status(user.device.updates.filter(timestamp__range=(device_time_window_start, cur_time)))
-    device_health_status = Status(component="device", comp_id=user.device.id, comp_value=str(user.device), health=device_health)
-    device_health_status.save()
-    element_status.append({"component": "device", "id": user.device.id, "value": str(user.device), "health":device_health})
-    # element_status["device_" + str(user.device.id)] = device_health
-    anomaly.element_health.add(device_health_status)
-
-    ## Check network health status
-    network_time_window_start = cur_time - datetime.timedelta(minutes=network_time_window)
-    for network in session.sub_networks.all():
-        network_health = check_status(network.updates.filter(timestamp__range=(network_time_window_start, cur_time)))
-        network_health_status = Status(component="network", comp_id=network.id, comp_value=str(network), health=network_health)
-        network_health_status.save()
-        # element_status["network_" + str(network.id)] = network_health
-        element_status.append({"component": "network", "id": network.id, "value": str(network), "health": network_health})
-        anomaly.element_health.add(network_health_status)
-
-    ## Check server health status
-    server_time_window_start = cur_time - datetime.timedelta(minutes=server_time_window)
-    server_health = check_status(user.server.updates.filter(timestamp__range=(server_time_window_start, cur_time)))
-    server_health_status = Status(component="server", comp_id=str(user.server.id), comp_value=str(user.server), health=server_health)
-    server_health_status.save()
-    # element_status["server_" + str(user.server.id)] = server_health
-    element_status.append({"component": "server", "id": user.server.id, "value": str(user.server), "health": server_health})
-    anomaly.element_health.add(server_health_status)
 
     ## Check event proximity
     event_time_window_start = cur_time - datetime.timedelta(minutes=event_time_window)
     for event in user.events.filter(timestamp__range=(event_time_window_start, cur_time)).all():
-        proximity = 1 - (cur_timestamp - event.timestamp.timestamp())/float(event_time_window*60)
-        # element_status["event_" + str(event.id)] = proximity
-        element_status.append({"component": "event", "id": event.id, "value": str(event), "health": proximity})
-        event_proximity_status = Status(component="event", comp_id=event.id, comp_value=str(event), health=proximity)
-        event_proximity_status.save()
-        anomaly.element_health.add(event_proximity_status)
+        prob = 1 - (cur_timestamp - event.timestamp.timestamp())/float(event_time_window*60)
+        attribute = "event"
+        attribute_id = event.id
+        cause = Cause(attribute=attribute, attribute_id=attribute_id, attribute_value=str(event), prob=prob)
+        cause.save()
+        causes_list.append({"attribute": attribute, "id": attribute_id, "value": str(event), "prob": prob})
+        anomaly.causes.add(cause)
 
     long_path = check_path_length(session.path.length, cur_time)
     # element_status["path_" + str(session.path.length)] = long_path
-    element_status.append({"component": "path", "id": session.path.id, "value": str(session.path), "health": long_path})
-    long_path_status = Status(component="path", comp_id=session.id, comp_value=str(session.path), health=long_path)
-    long_path_status.save()
-    anomaly.element_health.add(long_path_status)
-    '''
+    if long_path > 0.8:
+        attribute = "path"
+        attribute_id = session.path.id
+        prob = long_path
+        cause = Cause(attribute=attribute, attribute_id=attribute_id, attribute_value=str(session.path), prob=prob)
+        cause.save()
+        causes_list.append({"attribute": attribute, "id": attribute_id, "value": str(session.path), "prob": prob})
+        anomaly.causes.add(cause)
+
     time_to_diagnose = time.time() - cur_timestamp
     anomaly.timeToDiagnose = time_to_diagnose
     anomaly.save()
@@ -237,7 +212,7 @@ def diagnose(client_ip, server_ip, qoe, anomalyTyp):
     user.save()
 
 
-    diagRst['causes'] = node_status
+    diagRst['causes'] = causes_list
     diagRst['duration'] = time_to_diagnose
 
     return diagRst
