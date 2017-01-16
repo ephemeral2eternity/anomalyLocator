@@ -65,7 +65,7 @@ def getSession(request):
         return showSessions(request)
 
 def showServers(request):
-    servers = Server.objects.all()
+    servers = Node.objects.filter(type="server")
     template = loader.get_template('anomalyDiagnosis/servers.html')
     return HttpResponse(template.render({'servers': servers}, request))
 
@@ -75,7 +75,7 @@ def getServer(request):
     request_dict = urllib.parse.parse_qs(params)
     if ('id' in request_dict.keys()):
         server_id = int(request_dict['id'][0])
-        server = Server.objects.get(id=server_id)
+        server = Node.objects.get(id=server_id)
         template = loader.get_template('anomalyDiagnosis/server.html')
         return HttpResponse(template.render({'server':server}), request)
     else:
@@ -173,6 +173,20 @@ def showNodes(request):
     nodes = Node.objects.all()
     template = loader.get_template('anomalyDiagnosis/nodes.html')
     return HttpResponse(template.render({'nodes':nodes}, request))
+
+def getNode(request):
+    url = request.get_full_path()
+    params = url.split('?')[1]
+    request_dict = urllib.parse.parse_qs(params)
+    if ('id' in request_dict.keys()):
+        node_id = int(request_dict['id'][0])
+        node = Node.objects.get(id=node_id)
+        template = loader.get_template('anomalyDiagnosis/node.html')
+        return HttpResponse(template.render({'node': node}, request))
+    else:
+        return HttpResponse("Please denote the node id in : http://locator/diag/get_node?id=node_id")
+
+
 
 def showUpdates(request):
     updates = Update.objects.all()
@@ -275,22 +289,21 @@ def getJsonNetworkGraph(request):
         if ('id' in request_dict.keys()):
             for session_id in request_dict['id']:
                 session = Session.objects.get(id=session_id)
-                # client_node = Node.objects.get(ip=session.client_ip)
-                user = User.objects.get(ip=session.client_ip)
+                client_node = Node.objects.get(ip=session.client_ip)
+                user = User.objects.get(client=client_node)
                 server_node = Node.objects.get(ip=session.server_ip)
-                server = Server.objects.get(ip=session.server_ip)
 
                 if "user_" + str(user.id) not in nodes:
                     nodes.append("user_" + str(user.id))
-                    graph["nodes"].append({"name": user.name, "type": "user", "id": user.id})
+                    graph["nodes"].append({"name": user.client.name, "type": "user", "id": user.id})
 
                 preID = nodes.index("user_" + str(user.id))
 
-                if "server_" + str(server.id) not in nodes:
-                    nodes.append("server_" + str(server.id))
-                    graph["nodes"].append({"name": server_node.name, "type": "server", "id": server.id})
+                if "server_" + str(server_node.id) not in nodes:
+                    nodes.append("server_" + str(server_node.id))
+                    graph["nodes"].append({"name": server_node.name, "type": "server", "id": server_node.id})
 
-                lastID = nodes.index("server_" + str(server.id))
+                lastID = nodes.index("server_" + str(server_node.id))
 
                 for net in session.sub_networks.all():
                     if "network_" + str(net.id) not in nodes:

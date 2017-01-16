@@ -1,4 +1,4 @@
-from anomalyDiagnosis.models import Node, User, Session, Server, DeviceInfo, Network, Hop, Subnetwork, Edge, NetEdge
+from anomalyDiagnosis.models import Node, User, Session, DeviceInfo, Network, Hop, Subnetwork, Edge, NetEdge
 from anomalyDiagnosis.models import Event, Path
 
 def add_user(client_info):
@@ -67,16 +67,9 @@ def add_user(client_info):
         srv_network.nodes.add(server_node)
         srv_network.save()
 
-    ## Update Server Object
-    try:
-        server = Server.objects.get(ip=server_info['ip'])
-    except:
-        server = Server(ip=server_info['ip'])
-    server.save()
-
     # Update User Info
     try:
-        user = User.objects.get(ip=client_info['ip'])
+        user = User.objects.get(client=client_node)
         user_existed = True
 
         if user.device != device:
@@ -85,16 +78,16 @@ def add_user(client_info):
             user.device = device
             user.events.add(device_event)
     except:
-        user = User(ip=client_info['ip'], device=device, name=client_info['name'])
+        user = User(client=client_node, device=device, server=server_node)
         user_existed = False
 
     if user_existed:
-        if user.server != server:
-            srv_event = Event(user_id=user.id, type="SRV_CHANGE", prevVal=user.server.ip, curVal=server.ip)
+        if user.server != server_node:
+            srv_event = Event(user_id=user.id, type="SRV_CHANGE", prevVal=user.server.ip, curVal=server_node.ip)
             srv_event.save()
             user.events.add(srv_event)
     else:
-        user.server = server
+        user.server = server_node
 
     ###############################################################################################################
     ## Update the session route, subnetworks and path
@@ -137,7 +130,7 @@ def add_user(client_info):
             continue
 
         # Get node type
-        if node_ip == server.ip:
+        if node_ip == server_node.ip:
             node_type = "server"
         else:
             node_type = "router"
@@ -181,8 +174,8 @@ def add_user(client_info):
         except:
             cur_hop = Hop(session=session, node=node_obj, hopID=hop_id)
             if session_exist:
-                org_hop = Hop.objects.filter(session=session, hopID=hop_id).latest()
-                node_event = Event(user_id=user.id, type="ROUTE_CHANGE", prevVal=org_hop.node.ip, curVal=node_obj.id)
+                org_hop = Hop.objects.filter(session=session, hopID=hop_id).last()
+                node_event = Event(user_id=user.id, type="ROUTE_CHANGE", prevVal=str(hop_id)+":"+org_hop.node.ip, curVal=str(hop_id)+":"+node_obj.ip)
                 node_event.save()
                 user.events.add(node_event)
 

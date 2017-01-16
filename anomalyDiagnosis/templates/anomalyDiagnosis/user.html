@@ -2,7 +2,7 @@
 <h1>Show info for user: {{ user.name }}</h1>
     <ul>
         <li>User ID: {{ user.id }}</li>
-        <li>User ip: {{ user.ip }}</li>
+        <li>User ip: {{ user.client.ip }}</li>
         <li>User server: <a href="/diag/get_server?id={{ user.server.id }}">{{ user.server }} </a></li>
         <li>User device: <a href="/diag/get_device?id={{ user.device.id }}"> {{ user.device }} </a></li>
     </ul>
