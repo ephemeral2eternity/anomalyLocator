@@ -124,6 +124,7 @@ class Anomaly(models.Model):
     session_id = models.IntegerField()
     qoe = models.DecimalField(max_digits=5, decimal_places=4, default=0.0)
     causes = models.ManyToManyField(Cause)
+    related_sessions = models.CharField(max_length=200, default="")
     timeToDiagnose = models.DecimalField(max_digits=10, decimal_places=5, default=-1)
     timestamp = models.DateTimeField(auto_now_add=True)
 

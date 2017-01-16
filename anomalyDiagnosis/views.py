@@ -243,6 +243,14 @@ def getAnomalyByID(request):
     else:
         return HttpResponse('Please denote the anomaly_id in the url: http://locator/diag/get_anomaly?id=anomaly_id')
 
+'''
+def getAnomalyJson(request):
+    url = request.get_full_path()
+    params = url.split('?')[1]
+    request_dict = urllib.parse.parse_qs(params)
+    if ('id' in request_dict.keys()):
+'''
+
 def getAnomaliesByUser(request):
     url = request.get_full_path()
     params = url.split('?')[1]

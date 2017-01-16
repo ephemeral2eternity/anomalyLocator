@@ -158,6 +158,9 @@ def diagnose(client_ip, server_ip, qoe, anomalyTyp):
 
     suspect_nodes, related_sessions = get_suspects(session)
 
+    related_sessions_str = ",".join(str(x) for x in related_sessions)
+    anomaly.related_sessions = related_sessions_str
+
     ## Diagnose the probability of the suspect nodes.
     processed = []
     causes_list = []
@@ -210,7 +213,6 @@ def diagnose(client_ip, server_ip, qoe, anomalyTyp):
     anomaly.save()
     user.anomalies.add(anomaly)
     user.save()
-
 
     diagRst['causes'] = causes_list
     diagRst['duration'] = time_to_diagnose
