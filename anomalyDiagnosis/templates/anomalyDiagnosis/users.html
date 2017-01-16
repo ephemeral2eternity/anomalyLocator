@@ -13,8 +13,8 @@
     </tr>
     {% for user in users.all %}
     <tr>
-        <td> {{ user.name }} </td>
-        <td><a href="/diag/get_user?id={{ user.id }}"> {{ user.ip }} </a></td>
+        <td> {{ user.client.name }} </td>
+        <td><a href="/diag/get_user?id={{ user.id }}"> {{ user.client.ip }} </a></td>
         <td><a href="/diag/get_server?id={{ user.server.id }}"> {{ user.server.ip }} </a></td>
         <td><a href="/diag/get_device?id={{ user.device.id }}"> {{ user.device }} </a></td>
         <td> {{ user.latest_check }}</td>
@@ -23,7 +23,7 @@
                 <li><a href="/diag/get_session?id={{ session.id }}">{{ session }}</a></li>
             {% endfor %}
         </ul></td>
-        <td><a href="/diag/get_events?id={{ user.id }}"> Get events for{{ user.name }} </a></td>
+        <td><a href="/diag/get_events_by_user?id={{ user.id }}"> Get events for{{ user.name }} </a></td>
         <td><a href="/diag/get_anomalies_by_user?id={{ user.id }}">Get anomalies for {{ user.name }}</a></td>
     {% endfor %}
 </table>

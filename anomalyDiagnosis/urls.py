@@ -11,6 +11,7 @@ urlpatterns = [
 	url(r'^get_network_json$', views.getNetworkJson, name='getNetworkJson'),
 	url(r'^nodes_per_network', views.showNodesPerNetwork, name='showNodesPerNetwork'),
 	url(r'^show_nodes', views.showNodes, name='showNodes'),
+	url(r'^get_node', views.getNode, name='getNode'),
 	url(r'^show_networks', views.showNetworks, name='showNetworks'),
 	url(r'^show_users', views.showUsers, name='showUsers'),
 	url(r'^get_user', views.getUser, name='getUser'),

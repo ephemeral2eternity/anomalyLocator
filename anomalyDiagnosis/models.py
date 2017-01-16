@@ -13,13 +13,6 @@ class Update(models.Model):
     class Meta:
         ordering = ('timestamp', )
 
-class Server(models.Model):
-    ip = models.CharField(max_length=100, unique=True)
-    latest_check = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return "server:" + str(self.ip)
-
 # Node class defines a node that is either a router, or a client , or a server
 class Node(models.Model):
     name = models.CharField(max_length=100)
@@ -132,9 +125,8 @@ class Anomaly(models.Model):
 
 ## Monitor the user info
 class User(models.Model):
-    ip = models.CharField(max_length=100, unique=True)
-    name = models.CharField(max_length=100)
-    server = models.ForeignKey(Server)
+    client = models.ForeignKey(Node, related_name='client_node', unique=True)
+    server = models.ForeignKey(Node, related_name='server_node')
     sessions = models.ManyToManyField(Session)
     events = models.ManyToManyField(Event)
     device = models.ForeignKey(DeviceInfo)

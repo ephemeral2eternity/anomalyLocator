@@ -1,0 +1,31 @@
+{% if node %}
+    <ul>
+        <li>Node Name: {{ node.name }}</li>
+        <li>Node IP: {{ node.ip }}</li>
+        <li>Node type: {{ node.type }}</li>
+        <li>Node Network: <a href="/diag/get_network?id={{ node.network_id }}"> {{ node.network_id }} </a></li>
+        <li>Updated timestamp: {{ node.latest_check }}</li>
+    </ul>
+
+    <div>
+        <h2>Show updates on this node</h2>
+        <table style="width:100%">
+            <tr>
+                <td>Session ID</td>
+                <td>QoE</td>
+                <td>User satisfied?</td>
+                <td>Timestamp</td>
+            </tr>
+            {% for update in node.updates.all|dictsortreversed:"timestamp"|slice:"10" %}
+                <tr>
+                    <td><a href="/diag/get_session?id={{ update.session_id }}">{{ update.session_id }}</a></td>
+                    <td>{{ update.qoe }}</td>
+                    <td>{{ update.satisfied }}</td>
+                    <td>{{ update.timestamp }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+{% else %}
+    <p>No node ip denoted.</p>
+{% endif %}

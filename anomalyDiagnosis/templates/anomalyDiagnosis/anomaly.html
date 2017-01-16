@@ -11,17 +11,19 @@
     <h2>Show causes for the anomaly </h2>
     <table style="width:100%">
         <tr>
-            <td>Possible Component</td>
-            <td>Component ID</td>
-            <td>Component Name</td>
+            <td>Suspect Node</td>
+            <td>Node Attribute</td>
+            <td>Attribute ID</td>
+            <td>Attribute Value</td>
             <td>Probablity to cause the anomaly</td>
         </tr>
-        {% for cause in anomaly.element_health.all|dictsortreversed:"health" %}
+        {% for cause in anomaly.causes.all|dictsortreversed:"prob" %}
         <tr>
-            <td> {{ cause.component }} </td>
-            <td><a href="/diag/get_{{ cause.component }}?id={{ cause.comp_id }}"> {{ cause.comp_id }} </a></td>
-            <td> {{ cause.comp_value }} </td>
-            <td> {{ cause.health }} </td>
+            <td><a href="/diag/get_node?id={{ cause.node.id }}"> {{ cause.node }} </a></td>
+            <td> {{ cause.attribute }} </td>
+            <td><a href="/diag/get_{{ cause.attribute }}?id={{ cause.attribute_id }}"> {{ cause.attribute_id }} </a></td>
+            <td> {{ cause.attribute_value }} </td>
+            <td> {{ cause.prob }} </td>
         </tr>
         {% endfor %}
     </table>

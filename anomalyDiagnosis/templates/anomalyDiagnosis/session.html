@@ -19,7 +19,7 @@
             <tr>
                 <td> {{ hop.hopID }}</td>
                 <td> {{ hop.node.name }} </td>
-                <td> {{ hop.node.ip }} </td>
+                <td><a href="/diag/get_node?id={{ hop.node.id }}"> {{ hop.node.ip }} </a></td>
                 <td><a href="/diag/get_network?id={{ hop.node.network_id }}"> Network {{ hop.node.network_id }} </a></td>
                 <td> {{ hop.node.type }} </td>
                 <td>{{ hop.timestamp }}</td>

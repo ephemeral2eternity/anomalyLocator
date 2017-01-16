@@ -3,8 +3,11 @@
 import datetime
 import time
 import socket
-from anomalyDiagnosis.models import Node, Server, DeviceInfo, User, Session, Event, Anomaly, Cause, Path
+import requests
+import json
+from anomalyDiagnosis.models import Node, Network, DeviceInfo, User, Session, Event, Anomaly, Cause, Path
 from anomalyDiagnosis.thresholds import *
+from anomalyDiagnosis.ipinfo import *
 
 def get_exp_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -14,24 +17,38 @@ def get_exp_ip():
     except:
         return "127.0.0.1"
 
+def get_ipinfo(ip):
+    try:
+        url = "http://manage.cmu-agens.com/nodeinfo/get_node?" + ip
+        rsp = requests.get(url)
+        node_info = json.loads(rsp.text)
+    except:
+        node_info = ipinfo(ip)
+        node_info["name"] = node_info["hostname"]
+    return node_info
+
 def update_attributes(client_ip, server_ip, update):
     isUpdated = False
 
+    ## Get client_node
     try:
-        user = User.objects.get(ip=client_ip)
-        if user.device:
-            user.device.updates.add(update)
-            user.device.save()
+        client_node = Node.objects.get(ip=client_ip)
 
-        if user.server:
-            user.server.updates.add(update)
-            user.server.save()
-        user.save()
+        ## Get user
+        try:
+            user = User.objects.get(client=client_node)
+            if user.device:
+                user.device.updates.add(update)
+                user.device.save()
 
-        user_updated = True
-        print("Successfully update user with " + client_ip)
+            user.save()
+
+            user_updated = True
+            print("Successfully update user with " + client_ip)
+        except:
+            user_updated = False
+            print("Cannot obtain user with ip: " + client_ip)
     except:
-        user_updated = False
         print("Cannot obtain user with ip: " + client_ip)
 
     try:
@@ -40,6 +57,10 @@ def update_attributes(client_ip, server_ip, update):
         for network in session.sub_networks.all():
             network.updates.add(update)
             network.save()
+
+        for node in session.route.all():
+            node.updates.add(update)
+            node.save()
 
         session.save()
         session_updated = True
@@ -52,33 +73,47 @@ def update_attributes(client_ip, server_ip, update):
 
 def add_event(client_ip, event_dict):
     try:
-        user = User.objects.get(ip=client_ip)
-        event = Event(user_id=user.id, type=event_dict['type'], prevVal=event_dict['prevVal'], curVal=event_dict['curVal'])
-        event.save()
-        user.events.add(event)
+        client_node = Node.objects.get(ip=client_ip)
+        try:
+            user = User.objects.get(client=client_node)
+            event = Event(user_id=user.id, type=event_dict['type'], prevVal=event_dict['prevVal'], curVal=event_dict['curVal'])
+            event.save()
+            user.events.add(event)
 
-        if str(event_dict['type']).startswith("SRV"):
-            try:
-                srv = Server.objects.get(ip=event_dict['curVal'])
-            except:
-                srv = Server(ip=event_dict['curVal'])
-                srv.save()
-            user.server = srv
+            if str(event_dict['type']).startswith("SRV"):
+                try:
+                    srv = Node.objects.get(ip=event_dict['curVal'])
+                except:
+                    srv_info = get_ipinfo(event_dict['curVal'])
+                    try:
+                        srv_network = Network.objects.get(ASNumber=srv_info["AS"], latitude=srv_info["latitude"], longitude=srv_info["longitude"])
+                    except:
+                        srv_network = Network(name=srv_network["ISP"], ASNumber=srv_info["AS"],
+                                              latitude=srv_info["latitude"], longitude=srv_info["longitude"],
+                                              city=srv_info["city"], region=srv_info["region"], country=srv_info["country"])
+                        srv_network.save()
 
-        if str(event_dict['type']).startswith("DEVICE"):
-            device_vals = event_dict['curVal'].split(',')
-            try:
-                device = DeviceInfo.objects.get(device=device_vals[0], os=device_vals[1], player=device_vals[2], browser=device_vals[3])
-            except:
-                device = DeviceInfo(device=device_vals[0], os=device_vals[1], player=device_vals[2], browser=device_vals[3])
-                device.save()
-            user.device = device
+                    srv = Node(ip=event_dict['curVal'], type="server", name=event_dict['curVal'], network_id=srv_network.id)
+                    srv.save()
+                user.server = srv
 
-        user.save()
-        isAdded = True
+            if str(event_dict['type']).startswith("DEVICE"):
+                device_vals = event_dict['curVal'].split(',')
+                try:
+                    device = DeviceInfo.objects.get(device=device_vals[0], os=device_vals[1], player=device_vals[2], browser=device_vals[3])
+                except:
+                    device = DeviceInfo(device=device_vals[0], os=device_vals[1], player=device_vals[2], browser=device_vals[3])
+                    device.save()
+                user.device = device
+
+            user.save()
+            isAdded = True
+        except:
+            isAdded = False
+            print("Failed to obtain user with ip %s to add event %s" % (client_ip, event_dict['type']))
     except:
         isAdded = False
-        print("Failed to add the client: %s with event %s!" % (client_ip, event_dict['type']))
+        print("Failed to obtain client node with ip %s to add event %s!" % (client_ip, event_dict['type']))
 
     return isAdded
 
@@ -107,7 +142,7 @@ def check_path_length(curPathLength, cur_time):
 def get_suspect_prob(updates):
     cur_time = datetime.datetime.now()
     time_window_start = cur_time - datetime.timedelta(minutes=network_time_window)
-    recent_updates = updates.objects.filter(timestamp__range=(time_window_start, cur_time))
+    recent_updates = updates.filter(timestamp__range=(time_window_start, cur_time))
 
     total = recent_updates.count()
     unsatisfied = 0
@@ -125,12 +160,12 @@ def get_suspects(session):
     suspect_nodes = []
     related_sessions = []
     for node in session.route.all():
-        recent_updates = node.updates.objects.filter(timestamp__range=(time_window_start, cur_time))
+        recent_updates = node.updates.filter(timestamp__range=(time_window_start, cur_time))
         suspect, update = check_status(recent_updates, session.id)
         if not suspect:
             if update.session_id not in related_sessions:
                 related_sessions.append(update.session_id)
-            break
+            continue
         else:
             suspect_nodes.append(node)
     return suspect_nodes, related_sessions
@@ -138,10 +173,18 @@ def get_suspects(session):
 
 def diagnose(client_ip, server_ip, qoe, anomalyTyp):
     diagRst = {}
+
+    ## Get client_node
     try:
-        user = User.objects.get(ip=client_ip)
+        client_node = Node.objects.get(ip=client_ip)
+
+        try:
+            user = User.objects.get(client=client_node)
+        except:
+            diagRst['error'] = "No user with " + client_ip + " in database!"
+            return diagRst
     except:
-        diagRst['error'] = "No user with " + client_ip + " in database!"
+        diagRst['error'] = "No node with " + client_ip + " in database!"
         return diagRst
 
     try:
@@ -165,23 +208,30 @@ def diagnose(client_ip, server_ip, qoe, anomalyTyp):
         if node.type == "client":
             attribute = "device"
             attribute_id = user.device.id
+            attribute_value = str(user.device)
+            updates = user.client.updates
+            is_client_suspect = True
         elif node.type == "server":
             attribute = "server"
             attribute_id = user.server.id
+            attribute_value = str(user.server)
+            updates = user.server.updates
         else:
             attribute = "network"
             attribute_id = node.network_id
+            node_network = Network.objects.get(id=node.network_id)
+            attribute_value = str(node_network)
+            updates = node_network.updates
 
-        processed_code = attribute + "_" + attribute_id
+        processed_code = attribute + "_" + str(attribute_id)
         if processed_code not in processed:
-            prob = get_suspect_prob(user.device.updates)
-            cause = Cause(node=node, attribute=attribute, attribute_id=attribute_id, attribute_value=str(user.device),
+            prob = get_suspect_prob(updates)
+            cause = Cause(node=node, attribute=attribute, attribute_id=attribute_id, attribute_value=attribute_value,
                       prob=prob)
             cause.save()
-            causes_list.append({"attribute": attribute, "id":attribute_id, "value": str(user.device), "prob": prob})
+            causes_list.append({"node": str(node), "node_id": node.id, "attribute": attribute, "attribute_id":attribute_id, "value": attribute_value, "prob": prob})
             anomaly.causes.add(cause)
             processed.append(processed_code)
-
 
     ## Check event proximity
     event_time_window_start = cur_time - datetime.timedelta(minutes=event_time_window)
@@ -191,7 +241,7 @@ def diagnose(client_ip, server_ip, qoe, anomalyTyp):
         attribute_id = event.id
         cause = Cause(attribute=attribute, attribute_id=attribute_id, attribute_value=str(event), prob=prob)
         cause.save()
-        causes_list.append({"attribute": attribute, "id": attribute_id, "value": str(event), "prob": prob})
+        causes_list.append({"attribute": attribute, "attribute_id": attribute_id, "value": str(event), "prob": prob})
         anomaly.causes.add(cause)
 
     long_path = check_path_length(session.path.length, cur_time)
@@ -202,7 +252,7 @@ def diagnose(client_ip, server_ip, qoe, anomalyTyp):
         prob = long_path
         cause = Cause(attribute=attribute, attribute_id=attribute_id, attribute_value=str(session.path), prob=prob)
         cause.save()
-        causes_list.append({"attribute": attribute, "id": attribute_id, "value": str(session.path), "prob": prob})
+        causes_list.append({"attribute": attribute, "attribute_id": attribute_id, "value": str(session.path), "prob": prob})
         anomaly.causes.add(cause)
 
     time_to_diagnose = time.time() - cur_timestamp
