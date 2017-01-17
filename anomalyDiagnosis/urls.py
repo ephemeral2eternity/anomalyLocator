@@ -32,6 +32,6 @@ urlpatterns = [
 	url(r'^edit_network', views.editNetwork, name='editNetwork'),
 	url(r'^get_net_graph_json', views.getJsonNetworkGraph, name='getJsonNetworkGraph'),
 	url(r'^get_net_graph', views.getNetworkGraph, name='getNetworkGraph'),
-	url(r'^get_sUpdates_json', views.getSessionUpdatesJson, name='get_session_updates_json'),
-	url(r'^get_nUpdates_json', views.getNodeUpdatesJson, name='get_node_updates_json'),
+	url(r'^get_supdates_json', views.getSessionUpdatesJson, name='get_supdates_json'),
+	url(r'^get_nupdates_json', views.getNodeUpdatesJson, name='get_nupdates_json'),
 ]

@@ -283,7 +283,7 @@ def getNodeUpdatesJson(request):
         node = Node.objects.get(id=node_id)
         updates_list = []
         for update in node.updates.all():
-            updates_list.append({'x': update.timestamp.strptime("%Y-%m-%d %H:%M:%S"), 'y': update.qoe, 'group':update.session_id})
+            updates_list.append({'x': update.timestamp.strftime("%Y-%m-%d %H:%M:%S"), 'y': update.qoe, 'group':update.session_id})
         updates_dict['updates'] = updates_list
 
         if ('anomaly' in request_dict.keys()):
@@ -311,7 +311,7 @@ def getSessionUpdatesJson(request):
         session_id = int(request_dict['id'][0])
         session = Session.objects.get(id=session_id)
         for update in session.updates.all():
-            updates_list.append({'x':update.timestamp.strptime("%Y-%m-%d %H:%M:%S"), 'y':update.qoe})
+            updates_list.append({'x':update.timestamp.strftime("%Y-%m-%d %H:%M:%S"), 'y':update.qoe})
         updates_json['updates'] = updates_list
 
         latest_update = session.updates.last()
