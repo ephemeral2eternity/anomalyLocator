@@ -262,8 +262,66 @@ def getAnomalyJson(request):
     url = request.get_full_path()
     params = url.split('?')[1]
     request_dict = urllib.parse.parse_qs(params)
+    anomaly_dict = {}
     if ('id' in request_dict.keys()):
+        anomaly_id = int(request_dict['id'][0])
+        anomaly = Anomaly.objects.get(id=anomaly_id)
+        updates_list = []
+        anomaly_ts = anomaly.timestamp
+        time_window_start = anomaly_ts - datetime.timedelta(minutes=update_graph_window)
+        time_window_end = anomaly_ts + datetime.timedelta(minutes=update_graph_window)
+        session = Session.objects.get(id=anomaly.session_id)
 '''
+
+def getNodeUpdatesJson(request):
+    url = request.get_full_path()
+    params = url.split('?')[1]
+    request_dict = urllib.parse.parse_qs(params)
+    updates_dict = {}
+    if ('id' in request_dict.keys()):
+        node_id = int(request_dict['id'][0])
+        node = Node.objects.get(id=node_id)
+        updates_list = []
+        for update in node.updates.all():
+            updates_list.append({'x': update.timestamp.strptime("%Y-%m-%d %H:%M:%S"), 'y': update.qoe, 'group':update.session_id})
+        updates_dict['updates'] = updates_list
+
+        if ('anomaly' in request_dict.keys()):
+            anomaly_id = int(request_dict['anomaly'][0])
+            anomaly = Anomaly.objects.get(id=anomaly_id)
+            anomaly_time = anomaly.timestamp
+            update_start_window = anomaly_time - datetime.timedelta(minutes=5)
+            update_end_window = anomaly_time + datetime.timedelta(minutes=5)
+        else:
+            update_end_window = node.updates.last().timestamp
+            update_start_window = update_end_window - datetime.timedelta(minutes=10)
+        updates_dict['start'] = update_start_window.strftime("%Y-%m-%d %H:%M:%S")
+        updates_dict['end'] = update_end_window.strftime("%Y-%m-%d %H:%M:%S")
+        return JsonResponse(updates_dict)
+    else:
+        return JsonResponse({})
+
+def getSessionUpdatesJson(request):
+    url = request.get_full_path()
+    params = url.split('?')[1]
+    request_dict = urllib.parse.parse_qs(params)
+    updates_json = {}
+    updates_list = []
+    if ('id' in request_dict.keys()):
+        session_id = int(request_dict['id'][0])
+        session = Session.objects.get(id=session_id)
+        for update in session.updates.all():
+            updates_list.append({'x':update.timestamp.strptime("%Y-%m-%d %H:%M:%S"), 'y':update.qoe})
+        updates_json['updates'] = updates_list
+
+        latest_update = session.updates.last()
+        time_window_end = latest_update.timestamp
+        time_window_start = time_window_end - datetime.timedelta(minutes=update_graph_window)
+        updates_json['start'] = time_window_start.strftime("%Y-%m-%d %H:%M:%S")
+        updates_json['end'] = time_window_end.strftime("%Y-%m-%d %H:%M:%S")
+        return JsonResponse(updates_json)
+    else:
+        return JsonResponse({})
 
 def getAnomaliesByUser(request):
     url = request.get_full_path()

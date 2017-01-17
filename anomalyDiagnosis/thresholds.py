@@ -14,3 +14,6 @@ path_time_window = 24       ## 1 day
 
 ## define satisfied QoE value
 satisfied_qoe = 2
+
+## show updates in this window
+update_graph_window = 60        # 30 minutes before and after the anomaly

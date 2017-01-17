@@ -49,6 +49,7 @@ def update_attributes(client_ip, server_ip, update):
             user_updated = False
             print("Cannot obtain user with ip: " + client_ip)
     except:
+        user_updated = False
         print("Cannot obtain user with ip: " + client_ip)
 
     try:
@@ -88,7 +89,7 @@ def add_event(client_ip, event_dict):
                     try:
                         srv_network = Network.objects.get(ASNumber=srv_info["AS"], latitude=srv_info["latitude"], longitude=srv_info["longitude"])
                     except:
-                        srv_network = Network(name=srv_network["ISP"], ASNumber=srv_info["AS"],
+                        srv_network = Network(name=srv_info["ISP"], ASNumber=srv_info["AS"],
                                               latitude=srv_info["latitude"], longitude=srv_info["longitude"],
                                               city=srv_info["city"], region=srv_info["region"], country=srv_info["country"])
                         srv_network.save()
@@ -213,7 +214,6 @@ def diagnose(client_ip, server_ip, qoe, anomalyTyp):
             attribute_id = user.device.id
             attribute_value = str(user.device)
             updates = user.client.updates
-            is_client_suspect = True
         elif node.type == "server":
             attribute = "server"
             attribute_id = user.server.id
