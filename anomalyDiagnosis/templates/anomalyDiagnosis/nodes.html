@@ -2,14 +2,16 @@
 {% if nodes %}
 <table style="width:100%">
     <tr>
-	<td>Name</td>
-	<td>IP</td>
-	<td>Type</td>
-    <td>Network</td>
-	<td>Latest Check</td>
+        <td>ID</td>
+        <td>Name</td>
+        <td>IP</td>
+        <td>Type</td>
+        <td>Network</td>
+        <td>Latest Check</td>
     </tr>
     {% for node in nodes %}
     <tr>
+        <td> {{ node.id }} </td>
         <td> {{ node.name }} </td>
         <td> {{ node.ip }} </td>
         <td> {{ node.type }} </td>

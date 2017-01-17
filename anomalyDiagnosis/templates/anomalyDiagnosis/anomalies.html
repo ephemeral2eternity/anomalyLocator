@@ -8,6 +8,7 @@
         <td>Anomaly Type</td>
         <td>Session reporting anomaly</td>
         <td>User reporting anomaly</td>
+        <td>Related Sessions</td>
         <td>Diagnosis time</td>
         <td>Anomaly Timestamp</td>
     </tr>
@@ -17,6 +18,7 @@
         <td> {{ anomaly.type }} </td>
         <td><a href="/diag/get_session?id={{ anomaly.session_id }}"> Session {{ anomaly.session_id }} </a></td>
         <td><a href="/diag/get_user?id={{ anomaly.user_id }}"> User {{ anomaly.user_id }} </a></td>
+        <td>{{ anomaly.related_sessions }}</td>
         <td> {{ anomaly.timeToDiagnose }} </td>
         <td> {{ anomaly.timestamp }} </td>
     </tr>
