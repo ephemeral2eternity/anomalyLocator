@@ -68,7 +68,7 @@
     var container = document.getElementById('timecurve');
     var node_id = {{ node.id|safe }};
     var url = "/diag/get_nupdates_json?id=" + node_id;
-    $.getJSON("updates.json", function (json) {
+    $.getJSON(url, function (json) {
         var items = json.updates;
         var unique_groups = [];
         for (var i = 0; i < items.length; i ++) {
