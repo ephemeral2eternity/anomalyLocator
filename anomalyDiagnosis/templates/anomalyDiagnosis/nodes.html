@@ -11,7 +11,7 @@
     </tr>
     {% for node in nodes %}
     <tr>
-        <td> {{ node.id }} </td>
+        <td><a href="/diag/get_node?id={{ node.id }}"> {{ node.id }} </a></td>
         <td> {{ node.name }} </td>
         <td> {{ node.ip }} </td>
         <td> {{ node.type }} </td>

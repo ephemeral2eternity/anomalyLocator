@@ -91,7 +91,8 @@
         var options = {
             start: json.start,
             end: json.end,
-            legend: true
+            legend: true,
+            dataAxis: {left:{title: "QoE updates"}}
         };
         var Graph2d = new vis.Graph2d(container, dataset, groups, options);
     });
