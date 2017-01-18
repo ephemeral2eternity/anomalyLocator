@@ -20,7 +20,7 @@
     <script type="text/javascript" src="http://visjs.org/dist/vis.js"></script>
     <link href="http://visjs.org/dist/vis.min.css" rel="stylesheet" type="text/css" />
 </head>
-<body>
+<body onload="drawUpdates({{ node.id }})">
 {% if node %}
     <ul>
         <li>Node Name: {{ node.name }}</li>
@@ -55,7 +55,8 @@
     <p>No node ip denoted.</p>
 {% endif %}
 <script type="text/javascript">
-    Array.prototype.contains = function(obj) {
+    function drawUpdates(node_id) {
+            Array.prototype.contains = function(obj) {
         var i = this.length;
         while (i--) {
             if (this[i] == obj) {
@@ -65,7 +66,6 @@
         return false;
     };
     var container = document.getElementById('timecurve');
-    var node_id = {{ node.id|safe }};
     var url = "/diag/get_nupdates_json?id=" + node_id;
     $.getJSON(url, function (json) {
         var items = json.updates;
@@ -99,6 +99,7 @@
         };
         var Graph2d = new vis.Graph2d(container, dataset, groups, options);
     });
+    }
 </script>
 </body>
 </html>
