@@ -92,7 +92,10 @@
             start: json.start,
             end: json.end,
             legend: true,
-            dataAxis: {left:{title: "QoE updates"}}
+            dataAxis: {left: {title: {text: "QoE updates"}}},
+            width: '400px',
+            height: '200px',
+            style: 'surface'
         };
         var Graph2d = new vis.Graph2d(container, dataset, groups, options);
     });
