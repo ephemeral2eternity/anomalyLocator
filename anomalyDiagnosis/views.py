@@ -257,34 +257,87 @@ def getAnomalyByID(request):
     else:
         return HttpResponse('Please denote the anomaly_id in the url: http://locator/diag/get_anomaly?id=anomaly_id')
 
-'''
+
 def getAnomalyGraphJson(request):
     url = request.get_full_path()
     params = url.split('?')[1]
     request_dict = urllib.parse.parse_qs(params)
-    anomaly_dict = {}
+    graph = {"nodes": [], "links": []}
+    suspect_node_ids = []
+    anomaly_session_nodes = []
     nodes = []
-    nodes_json = []
-    edges = []
-    edges_json = []
     if ('id' in request_dict.keys()):
         anomaly_id = int(request_dict['id'][0])
         anomaly = Anomaly.objects.get(id=anomaly_id)
-        updates_list = []
         anomaly_ts = anomaly.timestamp
         time_window_start = anomaly_ts - datetime.timedelta(minutes=update_graph_window)
         time_window_end = anomaly_ts + datetime.timedelta(minutes=update_graph_window)
 
+        ## Get all suspect node ids
+        for cause in anomaly.causes.all():
+            if cause.node:
+                suspect_node_ids.append(cause.node.id)
+
+        ## Get anomaly session's nodes, with name, id, type, qoe and group
         anomaly_session = Session.objects.get(id=anomaly.session_id)
         for node in anomaly_session.route.all():
-            if node.name not in nodes:
+            if node.id not in nodes:
+                nodes.append(node.id)
+                anomaly_session_nodes.append(node.id)
+                node_dict = {"name": node.name, "type": node.type, "id": node.id}
+                node_dict["qoe"] = get_ave_QoE(node.updates, time_window_start, time_window_end)
+                if (node.id in suspect_node_ids):
+                    if len(suspect_node_ids) == 1:
+                        node_dict["group"] = "bad"
+                    else:
+                        node_dict["group"] = "suspect"
 
+                    if node.type == "router":
+                        node_network = Network.objects.get(id=node.network_id)
+                        node_dict["network_id"] = node.network_id
+                        node_dict["label"] = node_network.__str__()
+                    elif node.type == "server":
+                        node_dict["label"] = node.__str__()
+                    else:
+                        node_user = User.objects.get(client=node)
+                        node_dict["user_id"] = node_user.id
+                        node_dict["label"] = node_user.device.__str__()
+                else:
+                    node_dict["group"] = "good"
+                graph["nodes"].append(node_dict)
 
-
-
+        ## Get related sessions' nodes, with name, id, type, qoe, and group
         related_session_ids = anomaly.related_sessions.split(',')
+        for related_session_id in related_session_ids:
+            peer_session = Session.objects.get(id=related_session_id)
+            for node in peer_session.route.all():
+                if node.id not in nodes:
+                    nodes.append(node.id)
+                    node_dict = {"name": node.name, "type": node.type, "id": node.id}
+                    node_dict["qoe"] = get_ave_QoE(node.updates, time_window_start, time_window_end)
+                    if (node.id in suspect_node_ids):
+                        if len(suspect_node_ids) == 1:
+                            node_dict["group"] = "bad"
+                        else:
+                            node_dict["group"] = "suspect"
+                    else:
+                        node_dict["group"] = "good"
+                    graph["nodes"].append(node_dict)
 
-'''
+        edge_objs = Edge.objects.filter(src_id__in=nodes, dst_id__in=nodes)
+        for edge in edge_objs.all():
+            srcID = nodes.index(edge.src.id)
+            dstID = nodes.index(edge.dst.id)
+            if (edge.src.id in anomaly_session_nodes) and (edge.dst.id in anomaly_session_nodes):
+                edge_dict = {"source": srcID, "target": dstID, "group": "anomalySession"}
+            else:
+                edge_dict = {"source": srcID, "target": dstID, "group": "relatedSession"}
+            graph["links"].append(edge_dict)
+
+        return JsonResponse(graph)
+    else:
+        return JsonResponse({})
+
 
 def getNodeUpdatesJson(request):
     url = request.get_full_path()

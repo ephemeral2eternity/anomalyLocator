@@ -155,6 +155,18 @@ def get_suspect_prob(updates):
     return prob
 
 
+def get_ave_QoE(updates, ts_start, ts_end):
+    requested_updates = updates.filter(timestamp__range=(ts_start, ts_end))
+
+    total = requested_updates.count()
+    total_qoe = 0.0
+    for update in requested_updates.all():
+        total_qoe += update.qoe
+
+    aveQoE = float(total_qoe)/total
+    return  aveQoE
+
+
 def get_suspects(session):
     cur_time = datetime.datetime.now()
     time_window_start = cur_time - datetime.timedelta(minutes=node_time_window)

@@ -34,4 +34,5 @@ urlpatterns = [
 	url(r'^get_net_graph', views.getNetworkGraph, name='getNetworkGraph'),
 	url(r'^get_supdates_json', views.getSessionUpdatesJson, name='get_supdates_json'),
 	url(r'^get_nupdates_json', views.getNodeUpdatesJson, name='get_nupdates_json'),
+	url(r'^get_anomaly_graph_json', views.getAnomalyGraphJson, name='getAnomalyGraphJson'),
 ]
