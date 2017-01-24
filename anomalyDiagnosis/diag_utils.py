@@ -163,7 +163,10 @@ def get_ave_QoE(updates, ts_start, ts_end):
     for update in requested_updates.all():
         total_qoe += float(update.qoe)
 
-    aveQoE = float(total_qoe)/total
+    if total != 0:
+        aveQoE = float(total_qoe)/total
+    else:
+        aveQoE = -1.0
     return  aveQoE
 
 

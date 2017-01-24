@@ -187,7 +187,6 @@ def getNode(request):
         return HttpResponse("Please denote the node id in : http://locator/diag/get_node?id=node_id")
 
 
-
 def showUpdates(request):
     updates = Update.objects.all()
     template = loader.get_template('anomalyDiagnosis/updates.html')
