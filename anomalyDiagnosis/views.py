@@ -307,22 +307,23 @@ def getAnomalyGraphJson(request):
                 graph["nodes"].append(node_dict)
 
         ## Get related sessions' nodes, with name, id, type, qoe, and group
-        related_session_ids = anomaly.related_sessions.split(',')
-        for related_session_id in related_session_ids:
-            peer_session = Session.objects.get(id=related_session_id)
-            for node in peer_session.route.all():
-                if node.id not in nodes:
-                    nodes.append(node.id)
-                    node_dict = {"name": node.name, "type": node.type, "id": node.id}
-                    node_dict["qoe"] = get_ave_QoE(node.updates, time_window_start, time_window_end)
-                    if (node.id in suspect_node_ids):
-                        if len(suspect_node_ids) == 1:
-                            node_dict["group"] = "bad"
+        if anomaly.related_sessions.__contains__(','):
+            related_session_ids = anomaly.related_sessions.split(',')
+            for related_session_id in related_session_ids:
+                peer_session = Session.objects.get(id=related_session_id)
+                for node in peer_session.route.all():
+                    if node.id not in nodes:
+                        nodes.append(node.id)
+                        node_dict = {"name": node.name, "type": node.type, "id": node.id}
+                        node_dict["qoe"] = get_ave_QoE(node.updates, time_window_start, time_window_end)
+                        if (node.id in suspect_node_ids):
+                            if len(suspect_node_ids) == 1:
+                                node_dict["group"] = "bad"
+                            else:
+                                node_dict["group"] = "suspect"
                         else:
-                            node_dict["group"] = "suspect"
-                    else:
-                        node_dict["group"] = "good"
-                    graph["nodes"].append(node_dict)
+                            node_dict["group"] = "good"
+                        graph["nodes"].append(node_dict)
 
         edge_objs = Edge.objects.filter(src_id__in=nodes, dst_id__in=nodes)
         for edge in edge_objs.all():
