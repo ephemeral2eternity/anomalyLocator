@@ -258,11 +258,15 @@ def getAnomalyByID(request):
         return HttpResponse('Please denote the anomaly_id in the url: http://locator/diag/get_anomaly?id=anomaly_id')
 
 '''
-def getAnomalyJson(request):
+def getAnomalyGraphJson(request):
     url = request.get_full_path()
     params = url.split('?')[1]
     request_dict = urllib.parse.parse_qs(params)
     anomaly_dict = {}
+    nodes = []
+    nodes_json = []
+    edges = []
+    edges_json = []
     if ('id' in request_dict.keys()):
         anomaly_id = int(request_dict['id'][0])
         anomaly = Anomaly.objects.get(id=anomaly_id)
@@ -270,7 +274,16 @@ def getAnomalyJson(request):
         anomaly_ts = anomaly.timestamp
         time_window_start = anomaly_ts - datetime.timedelta(minutes=update_graph_window)
         time_window_end = anomaly_ts + datetime.timedelta(minutes=update_graph_window)
-        session = Session.objects.get(id=anomaly.session_id)
+
+        anomaly_session = Session.objects.get(id=anomaly.session_id)
+        for node in anomaly_session.route.all():
+            if node.name not in nodes:
+
+
+
+
+        related_session_ids = anomaly.related_sessions.split(',')
+
 '''
 
 def getNodeUpdatesJson(request):
