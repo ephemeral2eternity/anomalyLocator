@@ -74,6 +74,7 @@
             for (var i = 0; i < nodeNumber; i++) {
                 nodes.push({
                     id: i,
+                    nodeid: org_nodes[i]['id'],
                     label: "QoE: " + org_nodes[i]['qoe'].toPrecision(3),
                     type: org_nodes[i]['type'],
                     image: "/static/" + org_nodes[i]['group'] + "-" + org_nodes[i]['type'] + ".png",
@@ -108,7 +109,7 @@
                 console.log(node);
                 var url = "/diag/";
                 console.log(url);
-                document.location.href=url + "get_node?id=" + node['id'];
+                document.location.href=url + "get_node?id=" + node['nodeid'];
             });
         });
     }
