@@ -114,13 +114,13 @@ def getNetworkJson(request):
             if edge.src not in network.nodes.all():
                 if edge.src.ip not in all_nodes:
                     all_nodes.append(edge.src.ip)
-                    node_list.append({"name": edge.src.name, "network_id": edge.src.network_id, "ip": edge.src.ip, "type": "out"})
+                    node_list.append({"name": edge.src.name, "network_id": edge.src.network_id, "ip": edge.src.ip, "type": "out", "id": edge.src.id})
             src_id = all_nodes.index(edge.src.ip)
 
             if edge.dst not in network.nodes.all():
                 if edge.dst.ip not in all_nodes:
                     all_nodes.append(edge.dst.ip)
-                    node_list.append({"name": edge.dst.name, "network_id": edge.dst.network_id, "ip": edge.dst.ip, "type": "out"})
+                    node_list.append({"name": edge.dst.name, "network_id": edge.dst.network_id, "ip": edge.dst.ip, "type": "out", "id": edge.dst.id})
             dst_id = all_nodes.index(edge.dst.ip)
 
             edge_list.append({"source":src_id, "target":dst_id})
