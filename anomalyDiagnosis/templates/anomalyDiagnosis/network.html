@@ -122,6 +122,7 @@
             for (var i = 0; i < nodeNumber; i++) {
                 nodes.push({
                     id: i,
+                    nid: org_nodes[i]['id'],
                     label: org_nodes[i]['name'],
                     type: org_nodes[i]['type'],
                     image: "/static/" + org_nodes[i]['type'].concat("-router.png"),
@@ -156,7 +157,7 @@
                 console.log(node);
                 var url = "/diag/";
                 console.log(url);
-                document.location.href=url + "get_node?id=" + node['id'];
+                document.location.href=url + "get_node?id=" + node['nid'];
             });
         });
     }

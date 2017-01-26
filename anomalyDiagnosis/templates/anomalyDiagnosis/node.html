@@ -37,50 +37,51 @@
 {% endif %}
 <script type="text/javascript">
     function drawUpdates(node_id) {
-            Array.prototype.contains = function(obj) {
-        var i = this.length;
-        while (i--) {
-            if (this[i] == obj) {
-                return true;
+        Array.prototype.contains = function(obj) {
+            var i = this.length;
+            while (i--) {
+                if (this[i] == obj) {
+                    return true;
+                }
             }
-        }
-        return false;
-    };
-    var container = document.getElementById('timecurve');
-    var url = "/diag/get_nupdates_json?id=" + node_id;
-    $.getJSON(url, function (json) {
-        var items = json.updates;
-        var unique_groups = [];
-        for (var i = 0; i < items.length; i ++) {
-            if (unique_groups.contains(items[i].group)) {
-                continue;
-            }
-            unique_groups.push(items[i].group);
-            items[i].label = "value: " + items[i].y;
-        }
-
-        var groups = new vis.DataSet();
-        for (var j = 0; j < unique_groups.length; j ++){
-            groups.add({
-               id: unique_groups[j],
-               content: "Session " + unique_groups[j].toString()
-            });
-        }
-
-        console.log(unique_groups);
-
-        var dataset = new vis.DataSet(items);
-        var options = {
-            start: json.start,
-            end: json.end,
-            legend: true,
-            dataAxis: {left: {title: {text: "QoE updates"}}},
-            width: '100%',
-            height: '200px',
-            style: 'line'
+            return false;
         };
-        var Graph2d = new vis.Graph2d(container, dataset, groups, options);
-    });
+
+        var container = document.getElementById('timecurve');
+        var url = "/diag/get_nupdates_json?id=" + node_id;
+        $.getJSON(url, function (json) {
+            var items = json.updates;
+            var unique_groups = [];
+            for (var i = 0; i < items.length; i ++) {
+                if (unique_groups.contains(items[i].group)) {
+                    continue;
+                }
+                unique_groups.push(items[i].group);
+                items[i].label = "value: " + items[i].y;
+            }
+
+            var groups = new vis.DataSet();
+            for (var j = 0; j < unique_groups.length; j ++){
+                groups.add({
+                   id: unique_groups[j],
+                   content: "Session " + unique_groups[j].toString()
+                });
+            }
+
+            console.log(unique_groups);
+
+            var dataset = new vis.DataSet(items);
+            var options = {
+                start: json.start,
+                end: json.end,
+                legend: true,
+                dataAxis: {left: {title: {text: "QoE updates"}}},
+                width: '100%',
+                height: '200px',
+                style: 'line'
+            };
+            var Graph2d = new vis.Graph2d(container, dataset, groups, options);
+        });
     }
 </script>
 </body>
