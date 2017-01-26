@@ -39,8 +39,8 @@ def update_attributes(client_ip, server_ip, update):
             user = User.objects.get(client=client_node)
             if user.device:
                 user.device.updates.add(update)
-                user.device.device_qoe_score = (1 - alpha) * user.device.device_qoe_score + alpha * update.qoe
-                print("Device QoE Score: %.4f" % user.device.device_qoe_score)
+                user.device.device_qoe_score = (1 - alpha) * float(user.device.device_qoe_score) + alpha * float(update.qoe)
+                # print("Device QoE Score: %.4f" % user.device.device_qoe_score)
                 user.device.save()
 
             user.save()
@@ -60,13 +60,13 @@ def update_attributes(client_ip, server_ip, update):
         for network in session.sub_networks.all():
             network.updates.add(update)
             network.network_qoe_score = (1 - alpha) * float(network.network_qoe_score) + alpha * float(update.qoe)
-            print("Network QoE Score: %.4f" % network.network_qoe_score)
+            # print("Network QoE Score: %.4f" % network.network_qoe_score)
             network.save()
 
         for node in session.route.all():
             node.updates.add(update)
             node.node_qoe_score = (1 - alpha) * float(node.node_qoe_score) + alpha * float(update.qoe)
-            print("Node QoE Score: %.4f" % node.node_qoe_score)
+            # print("Node QoE Score: %.4f" % node.node_qoe_score)
             node.save()
 
         session.save()
