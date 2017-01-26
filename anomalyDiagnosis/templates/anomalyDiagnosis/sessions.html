@@ -1,6 +1,6 @@
 <h2>Show all available sessions</h2>
 {% if sessions %}
-    <form action="/diag/get_net_graph" method="get">
+    <form method="get">
     <table style="width:100%">
         <tr>
             <td>Checkbox</td>
@@ -25,7 +25,8 @@
         </tr>
         {% endfor %}
     </table>
-    <input type="submit" value="Get network graph">
+    <input type="submit" value="Get network graph" onclick="javascript: form.action='/diag/get_net_graph';"/>
+    <input type="submit" value="Get router graph" onclick="javascript: form.action='/diag/get_router_graph';"/>
     </form>
 {% else %}
     <p>No sessions monitored by the agent.</p>
