@@ -419,20 +419,20 @@ def getJsonNetworkGraph(request):
 
                 if "user_" + str(user.id) not in nodes:
                     nodes.append("user_" + str(user.id))
-                    graph["nodes"].append({"name": user.client.name, "type": "user", "id": user.id})
+                    graph["nodes"].append({"name": user.client.name, "type": "user", "id": user.id, "qs": user.device.device_qoe_score})
 
                 preID = nodes.index("user_" + str(user.id))
 
                 if "server_" + str(server_node.id) not in nodes:
                     nodes.append("server_" + str(server_node.id))
-                    graph["nodes"].append({"name": server_node.name, "type": "server", "id": server_node.id})
+                    graph["nodes"].append({"name": server_node.name, "type": "server", "id": server_node.id, "qs": server_node.node_qoe_score})
 
                 lastID = nodes.index("server_" + str(server_node.id))
 
                 for net in session.sub_networks.all():
                     if "network_" + str(net.id) not in nodes:
                         nodes.append("network_" + str(net.id))
-                        graph["nodes"].append({"name": net.name, "type": "network", "id": net.id})
+                        graph["nodes"].append({"name": net.name, "type": "network", "id": net.id, "qs": net.network_qoe_score})
                     curID = nodes.index("network_" + str(net.id))
                     if preID <= curID:
                         curEdge = {"source": preID, "target": curID}

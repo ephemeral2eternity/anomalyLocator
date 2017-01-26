@@ -58,7 +58,7 @@
                     // label: org_nodes[i]['name'],
                     type: org_nodes[i]['type'],
                     cid: org_nodes[i]['id'],
-                    label: org_nodes[i]['name'],
+                    label: "QoE Score: " + org_nodes[i]["qs"] + "\nName: " + org_nodes[i]['name'],
                     image: "/static/" + org_nodes[i]['type'] + ".png",
                     shape: 'image'
                 });
