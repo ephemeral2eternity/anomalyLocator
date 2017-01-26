@@ -107,7 +107,7 @@ def getNetworkJson(request):
         node_list = []
         for node in network.nodes.all():
             all_nodes.append(node.ip)
-            node_list.append({"name":node.name, "network_id":node.network_id, "ip":node.ip, "type": "in"})
+            node_list.append({"name":node.name, "network_id":node.network_id, "ip":node.ip, "type": "in", "id":node.id})
 
         edge_list = []
         for edge in edges.all():
