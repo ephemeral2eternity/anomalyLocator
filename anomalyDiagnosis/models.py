@@ -20,6 +20,7 @@ class Node(models.Model):
     type = models.CharField(max_length=100)
     network_id = models.IntegerField(default=-1)
     updates = models.ManyToManyField(Update, blank=True)
+    node_qoe_score = models.DecimalField(default=5)
     latest_check = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -34,6 +35,7 @@ class Network(models.Model):
     ASNumber = models.IntegerField(default=-1)
     nodes = models.ManyToManyField(Node)
     updates = models.ManyToManyField(Update, blank=True)
+    network_qoe_score = models.DecimalField(default=5)
     city = models.CharField(max_length=100, default="")
     region = models.CharField(max_length=100, default="")
     country = models.CharField(max_length=100, default="")
@@ -95,6 +97,7 @@ class DeviceInfo(models.Model):
     player = models.CharField(max_length=100)
     browser = models.CharField(max_length=100)
     updates = models.ManyToManyField(Update, blank=True)
+    device_qoe_score = models.DecimalField(default=5.0)
     latest_check = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -105,6 +108,7 @@ class Cause(models.Model):
     attribute = models.CharField(max_length=100)
     attribute_id = models.IntegerField()
     attribute_value = models.CharField(max_length=100)
+    attribute_qoe_score = models.DecimalField(default=-1)
     prob = models.DecimalField(decimal_places=4, max_digits=5)
     timestamp = models.DateTimeField(auto_now_add=True)
 

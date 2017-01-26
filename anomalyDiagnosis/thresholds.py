@@ -17,3 +17,6 @@ satisfied_qoe = 2
 
 ## show updates in this window
 update_graph_window = 60        # 30 minutes before and after the anomaly
+
+## Weighted average probability
+alpha = 0.1

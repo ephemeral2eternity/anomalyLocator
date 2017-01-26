@@ -33,6 +33,7 @@
             <td>Node Attribute</td>
             <td>Attribute ID</td>
             <td>Attribute Value</td>
+            <td>Attribute QoE Score</td>
             <td>Probablity to cause the anomaly</td>
         </tr>
         {% for cause in anomaly.causes.all|dictsortreversed:"prob" %}
@@ -41,6 +42,7 @@
             <td> {{ cause.attribute }} </td>
             <td><a href="/diag/get_{{ cause.attribute }}?id={{ cause.attribute_id }}"> {{ cause.attribute_id }} </a></td>
             <td> {{ cause.attribute_value }} </td>
+            <td> {{ cause.attribute_qoe_score }} </td>
             <td> {{ cause.prob }} </td>
         </tr>
         {% endfor %}

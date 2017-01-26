@@ -39,6 +39,7 @@ def update_attributes(client_ip, server_ip, update):
             user = User.objects.get(client=client_node)
             if user.device:
                 user.device.updates.add(update)
+                user.device.device_qoe_score = (1 - alpha) * user.device.device_qoe_score + alpha * update.qoe
                 user.device.save()
 
             user.save()
@@ -57,10 +58,12 @@ def update_attributes(client_ip, server_ip, update):
         session.updates.add(update)
         for network in session.sub_networks.all():
             network.updates.add(update)
+            network.network_qoe_score = (1 - alpha) * network.network_qoe_score + alpha * update.qoe
             network.save()
 
         for node in session.route.all():
             node.updates.add(update)
+            node.node_qoe_score = (1 - alpha) * node.node_qoe_score + alpha * update.qoe
             node.save()
 
         session.save()
@@ -228,24 +231,27 @@ def diagnose(client_ip, server_ip, qoe, anomalyTyp):
             attribute = "device"
             attribute_id = user.device.id
             attribute_value = str(user.device)
+            attribute_qoe_score = user.device.device_qoe_score
             updates = user.client.updates
         elif node.type == "server":
             attribute = "server"
             attribute_id = user.server.id
             attribute_value = str(user.server)
+            attribute_qoe_score = user.server.node_qoe_score
             updates = user.server.updates
         else:
             attribute = "network"
             attribute_id = node.network_id
             node_network = Network.objects.get(id=node.network_id)
             attribute_value = str(node_network)
+            attribute_qoe_score = node_network.network_qoe_score
             updates = node_network.updates
 
         processed_code = attribute + "_" + str(attribute_id)
         if processed_code not in processed:
             prob = get_suspect_prob(updates)
             cause = Cause(node=node, attribute=attribute, attribute_id=attribute_id, attribute_value=attribute_value,
-                      prob=prob)
+                      prob=prob, attribute_qoe_score=attribute_qoe_score)
             cause.save()
             causes_list.append({"node": str(node), "node_id": node.id, "attribute": attribute, "attribute_id":attribute_id, "value": attribute_value, "prob": prob})
             anomaly.causes.add(cause)
