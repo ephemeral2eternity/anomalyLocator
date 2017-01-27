@@ -30,6 +30,10 @@
         <li>Session Server IP: {{ session.server_ip }}</li>
         <li>Session Path Length: {{ session.path.length }}</li>
     </ul>
+    <hr>
+    <h2>Show QoE updates on session {{ session.id }}</h2>
+    <div id="timecurve"></div>
+    <hr>
     <h2>Show route of the session</h2>
     <table style="width:100%" border="1">
         <tr>
@@ -51,6 +55,7 @@
             </tr>
         {% endfor %}
     </table>
+    <hr>
     <h2>Show subnetworks of the session</h2>
     <table style="width:100%" border="1">
         <tr>
@@ -75,26 +80,25 @@
         {% endfor %}
     </table>
     <hr>
-<div>
-    <h2>Show updates on this network</h2>
-        <table style="width:100%">
-            <tr>
-                <td>Session ID</td>
-                <td>QoE</td>
-                <td>User satisfied?</td>
-                <td>Timestamp</td>
-            </tr>
-            {% for update in session.updates.all|dictsortreversed:"timestamp"|slice:"10" %}
+    <div>
+        <h2>Show updates on this network</h2>
+            <table style="width:100%">
                 <tr>
-                    <td><a href="/diag/get_session?id={{ update.session_id }}">{{ update.session_id }}</a></td>
-                    <td>{{ update.qoe }}</td>
-                    <td>{{ update.satisfied }}</td>
-                    <td>{{ update.timestamp }}</td>
+                    <td>Session ID</td>
+                    <td>QoE</td>
+                    <td>User satisfied?</td>
+                    <td>Timestamp</td>
                 </tr>
-            {% endfor %}
-        </table>
-</div>
-
+                {% for update in session.updates.all|dictsortreversed:"timestamp"|slice:"10" %}
+                    <tr>
+                        <td><a href="/diag/get_session?id={{ update.session_id }}">{{ update.session_id }}</a></td>
+                        <td>{{ update.qoe }}</td>
+                        <td>{{ update.satisfied }}</td>
+                        <td>{{ update.timestamp }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+    </div>
 {% else %}
     <p>Please denote the session id in http://locator/diag/get_session?id=session_id.</p>
 {% endif %}
