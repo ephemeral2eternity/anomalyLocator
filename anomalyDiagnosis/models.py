@@ -144,6 +144,7 @@ class User(models.Model):
 class Edge(models.Model):
     src = models.ForeignKey(Node, on_delete=models.CASCADE, related_name='node_source')
     dst = models.ForeignKey(Node, on_delete=models.CASCADE, related_name='node_target')
+    isIntra = models.BooleanField(default=False)
     latest_check = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -156,6 +157,7 @@ class Edge(models.Model):
 class NetEdge(models.Model):
     srcNet = models.ForeignKey(Network, related_name='network_source')
     dstNet = models.ForeignKey(Network, related_name='network_target')
+    isIntra = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ["srcNet", "dstNet"]

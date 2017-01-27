@@ -339,16 +339,29 @@ def getAnomalyGraphJson(request):
         return JsonResponse({})
 
 
-def getNodeUpdatesJson(request):
+def getUpdatesJson(request):
     url = request.get_full_path()
     params = url.split('?')[1]
     request_dict = urllib.parse.parse_qs(params)
     updates_dict = {}
-    if ('id' in request_dict.keys()):
-        node_id = int(request_dict['id'][0])
-        node = Node.objects.get(id=node_id)
+    if ('id' in request_dict.keys()) and ('type' in request_dict.keys()):
+        obj_id = int(request_dict['id'][0])
+        obj_type = request_dict['type'][0]
+        if obj_type == "session":
+            session = Session.objects.get(id=obj_id)
+            updates = session.updates
+        elif obj_type == "network":
+            network = Network.objects.get(id=obj_id)
+            updates = network.updates
+        elif obj_type == "device":
+            device = DeviceInfo.objects.get(id=obj_id)
+            updates = device.updates
+        else:
+            node = Node.objects.get(id=obj_id)
+            updates = node.updates
+
         updates_list = []
-        for update in node.updates.all():
+        for update in updates.all():
             updates_list.append({'x': update.timestamp.strftime("%Y-%m-%d %H:%M:%S"), 'y': update.qoe, 'group':update.session_id})
         updates_dict['updates'] = updates_list
 
@@ -359,33 +372,11 @@ def getNodeUpdatesJson(request):
             update_start_window = anomaly_time - datetime.timedelta(minutes=5)
             update_end_window = anomaly_time + datetime.timedelta(minutes=5)
         else:
-            update_end_window = node.updates.last().timestamp
+            update_end_window = updates.last().timestamp
             update_start_window = update_end_window - datetime.timedelta(minutes=10)
         updates_dict['start'] = update_start_window.strftime("%Y-%m-%d %H:%M:%S")
         updates_dict['end'] = update_end_window.strftime("%Y-%m-%d %H:%M:%S")
         return JsonResponse(updates_dict)
-    else:
-        return JsonResponse({})
-
-def getSessionUpdatesJson(request):
-    url = request.get_full_path()
-    params = url.split('?')[1]
-    request_dict = urllib.parse.parse_qs(params)
-    updates_json = {}
-    updates_list = []
-    if ('id' in request_dict.keys()):
-        session_id = int(request_dict['id'][0])
-        session = Session.objects.get(id=session_id)
-        for update in session.updates.all():
-            updates_list.append({'x':update.timestamp.strftime("%Y-%m-%d %H:%M:%S"), 'y':update.qoe})
-        updates_json['updates'] = updates_list
-
-        latest_update = session.updates.last()
-        time_window_end = latest_update.timestamp
-        time_window_start = time_window_end - datetime.timedelta(minutes=update_graph_window)
-        updates_json['start'] = time_window_start.strftime("%Y-%m-%d %H:%M:%S")
-        updates_json['end'] = time_window_end.strftime("%Y-%m-%d %H:%M:%S")
-        return JsonResponse(updates_json)
     else:
         return JsonResponse({})
 

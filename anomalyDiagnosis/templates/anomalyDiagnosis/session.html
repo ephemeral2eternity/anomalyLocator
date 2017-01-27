@@ -1,4 +1,29 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>QoE time curve</title>
+
+    <style type="text/css">
+        body, html {
+            font-family: sans-serif;
+        }
+    </style>
+
+    <style type="text/css">
+        #timecurve {
+            width: 100%;
+            border: 1px solid lightgray;
+        }
+    </style>
+
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+    <script type="text/javascript" src="http://visjs.org/dist/vis.js"></script>
+    <link href="http://visjs.org/dist/vis.min.css" rel="stylesheet" type="text/css" />
+</head>
 {% if session %}
+
+    <body onload="drawUpdates({{ session.id|safe }}, 'session')">
+
     <h1>Show details of session {{ session.id }}</h1>
     <ul>
         <li>Session Client IP: {{ session.client_ip }}</li>
@@ -73,3 +98,54 @@
 {% else %}
     <p>Please denote the session id in http://locator/diag/get_session?id=session_id.</p>
 {% endif %}
+<script type="text/javascript">
+    function drawUpdates(node_id, type) {
+        Array.prototype.contains = function(obj) {
+            var i = this.length;
+            while (i--) {
+                if (this[i] == obj) {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        var container = document.getElementById('timecurve');
+        var url = "/diag/get_updates_json?id=" + node_id + "&type=" + type;
+        $.getJSON(url, function (json) {
+            var items = json.updates;
+            var unique_groups = [];
+            for (var i = 0; i < items.length; i ++) {
+                if (unique_groups.contains(items[i].group)) {
+                    continue;
+                }
+                unique_groups.push(items[i].group);
+                items[i].label = "value: " + items[i].y;
+            }
+
+            var groups = new vis.DataSet();
+            for (var j = 0; j < unique_groups.length; j ++){
+                groups.add({
+                   id: unique_groups[j],
+                   content: "Session " + unique_groups[j].toString()
+                });
+            }
+
+            console.log(unique_groups);
+
+            var dataset = new vis.DataSet(items);
+            var options = {
+                start: json.start,
+                end: json.end,
+                legend: true,
+                dataAxis: {left: {title: {text: "QoE updates"}}},
+                width: '100%',
+                height: '300px',
+                style: 'line'
+            };
+            var Graph2d = new vis.Graph2d(container, dataset, groups, options);
+        });
+    }
+</script>
+</body>
+</html>

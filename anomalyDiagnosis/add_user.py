@@ -186,15 +186,25 @@ def add_user(client_info):
         curNode = node_obj
         if curNode.ip < preNode.ip:
             srcNode = curNode
+            srcNodeAS = node_network.ASNumber
             dstNode = preNode
+            dstNodeAS = preNet.ASNumber
         else:
             srcNode = preNode
+            srcNodeAS = preNet.ASNumber
             dstNode = curNode
+            dstNodeAS = node_network.ASNumber
 
         try:
             edge_obj = Edge.objects.get(src=srcNode, dst=dstNode)
         except:
             edge_obj = Edge(src=srcNode, dst=dstNode)
+
+        if srcNodeAS != dstNodeAS:
+            edge_obj.isIntra = False
+        else:
+            edge_obj.isIntra = True
+
         edge_obj.save()
         preNode = curNode
 
@@ -226,6 +236,12 @@ def add_user(client_info):
                 net_edge = NetEdge.objects.get(srcNet=srcNet, dstNet=dstNet)
             except:
                 net_edge = NetEdge(srcNet=srcNet, dstNet=dstNet)
+
+            if srcNet.ASNumber != dstNet.ASNumber:
+                net_edge.isIntra = False
+            else:
+                net_edge.isIntra = True
+
             net_edge.save()
             preNet = curNet
 
