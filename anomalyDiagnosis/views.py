@@ -394,6 +394,42 @@ def getAnomaliesByUser(request):
         return HttpResponse("Please denote the user_id in url: http://locator/diag/get_anomalies?id=user_id")
 
 @csrf_exempt
+def getRouterGraphJson(request):
+    url = request.get_full_path()
+    graph = {"links": [], "nodes": []}
+    nodes = []
+    if '?' in url:
+        params = url.split('?')[1]
+        request_dict = urllib.parse.parse_qs(params)
+        if ('id' in request_dict.keys()):
+            session_ids = request_dict['id']
+        else:
+            session_ids = [session.id for session in Session.objects.all()]
+    else:
+        session_ids = [session.id for session in Session.objects.all()]
+
+    for session_id in session_ids:
+        session = Session.objects.get(id=session_id)
+
+        for node in session.route.all():
+            if node.id not in nodes:
+                nodes.append(node.id)
+                graph["nodes"].append(
+                    {"name": node.name, "type": node.type, "id": node.id, "qs": node.node_qoe_score})
+
+    edges = Edge.objects.filter(src_id__in=nodes, dst_id__in=nodes)
+    for edge in edges.all():
+        srcID = nodes.index(edge.src.id)
+        dstID = nodes.index(edge.dst.id)
+        if edge.isIntra:
+            link_group = "intra"
+        else:
+            link_group = "inter"
+        graph["links"].append({"source": srcID, "target": dstID, "group": link_group})
+
+    return JsonResponse(graph)
+
+@csrf_exempt
 def getJsonNetworkGraph(request):
     url = request.get_full_path()
     graph = {"links": [], "nodes": []}
