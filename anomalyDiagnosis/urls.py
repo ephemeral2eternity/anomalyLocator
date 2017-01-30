@@ -35,4 +35,5 @@ urlpatterns = [
 	url(r'^get_updates_json', views.getUpdatesJson, name='get_updates_json'),
 	url(r'^get_ano_graph_json', views.getAnomalyGraphJson, name='getAnomalyGraphJson'),
 	url(r'^get_router_graph_json', views.getRouterGraphJson, name='getRouterGraphJson'),
+	url(r'^get_router_graph', views.getRouterGraph, name='getRouterGraph'),
 ]

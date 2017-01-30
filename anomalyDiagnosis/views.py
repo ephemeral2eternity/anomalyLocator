@@ -502,6 +502,24 @@ def getNetworkGraph(request):
         template = loader.get_template("anomalyDiagnosis/netGraph.html")
         return HttpResponse(template.render({'ids': ids_json}, request))
 
+def getRouterGraph(request):
+    url = request.get_full_path()
+    if '?' in url:
+        params = url.split('?')[1]
+        request_dict = urllib.parse.parse_qs(params)
+        ids = request_dict['id']
+        ids_json = json.dumps(ids)
+        template = loader.get_template("anomalyDiagnosis/routerGraph.html")
+        return HttpResponse(template.render({'ids': ids_json}, request))
+    else:
+        sessions = Session.objects.all()
+        ids = []
+        for session in sessions:
+            ids.append(session.id)
+        ids_json = json.dumps(ids)
+        template = loader.get_template("anomalyDiagnosis/routerGraph.html")
+        return HttpResponse(template.render({'ids': ids_json}, request))
+
 def getPath(request):
     url = request.get_full_path()
     params = url.split('?')[1]
