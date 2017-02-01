@@ -121,7 +121,7 @@
             return false;
         };
 
-        var container = document.getElementById('timecurve');
+        var container = document.getElementById('QoE');
         var network_id = {{ network.id|safe }};
         var url = "/diag/get_updates_json?id=" + network_id.toString() + "&type=network";
         $.getJSON(url, function (json) {
