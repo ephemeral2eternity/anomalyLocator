@@ -31,7 +31,7 @@
     <a href="/diag/edit_network?id={{ network.id }}">Edit</a>
 </div>
 <hr>
-<div id="mynetwork"></div>
+<div id="network"></div>
 <hr>
 <div>
     <h2>Show nodes in the network</h2>
@@ -76,6 +76,8 @@
 </div>
 {% endif %}
 <hr>
+<div id="QoE"></div>
+<hr>
 <div>
     <h2>Show updates on this network</h2>
         <table style="width:100%">
@@ -103,8 +105,61 @@
     var EDGE_LENGTH_MAIN = 50;
     var EDGE_LENGTH_SUB = 10;
 
+    function draw(){
+        drawQoE();
+        drawNetwork();
+    }
+
+    function drawQoE() {
+        Array.prototype.contains = function(obj) {
+            var i = this.length;
+            while (i--) {
+                if (this[i] == obj) {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        var container = document.getElementById('timecurve');
+        var network_id = {{ network.id|safe }};
+        var url = "/diag/get_updates_json?id=" + network_id.toString() + "&type=network";
+        $.getJSON(url, function (json) {
+            var items = json.updates;
+            var unique_groups = [];
+            for (var i = 0; i < items.length; i ++) {
+                if (unique_groups.contains(items[i].group)) {
+                    continue;
+                }
+                unique_groups.push(items[i].group);
+                items[i].label = "value: " + items[i].y;
+            }
+
+            var groups = new vis.DataSet();
+            for (var j = 0; j < unique_groups.length; j ++){
+                groups.add({
+                   id: unique_groups[j],
+                   content: "Session " + unique_groups[j].toString()
+                });
+            }
+
+            // console.log(unique_groups);
+            var dataset = new vis.DataSet(items);
+            var options = {
+                start: json.start,
+                end: json.end,
+                legend: true,
+                dataAxis: {left: {title: {text: "QoE updates"}}},
+                width: '100%',
+                height: '400px',
+                style: 'line'
+            };
+            var Graph2d = new vis.Graph2d(container, dataset, groups, options);
+        });
+    }
+
     // Called when the Visualization API is loaded.
-    function draw() {
+    function drawNetwork() {
         // Create a data table with nodes.
         var url = '/diag/get_network_json?id=';
         var network_id = {{ network.id }};
@@ -136,7 +191,7 @@
             }
 
             // create a network
-            var container = document.getElementById('mynetwork');
+            var container = document.getElementById('network');
             var data = {
                 nodes: nodes,
                 edges: edges
