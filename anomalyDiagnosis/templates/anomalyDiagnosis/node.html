@@ -48,7 +48,7 @@
         };
 
         var container = document.getElementById('timecurve');
-        var url = "/diag/get_updates_json?id=" + node_id;
+        var url = "/diag/get_updates_json?id=" + node_id + "&type=node";
         $.getJSON(url, function (json) {
             var items = json.updates;
             var unique_groups = [];
