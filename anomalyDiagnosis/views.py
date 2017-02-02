@@ -415,7 +415,7 @@ def getRouterGraphJson(request):
             if node.id not in nodes:
                 nodes.append(node.id)
                 graph["nodes"].append(
-                    {"name": node.name, "type": node.type, "id": node.id, "qs": node.node_qoe_score})
+                    {"name": node.name, "type": node.type, "id": node.id, "qs": node.node_qoe_score, "ip": node.ip})
 
     edges = Edge.objects.filter(src_id__in=nodes, dst_id__in=nodes)
     for edge in edges.all():
