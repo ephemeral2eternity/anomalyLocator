@@ -157,7 +157,10 @@ def get_suspect_prob(updates):
         if not update.satisfied:
             unsatisfied += 1
 
-    prob = float(unsatisfied) / total
+    if total != 0:
+        prob = float(unsatisfied) / total
+    else:
+        prob = 1.0
     return prob
 
 
