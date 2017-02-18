@@ -23,6 +23,7 @@
         <li>User reported anomaly: <a href="/diag/get_user?id={{ anomaly.user_id }}">{{ anomaly.user_id }}</a></li>
         <li>Session reported anomaly:<a href="/diag/get_session?id={{ anomaly.session_id }}">{{ anomaly.session_id }}</a></li>
         <li>Diagnosis time: {{ anomaly.timeToDiagnose }} seconds</li>
+        <li>Related Sessions: {{ anomaly.related_sessions }} seconds</li>
         <li>Timestamp: {{ anomaly.timestamp }}</li>
     </ul>
     <div id="mynetwork"></div>
