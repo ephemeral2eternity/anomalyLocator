@@ -110,6 +110,8 @@ class Cause(models.Model):
     attribute_value = models.CharField(max_length=100)
     attribute_qoe_score = models.DecimalField(default=-1, max_digits=5, decimal_places=4)
     prob = models.DecimalField(decimal_places=4, max_digits=5)
+    session_num = models.IntegerField(default=-1)
+    related_sessions = models.CharField(max_length=100, default="")
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

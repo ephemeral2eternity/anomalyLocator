@@ -153,15 +153,18 @@ def get_suspect_prob(updates):
 
     total = recent_updates.count()
     unsatisfied = 0
+    related_sessions = []
     for update in recent_updates.all():
         if not update.satisfied:
             unsatisfied += 1
+        if update.session_id not in related_sessions:
+            related_sessions.append(update.session_id)
 
     if total != 0:
         prob = float(unsatisfied) / total
     else:
         prob = 1.0
-    return prob
+    return prob, uniq_sessions
 
 
 def get_ave_QoE(updates, ts_start, ts_end):
@@ -255,9 +258,10 @@ def diagnose(client_ip, server_ip, qoe, anomalyTyp):
 
         processed_code = attribute + "_" + str(attribute_id)
         if processed_code not in processed:
-            prob = get_suspect_prob(updates)
+            prob, unique_related_sessions = get_suspect_prob(updates)
+            unique_related_sessions_str = ",".join(str(x) for x in unique_related_sessions)
             cause = Cause(node=node, attribute=attribute, attribute_id=attribute_id, attribute_value=attribute_value,
-                      prob=prob, attribute_qoe_score=attribute_qoe_score)
+                      prob=prob, attribute_qoe_score=attribute_qoe_score, session_num=len(unique_related_sessions), related_sessions=unique_related_sessions_str)
             cause.save()
             causes_list.append({"node": str(node), "node_id": node.id, "attribute": attribute, "attribute_id":attribute_id, "value": attribute_value, "prob": prob})
             anomaly.causes.add(cause)
