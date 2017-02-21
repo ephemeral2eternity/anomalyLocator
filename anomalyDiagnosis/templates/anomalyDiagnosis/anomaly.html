@@ -36,6 +36,8 @@
             <td>Attribute Value</td>
             <td>Attribute QoE Score</td>
             <td>Probablity to cause the anomaly</td>
+            <td># of sessions reported</td>
+            <td>IDs of sessions</td>
         </tr>
         {% for cause in anomaly.causes.all|dictsortreversed:"prob" %}
         <tr>
@@ -45,6 +47,8 @@
             <td> {{ cause.attribute_value }} </td>
             <td> {{ cause.attribute_qoe_score }} </td>
             <td> {{ cause.prob }} </td>
+            <td> {{ cause.session_num }} </td>
+            <td> {{ cause.related_sessions }} </td>
         </tr>
         {% endfor %}
     </table>
