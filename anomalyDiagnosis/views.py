@@ -550,7 +550,6 @@ def addRoute(request):
             "Please use the POST method for http://locator_ip/diag/add request to add new info for a client!")
 
 @csrf_exempt
-@transaction.atomic
 def update(request):
     isUpdated = False
     ## Add updates to all attributes of the client's session
@@ -596,7 +595,6 @@ def addEvent(request):
         return HttpResponse("No")
 
 @csrf_exempt
-@transaction.atomic
 def diagnosis(request):
     ## Diagnosis result for an anomaly.
     diagRst = {}
