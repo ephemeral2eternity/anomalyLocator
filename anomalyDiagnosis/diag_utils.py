@@ -164,7 +164,7 @@ def get_suspect_prob(updates):
         prob = float(unsatisfied) / total
     else:
         prob = 1.0
-    return prob, uniq_sessions
+    return prob, related_sessions
 
 
 def get_ave_QoE(updates, ts_start, ts_end):
