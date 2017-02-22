@@ -244,7 +244,7 @@ def diagnose(client_ip, server_ip, qoe, anomalyTyp):
             attribute_id = user.device.id
             attribute_value = str(user.device)
             attribute_qoe_score = user.device.device_qoe_score
-            updates = user.client.updates
+            updates = user.device.updates
         elif node.type == "server":
             attribute = "server"
             attribute_id = user.server.id
