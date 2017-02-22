@@ -5,7 +5,7 @@ class Update(models.Model):
     session_id = models.IntegerField()
     qoe = models.DecimalField(max_digits=5, decimal_places=4)
     satisfied = models.BooleanField()
-    timestamp = models.DateTimeField(auto_now_add=True)
+    timestamp = models.DateTimeField()
 
     def __str__(self):
         return str(self.session_id) + ", " + str(self.qoe) + ", " + str(self.satisfied)

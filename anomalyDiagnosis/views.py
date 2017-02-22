@@ -10,6 +10,7 @@ import json
 import socket
 import csv
 import time
+import pytz
 from anomalyDiagnosis.thresholds import satisfied_qoe
 from datetime import date, datetime, timedelta
 from anomalyDiagnosis.diag_utils import *
@@ -550,22 +551,44 @@ def addRoute(request):
 
 @csrf_exempt
 def update(request):
-    isUpdated = False
-    ## Add updates to all attributes of the client's session
-    url = request.get_full_path()
-    params = url.split('?')[1]
-    request_dict = urllib.parse.parse_qs(params)
-    if ('client' in request_dict.keys()) and ('server' in request_dict.keys()) and ('qoe' in request_dict.keys()):
-        client = request_dict['client'][0]
-        server = request_dict['server'][0]
-        qoe = float(request_dict['qoe'][0])
+    updates = []
+    if request.method == "POST":
+        qoe_info = json.loads(request.body.decode("utf-8"))
+        client = qoe_info['client']
+        server = qoe_info['server']
+        qoes = qoe_info['qoes']
         try:
             session = Session.objects.get(client_ip=client, server_ip=server)
-            update = Update(session_id=session.id, qoe=qoe, satisfied=(qoe >= satisfied_qoe))
-            update.save()
-            isUpdated = update_attributes(client, server, update)
+            for ts,qoe in qoes.items():
+                dtfield = datetime.datetime.utcfromtimestamp(float(ts))
+                update = Update(session_id = session.id, qoe=qoe, satisfied=(qoe >= satisfied_qoe), timestamp=dtfield)
+                update.save()
+                updates.append(update)
         except:
+            return HttpResponse("Error: No existing session from client " + client + " to server " + server)
+    else:
+        ## Add updates to all attributes of the client's session
+        url = request.get_full_path()
+        params = url.split('?')[1]
+        request_dict = urllib.parse.parse_qs(params)
+        if ('client' in request_dict.keys()) and ('server' in request_dict.keys()) and ('qoe' in request_dict.keys()):
+            client = request_dict['client'][0]
+            server = request_dict['server'][0]
+            qoe = float(request_dict['qoe'][0])
+            try:
+                session = Session.objects.get(client_ip=client, server_ip=server)
+                dtfield = timezone.now()
+                update = Update(session_id=session.id, qoe=qoe, satisfied=(qoe >= satisfied_qoe), timestamp=dtfield)
+                update.save()
+                updates.append(update)
+            except:
+                return HttpResponse("Error: No existing session from client " + client + " to server " + server)
+        else:
             return HttpResponse("No")
+    # cur_ts = time.time()
+    isUpdated = update_attributes(client, server, updates)
+    # duration = time.time() - cur_ts
+    # print("The updates processing time is : %.2f seconds" % duration)
     if isUpdated:
         return HttpResponse("Yes")
     else:

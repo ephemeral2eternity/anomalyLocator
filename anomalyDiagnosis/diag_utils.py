@@ -29,9 +29,7 @@ def get_ipinfo(ip):
     return node_info
 
 @transaction.atomic
-def update_attributes(client_ip, server_ip, update):
-    isUpdated = False
-
+def update_attributes(client_ip, server_ip, updates):
     ## Get client_node
     try:
         client_node = Node.objects.get(ip=client_ip)
@@ -40,8 +38,9 @@ def update_attributes(client_ip, server_ip, update):
         try:
             user = User.objects.get(client=client_node)
             if user.device:
-                user.device.updates.add(update)
-                user.device.device_qoe_score = (1 - alpha) * float(user.device.device_qoe_score) + alpha * float(update.qoe)
+                for update in updates:
+                    user.device.updates.add(update)
+                    user.device.device_qoe_score = (1 - alpha) * float(user.device.device_qoe_score) + alpha * float(update.qoe)
                 # print("Device QoE Score: %.4f" % user.device.device_qoe_score)
                 user.device.save()
 
@@ -58,16 +57,19 @@ def update_attributes(client_ip, server_ip, update):
 
     try:
         session = Session.objects.get(client_ip=client_ip, server_ip=server_ip)
-        session.updates.add(update)
+        for update in updates:
+            session.updates.add(update)
+
         for network in session.sub_networks.all():
-            network.updates.add(update)
-            network.network_qoe_score = (1 - alpha) * float(network.network_qoe_score) + alpha * float(update.qoe)
-            # print("Network QoE Score: %.4f" % network.network_qoe_score)
+            for update in updates:
+                network.updates.add(update)
+                network.network_qoe_score = (1 - alpha) * float(network.network_qoe_score) + alpha * float(update.qoe)
             network.save()
 
         for node in session.route.all():
-            node.updates.add(update)
-            node.node_qoe_score = (1 - alpha) * float(node.node_qoe_score) + alpha * float(update.qoe)
+            for update in updates:
+                node.updates.add(update)
+                node.node_qoe_score = (1 - alpha) * float(node.node_qoe_score) + alpha * float(update.qoe)
             # print("Node QoE Score: %.4f" % node.node_qoe_score)
             node.save()
 
