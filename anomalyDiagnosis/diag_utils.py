@@ -8,6 +8,7 @@ import json
 from anomalyDiagnosis.models import Node, Network, DeviceInfo, User, Session, Event, Anomaly, Cause, Path
 from anomalyDiagnosis.thresholds import *
 from anomalyDiagnosis.ipinfo import *
+from django.db import transaction
 
 def get_exp_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

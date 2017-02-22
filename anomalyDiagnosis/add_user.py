@@ -1,5 +1,6 @@
 from anomalyDiagnosis.models import Node, User, Session, DeviceInfo, Network, Hop, Subnetwork, Edge, NetEdge
 from anomalyDiagnosis.models import Event, Path
+from django.db import transaction
 
 @transaction.atomic
 def add_user(client_info):
