@@ -132,7 +132,7 @@ class Anomaly(models.Model):
 
 ## Monitor the user info
 class User(models.Model):
-    client = models.ForeignKey(Node, related_name='client_node', unique=True)
+    client = models.OneToOneField(Node, related_name='client_node')
     server = models.ForeignKey(Node, related_name='server_node')
     sessions = models.ManyToManyField(Session)
     events = models.ManyToManyField(Event)
