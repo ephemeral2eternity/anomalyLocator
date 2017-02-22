@@ -27,6 +27,7 @@ def get_ipinfo(ip):
         node_info["name"] = node_info["hostname"]
     return node_info
 
+@transaction.atomic
 def update_attributes(client_ip, server_ip, update):
     isUpdated = False
 
@@ -78,6 +79,7 @@ def update_attributes(client_ip, server_ip, update):
 
     return (user_updated and session_updated)
 
+@transaction.atomic
 def add_event(client_ip, event_dict):
     try:
         client_node = Node.objects.get(ip=client_ip)
@@ -98,7 +100,7 @@ def add_event(client_ip, event_dict):
                         srv_network = Network(name=srv_info["ISP"], ASNumber=srv_info["AS"],
                                               latitude=srv_info["latitude"], longitude=srv_info["longitude"],
                                               city=srv_info["city"], region=srv_info["region"], country=srv_info["country"])
-                        srv_network.save()
+                    srv_network.save()
 
                     srv = Node(ip=event_dict['curVal'], type="server", name=event_dict['curVal'], network_id=srv_network.id)
                     srv.save()

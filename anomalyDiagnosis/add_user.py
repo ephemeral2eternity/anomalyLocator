@@ -1,6 +1,7 @@
 from anomalyDiagnosis.models import Node, User, Session, DeviceInfo, Network, Hop, Subnetwork, Edge, NetEdge
 from anomalyDiagnosis.models import Event, Path
 
+@transaction.atomic
 def add_user(client_info):
     ############################################################################################################
     ## Update the client side network and node

@@ -534,7 +534,6 @@ def getPath(request):
 
 # Add the hops in the Client's route and get the client's route networks, server, and device info.
 @csrf_exempt
-@transaction.atomic
 def addRoute(request):
     if request.method == "POST":
         ## Update the client info
@@ -573,7 +572,6 @@ def update(request):
         return HttpResponse("No")
 
 @csrf_exempt
-@transaction.atomic
 def addEvent(request):
     ## Add updates to all attributes of the client's session
     event = {}
