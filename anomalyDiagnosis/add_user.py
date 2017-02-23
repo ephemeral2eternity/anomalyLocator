@@ -177,7 +177,14 @@ def add_user(client_info):
             cur_hop = Hop(session=session, node=node_obj, hopID=hop_id)
             if session_exist:
                 org_hop = Hop.objects.filter(session=session, hopID=hop_id).last()
-                node_event = Event(user_id=user.id, type="ROUTE_CHANGE", prevVal=str(hop_id)+":"+org_hop.node.ip, curVal=str(hop_id)+":"+node_obj.ip)
+                if org_hop:
+                    node_event = Event(user_id=user.id, type="ROUTE_CHANGE",
+                                       prevVal=str(hop_id)+":"+org_hop.node.ip,
+                                       curVal=str(hop_id)+":"+node_obj.ip)
+                else:
+                    node_event = Event(user_id=user.id, type="ROUTE_CHANGE",
+                                       prevVal=str(hop_id) + ":None",
+                                       curVal=str(hop_id) + ":" + node_obj.ip)
                 node_event.save()
                 user.events.add(node_event)
 
