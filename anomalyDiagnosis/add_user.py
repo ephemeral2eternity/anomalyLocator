@@ -225,8 +225,9 @@ def add_user(client_info):
             except:
                 cur_subnet = Subnetwork(session=session, network=node_network, netID=net_id)
                 if session_exist:
-                    org_subnet = Subnetwork.objects.filter(session=session, netID=net_id).order_by('-pk')[0]
-                    if org_subnet:
+                    org_subnets = Subnetwork.objects.filter(session=session, netID=net_id).order_by('-pk')
+                    if len(org_subnets) > 0:
+                        org_subnet = org_subnets[0]
                         net_event = Event(user_id=user.id, type="NET_CHANGE", prevVal=org_subnet.network.id,
                                            curVal=node_network.id)
                     else:
