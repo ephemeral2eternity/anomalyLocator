@@ -195,6 +195,7 @@ def get_suspects(session):
     for node in session.route.all():
         recent_updates = node.updates.filter(timestamp__range=(time_window_start, cur_time))
         suspect, update = check_status(recent_updates, session.id)
+        # print(node.name + ":" + str(suspect))
         if not suspect:
             if update.session_id not in related_sessions:
                 related_sessions.append(update.session_id)
@@ -238,7 +239,7 @@ def diagnose(client_ip, server_ip, qoe, anomalyTyp):
     anomaly.related_sessions = related_sessions_str
 
     ## Diagnose the probability of the suspect nodes.
-    processed = []
+    processed = {}
     causes_list = []
     for node in suspect_nodes:
         if node.type == "client":
@@ -262,15 +263,19 @@ def diagnose(client_ip, server_ip, qoe, anomalyTyp):
             updates = node_network.updates
 
         processed_code = attribute + "_" + str(attribute_id)
-        if processed_code not in processed:
+        if processed_code not in processed.keys():
             prob, unique_related_sessions = get_suspect_prob(updates)
             unique_related_sessions_str = ",".join(str(x) for x in unique_related_sessions)
-            cause = Cause(node=node, attribute=attribute, attribute_id=attribute_id, attribute_value=attribute_value,
-                      prob=prob, attribute_qoe_score=attribute_qoe_score, session_num=len(unique_related_sessions), related_sessions=unique_related_sessions_str)
-            cause.save()
-            causes_list.append({"node": str(node), "node_id": node.id, "attribute": attribute, "attribute_id":attribute_id, "value": attribute_value, "prob": prob})
-            anomaly.causes.add(cause)
-            processed.append(processed_code)
+            processed[processed_code] = {"prob":prob, "unique_related_sessions":unique_related_sessions, "unique_related_sessions_str": unique_related_sessions_str}
+
+        prob = processed[processed_code]["prob"]
+        unique_related_sessions = processed[processed_code]["unique_related_sessions"]
+        unique_related_sessions_str = processed[processed_code]["unique_related_sessions_str"]
+        cause = Cause(node=node, attribute=attribute, attribute_id=attribute_id, attribute_value=attribute_value,
+                  prob=prob, attribute_qoe_score=attribute_qoe_score, session_num=len(unique_related_sessions), related_sessions=unique_related_sessions_str)
+        cause.save()
+        causes_list.append({"node": str(node), "node_id": node.id, "attribute": attribute, "attribute_id":attribute_id, "value": attribute_value, "prob": prob})
+        anomaly.causes.add(cause)
 
     ## Check event proximity
     event_time_window_start = cur_time - datetime.timedelta(minutes=event_time_window)
