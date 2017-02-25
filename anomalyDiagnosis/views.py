@@ -130,8 +130,9 @@ def getNetworkJson(request):
         graph["nodes"] = node_list
         graph["edges"] = edge_list
 
-        output = json.dumps(graph, indent=4, sort_keys=True)
-        return HttpResponse(output, content_type="application/json")
+        #output = json.dumps(graph, indent=4, sort_keys=True)
+        #return HttpResponse(output, content_type="application/json")
+        return JsonResponse(graph)
     else:
         return JsonResponse({})
 
@@ -337,8 +338,9 @@ def getAnomalyGraphJson(request):
                 edge_dict = {"source": srcID, "target": dstID, "group": "relatedSession"}
             graph["links"].append(edge_dict)
 
-        output = json.dumps(graph, indent=4, sort_keys=True)
-        return HttpResponse(output, content_type="application/json")
+        # output = json.dumps(graph, indent=4, sort_keys=True)
+        # return HttpResponse(output, content_type="application/json")
+        return JsonResponse(graph)
     else:
         return JsonResponse({})
 
@@ -381,8 +383,9 @@ def getUpdatesJson(request):
         updates_dict['start'] = update_start_window.strftime("%Y-%m-%d %H:%M:%S")
         updates_dict['end'] = update_end_window.strftime("%Y-%m-%d %H:%M:%S")
 
-        output = json.dumps(updates_dict, indent=4, sort_keys=True)
-        return HttpResponse(output, content_type="application/json")
+        #output = json.dumps(updates_dict, indent=4, sort_keys=True)
+        #return HttpResponse(output, content_type="application/json")
+        return JsonResponse(updates_dict)
     else:
         return JsonResponse({})
 
@@ -433,8 +436,9 @@ def getRouterGraphJson(request):
             link_group = "inter"
         graph["links"].append({"source": srcID, "target": dstID, "group": link_group})
 
-    output = json.dumps(graph, indent=4, sort_keys=True)
-    return HttpResponse(output, content_type="application/json")
+    #output = json.dumps(graph, indent=4, sort_keys=True)
+    #return HttpResponse(output, content_type="application/json")
+    return JsonResponse(graph)
 
 @csrf_exempt
 def getJsonNetworkGraph(request):
@@ -484,8 +488,9 @@ def getJsonNetworkGraph(request):
                 if lastEdge not in graph["links"]:
                     graph["links"].append(lastEdge)
 
-            output = json.dumps(graph, indent=4, sort_keys=True)
-            return HttpResponse(output, content_type="application/json")
+            #output = json.dumps(graph, indent=4, sort_keys=True)
+            # return HttpResponse(output, content_type="application/json")
+            return JsonResponse(graph)
         else:
             return HttpResponse("No session is selected!")
     else:
@@ -636,5 +641,6 @@ def diagnosis(request):
         qoe = request_dict['qoe'][0]
         anomalyType = request_dict['type'][0]
         diagRst = diagnose(client_ip, server_ip, qoe, anomalyType)
-    output = json.dumps(diagRst, indent=4, sort_keys=True)
-    return HttpResponse(output, content_type="application/json")
+    # output = json.dumps(diagRst, indent=4, sort_keys=True)
+    # return HttpResponse(output, content_type="application/json")
+    return JsonResponse(diagRst)
