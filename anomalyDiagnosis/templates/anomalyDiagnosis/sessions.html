@@ -27,9 +27,6 @@
     </table>
     <input type="submit" value="Get network graph" onclick="javascript: form.action='/diag/get_net_graph';"/>
     <input type="submit" value="Get router graph" onclick="javascript: form.action='/diag/get_router_graph';"/>
-    <br>
-    Anomaly ID: <input type="number" name="anoID" min="1" >
-    <input type="submit" value="Get anomaly router graph" onclick="javascript: form.action='/diag/get_router_graph';"/>
     </form>
 {% else %}
     <p>No sessions monitored by the agent.</p>
