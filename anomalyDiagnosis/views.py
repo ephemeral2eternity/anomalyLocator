@@ -407,6 +407,7 @@ def getRouterGraphJson(request):
     url = request.get_full_path()
     graph = {"links": [], "nodes": []}
     nodes = []
+    isAnomaly = False
     if '?' in url:
         params = url.split('?')[1]
         request_dict = urllib.parse.parse_qs(params)
@@ -414,6 +415,14 @@ def getRouterGraphJson(request):
             session_ids = request_dict['id']
         else:
             session_ids = [session.id for session in Session.objects.all()]
+
+        if ('anoID' in request_dict.keys()):
+            isAnomaly = True
+            anomaly_id = request_dict['anoID']
+            anomaly = Anomaly.objects.get(id=anomaly_id)
+            anomaly_ts = anomaly.timestamp
+            anomaly_time_window_start = anomaly_ts - datetime.timedelta(minutes=node_time_window)
+
     else:
         session_ids = [session.id for session in Session.objects.all()]
 
@@ -423,7 +432,14 @@ def getRouterGraphJson(request):
         for node in session.route.all():
             if node.id not in nodes:
                 nodes.append(node.id)
-                graph["nodes"].append(
+
+                if isAnomaly:
+                    node_updates = node.updates.filter(timestamp__range=(anomaly_time_window_start, anomaly_ts))
+                    node_status, _ = check_status(node_updates, session_id)
+                    graph["nodes"].append(
+                        {"name": node.name, "type": node.type, "id": node.id, "qs": node.node_qoe_score, "ip": node.ip, "suspect": node_status})
+                else:
+                    graph["nodes"].append(
                     {"name": node.name, "type": node.type, "id": node.id, "qs": node.node_qoe_score, "ip": node.ip})
 
     edges = Edge.objects.filter(src_id__in=nodes, dst_id__in=nodes)
@@ -532,6 +548,7 @@ def getRouterGraph(request):
         ids_json = json.dumps(ids)
         template = loader.get_template("anomalyDiagnosis/routerGraph.html")
         return HttpResponse(template.render({'ids': ids_json}, request))
+
 
 def getPath(request):
     url = request.get_full_path()
