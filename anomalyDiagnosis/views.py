@@ -418,7 +418,7 @@ def getRouterGraphJson(request):
 
         if ('anoID' in request_dict.keys()):
             isAnomaly = True
-            anomaly_id = request_dict['anoID']
+            anomaly_id = int(request_dict['anoID'][0])
             anomaly = Anomaly.objects.get(id=anomaly_id)
             anomaly_ts = anomaly.timestamp
             anomaly_time_window_start = anomaly_ts - datetime.timedelta(minutes=node_time_window)
