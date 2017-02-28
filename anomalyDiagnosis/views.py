@@ -614,10 +614,10 @@ def update(request):
                 return HttpResponse("Error: No existing session from client " + client + " to server " + server)
         else:
             return HttpResponse("No")
-    # cur_ts = time.time()
+    cur_ts = time.time()
     isUpdated = update_attributes(client, server, updates)
-    # duration = time.time() - cur_ts
-    # print("The updates processing time is : %.2f seconds" % duration)
+    duration = time.time() - cur_ts
+    print("The updates processing time is : %.2f seconds" % duration)
     if isUpdated:
         return HttpResponse("Yes")
     else:

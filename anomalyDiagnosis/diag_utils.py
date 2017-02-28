@@ -53,7 +53,7 @@ def update_attributes(client_ip, server_ip, updates):
             print("Cannot obtain user with ip: " + client_ip)
     except:
         user_updated = False
-        print("Cannot obtain user with ip: " + client_ip)
+        print("Cannot find node with ip: " + client_ip)
 
     try:
         session = Session.objects.get(client_ip=client_ip, server_ip=server_ip)
