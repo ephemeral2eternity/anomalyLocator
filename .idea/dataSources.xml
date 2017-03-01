@@ -7,15 +7,7 @@
       <imported>true</imported>
       <remarks>$PROJECT_DIR$/locator/settings.py</remarks>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
-      <jdbc-url>jdbc:sqlite:D:\GitHub\anomalyLocator\db.sqlite3</jdbc-url>
-      <libraries>
-        <library>
-          <url>file://$APPLICATION_CONFIG_DIR$/jdbc-drivers/xerial-sqlite-license.txt</url>
-        </library>
-        <library>
-          <url>file://$APPLICATION_CONFIG_DIR$/jdbc-drivers/sqlite-jdbc-3.8.11.2.jar</url>
-        </library>
-      </libraries>
+      <jdbc-url>jdbc:mysql://127.0.0.1/django_db</jdbc-url>
     </data-source>
     <data-source source="LOCAL" name="Django default2" uuid="33e55620-534f-4634-9b3a-4f90c7cdc017">
       <driver-ref>sqlite.xerial</driver-ref>
