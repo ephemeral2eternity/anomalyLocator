@@ -19,7 +19,7 @@ class Node(models.Model):
     ip = models.CharField(max_length=100, unique=True)
     type = models.CharField(max_length=100)
     network = models.ForeignKey('Network', blank=True)
-    node_qoe_score = models.DecimalField(default=5, max_digits=5, decimal_places=4)
+    # node_qoe_score = models.DecimalField(default=5, max_digits=5, decimal_places=4)
     related_sessions = models.ManyToManyField('Session', through='Hop')
     latest_check = models.DateTimeField(auto_now=True)
 
@@ -33,8 +33,8 @@ class Network(models.Model):
     latitude = models.DecimalField(max_digits=10, decimal_places=4, default=0.0)
     longitude = models.DecimalField(max_digits=10, decimal_places=4, default=0.0)
     ASNumber = models.IntegerField(default=-1)
-    nodes = models.ManyToManyField(Node)
-    network_qoe_score = models.DecimalField(default=5, max_digits=5, decimal_places=4)
+    nodes = models.ManyToManyField(Node, blank=True)
+    # network_qoe_score = models.DecimalField(default=5, max_digits=5, decimal_places=4)
     related_sessions = models.ManyToManyField('Session', through='Subnetwork')
     city = models.CharField(max_length=100, default="")
     region = models.CharField(max_length=100, default="")
@@ -69,6 +69,8 @@ class Session(models.Model):
     sub_networks = models.ManyToManyField(Network, through='Subnetwork')
     path = models.ForeignKey(Path, null=True)
     updates = models.ManyToManyField(Update)
+    anomalies = models.ManyToManyField(Anomaly)
+    state = models.BooleanField(default=False)
     latest_check = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -116,22 +118,28 @@ class DeviceInfo(models.Model):
     os = models.CharField(max_length=100)
     player = models.CharField(max_length=100)
     browser = models.CharField(max_length=100)
-    updates = models.ManyToManyField(Update, blank=True)
-    device_qoe_score = models.DecimalField(default=5.0, max_digits=5, decimal_places=4)
+    # device_qoe_score = models.DecimalField(default=5.0, max_digits=5, decimal_places=4)
     latest_check = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return "(" + self.device + ", " + self.os + ", " + self.player + ", " + self.browser + ")"
 
+class Status(models.Model):
+    session_id = models.IntegerField()
+    isGood = models.BooleanField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return str(self.session_id) + " is good: " + str(self.isGood) + "@" + str(self.timestamp)
+
 class Cause(models.Model):
-    node = models.ForeignKey(Node, null=True)
     attribute = models.CharField(max_length=100)
     attribute_id = models.IntegerField()
     attribute_value = models.CharField(max_length=100)
-    attribute_qoe_score = models.DecimalField(default=-1, max_digits=5, decimal_places=4)
+    # attribute_qoe_score = models.DecimalField(default=-1, max_digits=5, decimal_places=4)
     prob = models.DecimalField(decimal_places=4, max_digits=5)
-    session_num = models.IntegerField(default=-1)
-    related_sessions = models.CharField(max_length=100, default="")
+    suspects = models.ManyToManyField(Node)
+    session_status = models.ManyToManyField(Status)
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -143,7 +151,7 @@ class Anomaly(models.Model):
     session_id = models.IntegerField()
     qoe = models.DecimalField(max_digits=5, decimal_places=4, default=0.0)
     causes = models.ManyToManyField(Cause)
-    related_sessions = models.CharField(max_length=200, default="")
+    related_sessions = models.ManyToManyField(Session, blank=True)
     timeToDiagnose = models.DecimalField(max_digits=10, decimal_places=5, default=-1)
     timestamp = models.DateTimeField(auto_now_add=True)
 
@@ -157,7 +165,6 @@ class User(models.Model):
     sessions = models.ManyToManyField(Session)
     events = models.ManyToManyField(Event)
     device = models.ForeignKey(DeviceInfo)
-    anomalies = models.ManyToManyField(Anomaly)
     latest_check = models.DateTimeField(auto_now=True)
 
     def __str__(self):
