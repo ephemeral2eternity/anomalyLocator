@@ -1,13 +1,10 @@
 db.sqlite3
+.idea
 *.pyc
 */migrations/*
 */__pycache__/*.pyc
 locator/__pycache__/*
 anomalyLocator/__pycache__/*
-.idea/dataSources/2c678b4f-4941-4cb9-bf4f-3035a8e03eee/_src_/
-.idea/dataSources/2c678b4f-4941-4cb9-bf4f-3035a8e03eee/_staging_/
-.idea/dataSources/33e55620-534f-4634-9b3a-4f90c7cdc017/_src_/
-.idea/dataSources/33e55620-534f-4634-9b3a-4f90c7cdc017/_staging_/
 anomalyDiagnosis/__pycache__/
 anomalyLocator/__pycache__/
 locator/__pycache__/
