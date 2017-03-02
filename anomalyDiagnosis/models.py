@@ -18,9 +18,9 @@ class Node(models.Model):
     name = models.CharField(max_length=100)
     ip = models.CharField(max_length=100, unique=True)
     type = models.CharField(max_length=100)
-    network = models.ForeignKey(Network, blank=True)
+    network = models.ForeignKey('Network', blank=True)
     node_qoe_score = models.DecimalField(default=5, max_digits=5, decimal_places=4)
-    related_sessions = models.ManyToManyField(Session, through=Hop)
+    related_sessions = models.ManyToManyField('Session', through='Hop')
     latest_check = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -35,7 +35,7 @@ class Network(models.Model):
     ASNumber = models.IntegerField(default=-1)
     nodes = models.ManyToManyField(Node)
     network_qoe_score = models.DecimalField(default=5, max_digits=5, decimal_places=4)
-    related_sessions = models.ManyToManyField(Session, through=Subnetwork)
+    related_sessions = models.ManyToManyField('Session', through='Subnetwork')
     city = models.CharField(max_length=100, default="")
     region = models.CharField(max_length=100, default="")
     country = models.CharField(max_length=100, default="")
@@ -48,6 +48,7 @@ class Network(models.Model):
     class Meta:
         index_together = ["ASNumber", "latitude", "longitude"]
         unique_together = ("ASNumber", "latitude", "longitude")
+
 
 class Path(models.Model):
     session_id = models.IntegerField()
@@ -76,6 +77,25 @@ class Session(models.Model):
     class Meta:
         index_together = ["client_ip", "server_ip"]
         unique_together = ["client_ip", "server_ip"]
+
+# Define hop with its sequence on a client's route
+class Hop(models.Model):
+    node = models.ForeignKey(Node, on_delete=models.CASCADE)
+    session = models.ForeignKey(Session, on_delete=models.CASCADE)
+    hopID = models.PositiveIntegerField()
+    timestamp = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return str(self.hopID) + ", " + str(self.node) + ", " + str(self.session)
+
+# Define hop with its sequence on a client's route
+class Subnetwork(models.Model):
+    session = models.ForeignKey(Session, on_delete=models.CASCADE)
+    network = models.ForeignKey(Network, on_delete=models.CASCADE)
+    netID = models.PositiveIntegerField()
+
+    def __str__(self):
+        return str(self.netID) + ", " + str(self.network) + ", " + str(self.session)
 
 # Monitor the event for each client.
 class Event(models.Model):
@@ -166,24 +186,3 @@ class NetEdge(models.Model):
 
     def __str__(self):
         return str(self.srcNet) + "---" + str(self.dstNet)
-
-
-
-# Define hop with its sequence on a client's route
-class Hop(models.Model):
-    node = models.ForeignKey(Node, on_delete=models.CASCADE)
-    session = models.ForeignKey(Session, on_delete=models.CASCADE)
-    hopID = models.PositiveIntegerField()
-    timestamp = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return str(self.hopID) + ", " + str(self.node) + ", " + str(self.session)
-
-# Define hop with its sequence on a client's route
-class Subnetwork(models.Model):
-    session = models.ForeignKey(Session, on_delete=models.CASCADE)
-    network = models.ForeignKey(Network, on_delete=models.CASCADE)
-    netID = models.PositiveIntegerField()
-
-    def __str__(self):
-        return str(self.netID) + ", " + str(self.network) + ", " + str(self.session)
