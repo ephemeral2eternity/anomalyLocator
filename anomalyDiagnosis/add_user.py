@@ -21,10 +21,11 @@ def add_user(client_info):
         client_node = Node.objects.get(ip=client_info['ip'])
         client_node.type = 'client'
         client_node.name = client_info['name']
-        client_node.network_id = client_network.id
     except:
-        client_node = Node(name=client_info['name'], ip=client_info['ip'], type='client', network_id=client_network.id)
+        client_node = Node(name=client_info['name'], ip=client_info['ip'], type='client')
+    client_node.network = client_network
     client_node.save()
+
     if client_node not in client_network.nodes.all():
         client_network.nodes.add(client_node)
         client_network.save()
@@ -60,9 +61,9 @@ def add_user(client_info):
         server_node = Node.objects.get(ip=server_info['ip'])
         server_node.name = server_info['name']
         server_node.type = "server"
-        server_node.network_id = srv_network.id
     except:
-        server_node = Node(ip=server_info['ip'], name=server_info['name'], type="server", network_id=srv_network.id)
+        server_node = Node(ip=server_info['ip'], name=server_info['name'], type="server")
+    server_node.network = srv_network
     server_node.save()
 
     if server_node not in srv_network.nodes.all():
@@ -166,7 +167,7 @@ def add_user(client_info):
             node_network.nodes.add(node_obj)
             node_network.save()
 
-        node_obj.network_id = node_network.id
+        node_obj.network = node_network
         node_obj.save()
 
         ## save current hop to a route

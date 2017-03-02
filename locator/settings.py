@@ -83,6 +83,9 @@ DATABASES = {
         'USER': 'root',
         'PASSWORD': 'qrank',
         'CONN_MAX_AGE': None,
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
     }
 }
 

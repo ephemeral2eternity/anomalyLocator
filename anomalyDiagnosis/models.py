@@ -33,7 +33,7 @@ class Network(models.Model):
     latitude = models.DecimalField(max_digits=10, decimal_places=4, default=0.0)
     longitude = models.DecimalField(max_digits=10, decimal_places=4, default=0.0)
     ASNumber = models.IntegerField(default=-1)
-    nodes = models.ManyToManyField(Node, blank=True)
+    nodes = models.ManyToManyField(Node, blank=True, related_name='net_nodes')
     # network_qoe_score = models.DecimalField(default=5, max_digits=5, decimal_places=4)
     related_sessions = models.ManyToManyField('Session', through='Subnetwork')
     city = models.CharField(max_length=100, default="")
@@ -69,7 +69,7 @@ class Session(models.Model):
     sub_networks = models.ManyToManyField(Network, through='Subnetwork')
     path = models.ForeignKey(Path, null=True)
     updates = models.ManyToManyField(Update)
-    anomalies = models.ManyToManyField(Anomaly)
+    anomalies = models.ManyToManyField('Anomaly')
     state = models.BooleanField(default=False)
     latest_check = models.DateTimeField(auto_now=True)
 
@@ -125,12 +125,15 @@ class DeviceInfo(models.Model):
         return "(" + self.device + ", " + self.os + ", " + self.player + ", " + self.browser + ")"
 
 class Status(models.Model):
-    session_id = models.IntegerField()
+    session = models.ForeignKey(Session)
     isGood = models.BooleanField()
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return str(self.session_id) + " is good: " + str(self.isGood) + "@" + str(self.timestamp)
+        if self.isGood:
+            return str(self.session) + " is good @ " + str(self.timestamp)
+        else:
+            return str(self.session) + " is good @ " + str(self.timestamp)
 
 class Cause(models.Model):
     attribute = models.CharField(max_length=100)
@@ -139,7 +142,7 @@ class Cause(models.Model):
     # attribute_qoe_score = models.DecimalField(default=-1, max_digits=5, decimal_places=4)
     prob = models.DecimalField(decimal_places=4, max_digits=5)
     suspects = models.ManyToManyField(Node)
-    session_status = models.ManyToManyField(Status)
+    related_session_status = models.ManyToManyField(Status, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -151,7 +154,7 @@ class Anomaly(models.Model):
     session_id = models.IntegerField()
     qoe = models.DecimalField(max_digits=5, decimal_places=4, default=0.0)
     causes = models.ManyToManyField(Cause)
-    related_sessions = models.ManyToManyField(Session, blank=True)
+    related_session_status = models.ManyToManyField(Status, blank=True)
     timeToDiagnose = models.DecimalField(max_digits=10, decimal_places=5, default=-1)
     timestamp = models.DateTimeField(auto_now_add=True)
 
