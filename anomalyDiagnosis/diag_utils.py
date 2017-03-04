@@ -5,7 +5,8 @@ import time
 import socket
 import requests
 import json
-from anomalyDiagnosis.models import Node, Network, DeviceInfo, User, Session, Event, Anomaly, Cause, Path
+from multiprocessing import Process, freeze_support
+from anomalyDiagnosis.models import Node, Network, DeviceInfo, User, Session, Event, Status, Anomaly, Cause, Path, Update
 from anomalyDiagnosis.thresholds import *
 from anomalyDiagnosis.ipinfo import *
 from django.db import transaction
@@ -28,58 +29,201 @@ def get_ipinfo(ip):
         node_info["name"] = node_info["hostname"]
     return node_info
 
+def fork_anomaly_diagnosis(recent_qoes):
+    p = Process(target=detect_anomaly, args=(recent_qoes))
+    p.start()
+    return p
+
+
+def check_status(session, timestamp=None):
+    if timestamp is None:
+        check_time = datetime.datetime.now()
+    else:
+        check_time = datetime.datetime.utcfromtimestamp(float(timestamp))
+
+    # To check if the session is still active.
+    latest_status = session.status.filter(timestamp__lte=check_time).latest('timestamp')
+    if (check_time.timestamp() - latest_status.timestamp.timestamp() < session_active_window):
+        return latest_status
+
+    return None
+
+def locate_suspects(session):
+    suspect_nodes = []
+    related_sessions_status = {}
+    for node in session.route.all():
+        node_isGood = False
+        for session in node.related_sessions.all():
+            if session.id not in related_sessions_status.keys():
+                related_sessions_status[session.id] = check_status(session)
+            if related_sessions_status[session.id]:
+                if related_sessions_status[session.id].isGood:
+                    node_isGood = True
+                    break
+        if not node_isGood:
+            suspect_nodes.append(node)
+    return suspect_nodes, related_sessions_status.values()
+
+def get_suspect_prob(type, obj):
+    if type == "device":
+        users = obj.users.all()
+        sessions = []
+        session_ids = []
+        for user in users:
+            for session in user.sessions.all():
+                if session.id not in session_ids:
+                    session_ids.append(session.id)
+                    sessions.append(session)
+    else:
+        sessions = obj.related_session.all()
+
+    active_session_num = 0
+    active_sessions = []
+    good_session_num = 0
+    for session in sessions:
+        session_status, _ = check_status(session)
+        if session_status:
+            active_session_num += 1
+            active_sessions.append(session)
+            if session_status.isGood:
+                good_session_num += 1
+
+    if active_session_num > 0:
+        prob = (active_session_num - good_session_num) / float(active_session_num)
+    else:
+        prob = 1.0
+
+    return prob, active_sessions
+
+
+def rank_suspects(user, session, suspect_nodes):
+    ranked_attributes = {}
+
+    for node in suspect_nodes:
+        if node.type == "client":
+            attribute_type = "device"
+            attribute_id = user.device.id
+            attribute_obj = user.device
+        elif node.type == "server":
+            attribute_type = "server"
+            attribute_id = user.server.id
+            attribute_obj = user.server
+        else:
+            attribute_type = "network"
+            attribute_id = node.network.id
+            attribute_obj = node.network
+        attribute_value = str(attribute_obj)
+        attribute_key = attribute_type + "_" + str(attribute_id)
+        if attribute_key not in ranked_attributes.keys():
+            ranked_attributes[attribute_key] = {"type": attribute_type, "id": attribute_id, "obj": attribute_obj,
+                                                "value":str(attribute_obj), "suspects":[]}
+        ranked_attributes[attribute_key]["suspects"].append(node)
+
+    for attribute_key, attribute_dict in ranked_attributes.items():
+        prob, related_sessions = get_suspect_prob(attribute_dict["type"], attribute_dict["obj"])
+        ranked_attributes[attribute_key]["prob"] = prob
+        ranked_attributes[attribute_key]["related_sessions"] = related_sessions
+
+    ## Check event proximity
+    cur_time = datetime.datetime.now()
+    cur_timestamp = cur_time.timestamp()
+    event_time_window_start = cur_time - datetime.timedelta(minutes=event_time_window)
+    for event in user.events.filter(timestamp__range=(event_time_window_start, cur_time)).all():
+        prob = 1 - (cur_timestamp - event.timestamp.timestamp())/float(event_time_window*60)
+        attribute_type = "event"
+        attribute_id = event.id
+        attribute_key = attribute_type + "_" + str(attribute_id)
+        ranked_attributes[attribute_key] = {"type": attribute_type, "id": attribute_id, "value": str(event)}
+
+    long_path = check_path_length(session.path.length, cur_time)
+    # element_status["path_" + str(session.path.length)] = long_path
+    if long_path > 0.9:
+        attribute_type = "path"
+        attribute_id = session.path.id
+        prob = long_path
+        attribute_key = attribute_type + "_" + str(attribute_id)
+        ranked_attributes[attribute_key] = {"type": attribute_type, "id": attribute_id, "value": str(session.path)}
+
+    return ranked_attributes
+
 @transaction.atomic
-def update_attributes(client_ip, server_ip, updates):
-    ## Get client_node
+def save_anomaly(user, session, anomaly_qoe, anomaly_type, related_sessions_status, ranked_attributes):
+    anomaly = Anomaly(user_id=user.id, session_id=session.id, qoe=anomaly_qoe, type=anomaly_type)
+    anomaly.save()
+
+    for session_status in related_sessions_status:
+        anomaly.related_session_status.add(session_status)
+
+    for attribute_key, attribute_dict in ranked_attributes.items():
+        attribute_type = attribute_dict["type"]
+        attribute_id = attribute_dict["id"]
+        attribute_value = attribute_dict["value"]
+        prob = attribute_dict["prob"]
+        cause = Cause(type=attribute_type, id=attribute_id, value=attribute_value, prob=prob)
+        if "suspects" in attribute_dict.keys():
+            for node in attribute_dict["suspects"]:
+                cause.suspects.add(node)
+        if "related_sessions" in attribute_dict.keys():
+            for session_status in attribute_dict["related_sessions"]:
+                cause.related_session_status.add(session_status)
+        cause.save()
+        anomaly.causes.add(cause)
+    anomaly.save()
+    return anomaly
+
+def anomaly_diagnosis(session, anomaly_qoe, anomaly_type):
+    suspect_nodes, related_sessions_status = locate_suspects(session)
+
     try:
-        client_node = Node.objects.get(ip=client_ip)
-
-        ## Get user
-        try:
-            user = User.objects.get(client=client_node)
-            if user.device:
-                for update in updates:
-                    user.device.updates.add(update)
-                    # user.device.device_qoe_score = (1 - alpha) * float(user.device.device_qoe_score) + alpha * float(update.qoe)
-                    # print("Device QoE Score: %.4f" % user.device.device_qoe_score)
-                user.device.save()
-            user.save()
-
-            user_updated = True
-            print("Successfully update user with " + client_ip)
-        except:
-            user_updated = False
-            print("Cannot obtain user with ip: " + client_ip)
+        user = User.objects.get(client__ip=session.client_ip)
+        ranked_attributes = rank_suspects(user, session, suspect_nodes)
+        anomaly = save_anomaly(user, session, anomaly_qoe, anomaly_type, related_sessions_status, ranked_attributes)
+        print("Anomaly with id " + str(anomaly.id) + " is diagnosed and saved!")
     except:
-        user_updated = False
-        print("Cannot find node with ip: " + client_ip)
+        print(session.ip + " is not associated with any user!")
 
+def detect_anomaly(session, recent_qoes):
+    anomaly_idx = [x for x in recent_qoes.values() if x <= satisfied_qoe]
+    anomaly_pts = len(anomaly_idx)
+    total_pts = len(recent_qoes)
+    if anomaly_pts > 0:
+        isAnomaly = True
+        anomaly_ratio = anomaly_pts / float(total_pts)
+        if anomaly_ratio < 0.2:
+            anomaly_type = "occasional"
+        elif anomaly_ratio < 0.7:
+            anomaly_type = "recurrent"
+        else:
+            anomaly_type = "persistent"
+
+        session_status = Status(session_id=session.id, isGood=False)
+        session_status.save()
+        session.status.add(session_status)
+        session.save()
+    else:
+        session_status = Status(session_id=session.id, isGood=True)
+        session_status.save()
+        session.status.add(session_status)
+        session.save()
+
+@transaction.atomic
+def update_attributes(client_ip, server_ip, qoes):
     try:
         session = Session.objects.get(client_ip=client_ip, server_ip=server_ip)
-        for update in updates:
+        for ts, qoe in qoes.items():
+            dtfield = datetime.datetime.utcfromtimestamp(float(ts))
+            update = Update(session_id=session.id, qoe=qoe, satisfied=(qoe >= satisfied_qoe), timestamp=dtfield)
+            update.save()
             session.updates.add(update)
-
-        for network in session.sub_networks.all():
-            for update in updates:
-                network.updates.add(update)
-                # network.network_qoe_score = (1 - alpha) * float(network.network_qoe_score) + alpha * float(update.qoe)
-            network.save()
-
-        for node in session.route.all():
-            for update in updates:
-                node.updates.add(update)
-                # node.node_qoe_score = (1 - alpha) * float(node.node_qoe_score) + alpha * float(update.qoe)
-            # print("Node QoE Score: %.4f" % node.node_qoe_score)
-            node.save()
-
         session.save()
-        session_updated = True
-        print("Successfully send update for session: "+ client_ip + "<--->" + server_ip)
-    except:
-        session_updated = False
-        print("Failed to send update for session: " + client_ip + "<--->" + server_ip)
+        detect_anomaly(session, qoes)
 
-    return (user_updated and session_updated)
+        ## Fork the thread to diagnose the anomaly
+
+        return True
+    except:
+        print("Failed to send update for session: " + client_ip + "<--->" + server_ip)
+        return False
 
 @transaction.atomic
 def add_event(client_ip, event_dict):
@@ -128,12 +272,6 @@ def add_event(client_ip, event_dict):
 
     return isAdded
 
-def check_status(updates, session_id):
-    for update in updates.all():
-        if update.satisfied and (update.session_id != session_id):
-            return False, update
-    return True, None
-
 def check_path_length(curPathLength, cur_time):
     ## Long path issues
     path_time_window_start = cur_time - datetime.timedelta(hours=path_time_window)
@@ -150,26 +288,6 @@ def check_path_length(curPathLength, cur_time):
     long_path_issue = 1 - float(rank)/all_paths.count()
     return long_path_issue
 
-def get_suspect_prob(updates):
-    cur_time = datetime.datetime.now()
-    time_window_start = cur_time - datetime.timedelta(minutes=network_time_window)
-    recent_updates = updates.filter(timestamp__range=(time_window_start, cur_time))
-
-    total = recent_updates.count()
-    unsatisfied = 0
-    related_sessions = []
-    for update in recent_updates.all():
-        if not update.satisfied:
-            unsatisfied += 1
-        if update.session_id not in related_sessions:
-            related_sessions.append(update.session_id)
-
-    if total != 0:
-        prob = float(unsatisfied) / total
-    else:
-        prob = 1.0
-    return prob, related_sessions
-
 
 def get_ave_QoE(updates, ts_start, ts_end):
     requested_updates = updates.filter(timestamp__range=(ts_start, ts_end))
@@ -184,24 +302,6 @@ def get_ave_QoE(updates, ts_start, ts_end):
     else:
         aveQoE = -1.0
     return  aveQoE
-
-
-def get_suspects(session):
-    cur_time = datetime.datetime.now()
-    time_window_start = cur_time - datetime.timedelta(minutes=node_time_window)
-    suspect_nodes = []
-    related_sessions = []
-    for node in session.route.all():
-        recent_updates = node.updates.filter(timestamp__range=(time_window_start, cur_time))
-        suspect, update = check_status(recent_updates, session.id)
-        # print(node.name + ":" + str(suspect))
-        if not suspect:
-            if update.session_id not in related_sessions:
-                related_sessions.append(update.session_id)
-            continue
-        else:
-            suspect_nodes.append(node)
-    return suspect_nodes, related_sessions
 
 
 def diagnose(client_ip, server_ip, qoe, anomalyTyp):
@@ -232,7 +332,7 @@ def diagnose(client_ip, server_ip, qoe, anomalyTyp):
     cur_time = datetime.datetime.now()
     cur_timestamp = cur_time.timestamp()
 
-    suspect_nodes, related_sessions = get_suspects(session)
+    suspect_nodes, related_sessions = locate_suspects(session)
 
     related_sessions_str = ",".join(str(x) for x in related_sessions)
     anomaly.related_sessions = related_sessions_str

@@ -30,19 +30,6 @@ def add_user(client_info):
         client_network.nodes.add(client_node)
         client_network.save()
 
-
-    ###############################################################################################################
-    ## Update the user and the device
-    #  Update Device Info
-    device_info = client_info['device']
-    try:
-        device = DeviceInfo.objects.get(device=device_info['device'], os=device_info['os'],
-                                        player=device_info['player'], browser=device_info['browser'])
-    except:
-        device = DeviceInfo(device=device_info['device'], os=device_info['os'],
-                            player=device_info['player'], browser=device_info['browser'])
-    device.save()
-
     ###############################################################################################################
     ## Update the server side object, node and network
     # Update server network
@@ -70,6 +57,18 @@ def add_user(client_info):
         srv_network.nodes.add(server_node)
         srv_network.save()
 
+    ###############################################################################################################
+    ## Update the user and the device
+    #  Update Device Info
+    device_info = client_info['device']
+    try:
+        device = DeviceInfo.objects.get(device=device_info['device'], os=device_info['os'],
+                                        player=device_info['player'], browser=device_info['browser'])
+    except:
+        device = DeviceInfo(device=device_info['device'], os=device_info['os'],
+                            player=device_info['player'], browser=device_info['browser'])
+    device.save()
+
     # Update User Info
     try:
         user = User.objects.get(client=client_node)
@@ -91,6 +90,9 @@ def add_user(client_info):
             user.events.add(srv_event)
     else:
         user.server = server_node
+
+    if user not in device.users.all():
+        device.users.add(user)
 
     ###############################################################################################################
     ## Update the session route, subnetworks and path
@@ -147,14 +149,6 @@ def add_user(client_info):
             net_type = "transit"
 
         try:
-            node_obj = Node.objects.get(ip=node_ip)
-            node_obj.name = node['name']
-            node_obj.type = node_type
-        except:
-            node_obj = Node(name=node['name'], ip=node_ip, type=node_type)
-        node_obj.save()
-
-        try:
             node_network = Network.objects.get(type=net_type, ASNumber=node['AS'],
                                                latitude=node['latitude'], longitude=node['longitude'])
         except:
@@ -162,6 +156,15 @@ def add_user(client_info):
                                    latitude=node['latitude'], longitude=node['longitude'],
                                    city=node['city'], region=node['region'], country=node['country'])
         node_network.save()
+
+        try:
+            node_obj = Node.objects.get(ip=node_ip)
+            node_obj.name = node['name']
+            node_obj.type = node_type
+        except:
+            node_obj = Node(name=node['name'], ip=node_ip, type=node_type)
+        node_obj.network = node_network
+        node_obj.save()
 
         if node_obj not in node_network.nodes.all():
             node_network.nodes.add(node_obj)

@@ -586,15 +586,6 @@ def update(request):
         client = qoe_info['client']
         server = qoe_info['server']
         qoes = qoe_info['qoes']
-        try:
-            session = Session.objects.get(client_ip=client, server_ip=server)
-            for ts,qoe in qoes.items():
-                dtfield = datetime.datetime.utcfromtimestamp(float(ts))
-                update = Update(session_id = session.id, qoe=qoe, satisfied=(qoe >= satisfied_qoe), timestamp=dtfield)
-                update.save()
-                updates.append(update)
-        except:
-            return HttpResponse("Error: No existing session from client " + client + " to server " + server)
     else:
         ## Add updates to all attributes of the client's session
         url = request.get_full_path()
@@ -604,18 +595,12 @@ def update(request):
             client = request_dict['client'][0]
             server = request_dict['server'][0]
             qoe = float(request_dict['qoe'][0])
-            try:
-                session = Session.objects.get(client_ip=client, server_ip=server)
-                dtfield = timezone.now()
-                update = Update(session_id=session.id, qoe=qoe, satisfied=(qoe >= satisfied_qoe), timestamp=dtfield)
-                update.save()
-                updates.append(update)
-            except:
-                return HttpResponse("Error: No existing session from client " + client + " to server " + server)
+            ts = str(time.time())
+            qoes = {ts:qoe}
         else:
             return HttpResponse("No")
     cur_ts = time.time()
-    isUpdated = update_attributes(client, server, updates)
+    isUpdated = update_attributes(client, server, qoes)
     duration = time.time() - cur_ts
     print("The updates processing time is : %.2f seconds" % duration)
     if isUpdated:

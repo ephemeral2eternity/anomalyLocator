@@ -69,8 +69,8 @@ class Session(models.Model):
     sub_networks = models.ManyToManyField(Network, through='Subnetwork')
     path = models.ForeignKey(Path, null=True)
     updates = models.ManyToManyField(Update)
-    anomalies = models.ManyToManyField('Anomaly')
-    state = models.BooleanField(default=False)
+    anomalies = models.ManyToManyField('Anomaly', blank=True)
+    status = models.ManyToManyField('Status', blank=True)
     latest_check = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -114,6 +114,7 @@ class Event(models.Model):
         ordering = ('timestamp',)
 
 class DeviceInfo(models.Model):
+    users = models.ManyToManyField(User, blank=True)
     device = models.CharField(max_length=100)
     os = models.CharField(max_length=100)
     player = models.CharField(max_length=100)
@@ -125,7 +126,7 @@ class DeviceInfo(models.Model):
         return "(" + self.device + ", " + self.os + ", " + self.player + ", " + self.browser + ")"
 
 class Status(models.Model):
-    session = models.ForeignKey(Session)
+    session_id = models.IntegerField()
     isGood = models.BooleanField()
     timestamp = models.DateTimeField(auto_now_add=True)
 
@@ -133,15 +134,18 @@ class Status(models.Model):
         if self.isGood:
             return str(self.session) + " is good @ " + str(self.timestamp)
         else:
-            return str(self.session) + " is good @ " + str(self.timestamp)
+            return str(self.session) + " is bad @ " + str(self.timestamp)
+
+    class Meta:
+        ordering = ['timestamp',]
 
 class Cause(models.Model):
-    attribute = models.CharField(max_length=100)
-    attribute_id = models.IntegerField()
-    attribute_value = models.CharField(max_length=100)
+    type = models.CharField(max_length=100)
+    id = models.IntegerField()
+    value = models.CharField(max_length=100)
     # attribute_qoe_score = models.DecimalField(default=-1, max_digits=5, decimal_places=4)
     prob = models.DecimalField(decimal_places=4, max_digits=5)
-    suspects = models.ManyToManyField(Node)
+    suspects = models.ManyToManyField(Node, blank=True)
     related_session_status = models.ManyToManyField(Status, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
 
