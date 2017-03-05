@@ -91,9 +91,6 @@ def add_user(client_info):
     else:
         user.server = server_node
 
-    if user not in device.users.all():
-        device.users.add(user)
-
     ###############################################################################################################
     ## Update the session route, subnetworks and path
     # Update session object
@@ -275,3 +272,7 @@ def add_user(client_info):
     if session not in user.sessions.all():
         user.sessions.add(session)
     user.save()
+
+    if user not in device.users.all():
+        device.users.add(user)
+    device.save()

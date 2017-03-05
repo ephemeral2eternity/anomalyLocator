@@ -113,18 +113,6 @@ class Event(models.Model):
     class Meta:
         ordering = ('timestamp',)
 
-class DeviceInfo(models.Model):
-    users = models.ManyToManyField(User, blank=True)
-    device = models.CharField(max_length=100)
-    os = models.CharField(max_length=100)
-    player = models.CharField(max_length=100)
-    browser = models.CharField(max_length=100)
-    # device_qoe_score = models.DecimalField(default=5.0, max_digits=5, decimal_places=4)
-    latest_check = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return "(" + self.device + ", " + self.os + ", " + self.player + ", " + self.browser + ")"
-
 class Status(models.Model):
     session_id = models.IntegerField()
     isGood = models.BooleanField()
@@ -141,7 +129,7 @@ class Status(models.Model):
 
 class Cause(models.Model):
     type = models.CharField(max_length=100)
-    id = models.IntegerField()
+    obj_id = models.IntegerField()
     value = models.CharField(max_length=100)
     # attribute_qoe_score = models.DecimalField(default=-1, max_digits=5, decimal_places=4)
     prob = models.DecimalField(decimal_places=4, max_digits=5)
@@ -171,11 +159,23 @@ class User(models.Model):
     server = models.ForeignKey(Node, related_name='server_node')
     sessions = models.ManyToManyField(Session)
     events = models.ManyToManyField(Event)
-    device = models.ForeignKey(DeviceInfo)
+    device = models.ForeignKey("DeviceInfo")
     latest_check = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.client
+
+class DeviceInfo(models.Model):
+    users = models.ManyToManyField(User, blank=True)
+    device = models.CharField(max_length=100)
+    os = models.CharField(max_length=100)
+    player = models.CharField(max_length=100)
+    browser = models.CharField(max_length=100)
+    # device_qoe_score = models.DecimalField(default=5.0, max_digits=5, decimal_places=4)
+    latest_check = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return "(" + self.device + ", " + self.os + ", " + self.player + ", " + self.browser + ")"
 
 class Edge(models.Model):
     src = models.ForeignKey(Node, on_delete=models.CASCADE, related_name='node_source')

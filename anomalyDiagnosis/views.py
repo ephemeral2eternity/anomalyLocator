@@ -628,21 +628,3 @@ def addEvent(request):
         return HttpResponse("Yes")
     else:
         return HttpResponse("No")
-
-@csrf_exempt
-def diagnosis(request):
-    ## Diagnosis result for an anomaly.
-    diagRst = {}
-    url = request.get_full_path()
-    params = url.split('?')[1]
-    request_dict = urllib.parse.parse_qs(params)
-    if ('client' in request_dict.keys()) and ('server' in request_dict.keys()) \
-            and ('qoe' in request_dict.keys()) and ('type' in request_dict.keys()):
-        client_ip = request_dict['client'][0]
-        server_ip = request_dict['server'][0]
-        qoe = request_dict['qoe'][0]
-        anomalyType = request_dict['type'][0]
-        diagRst = diagnose(client_ip, server_ip, qoe, anomalyType)
-    # output = json.dumps(diagRst, indent=4, sort_keys=True)
-    # return HttpResponse(output, content_type="application/json")
-    return JsonResponse(diagRst)
