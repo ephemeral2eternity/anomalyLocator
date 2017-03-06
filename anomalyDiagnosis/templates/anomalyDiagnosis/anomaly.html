@@ -30,7 +30,7 @@
         <li>Diagnosis time: {{ anomaly.timeToDiagnose }} seconds</li>
         <li>Related Sessions:
             {% for status in anomaly.related_session_status.all %}
-                <a href="/diag/get_session?id={{ anomaly.session_id }}">{{ status.session_id }}</a>,
+                <a href="/diag/get_session?id={{ anomaly.session_id }}">{{ status.session_id }}:{{ status.isGood }},
             {% endfor %}
         </li>
         <li>Timestamp: {{ anomaly.timestamp }}</li>
@@ -63,7 +63,7 @@
             <td> {{ cause.related_session_status.count }} </td>
             <td>
                 {% for status in cause.related_session_status.all %}
-                    <a href="/diag/get_session?id={{ status.session_id }}">{{ status.session_id }}</a>,
+                    <a href="/diag/get_session?id={{ status.session_id }}">{{ status.session_id }}</a>:{{ status.isGood }},
                 {% endfor %}
             </td>
             <td> {{ cause.qoe_score }}</td>

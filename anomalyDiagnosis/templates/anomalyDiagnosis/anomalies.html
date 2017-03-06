@@ -18,7 +18,11 @@
         <td> {{ anomaly.type }} </td>
         <td><a href="/diag/get_session?id={{ anomaly.session_id }}"> Session {{ anomaly.session_id }} </a></td>
         <td><a href="/diag/get_user?id={{ anomaly.user_id }}"> User {{ anomaly.user_id }} </a></td>
-        <td>{{ anomaly.related_sessions }}</td>
+        <td>
+            {% for session_status in anomaly.related_session_status.all %}
+                <a href="/diag/get_session?id={{ anomaly.session_id }}">{{ session_status.session_id }}</a>:{{ session_status.isGood }},
+            {% endfor %}
+        </td>
         <td> {{ anomaly.timeToDiagnose }} </td>
         <td> {{ anomaly.timestamp }} </td>
     </tr>
