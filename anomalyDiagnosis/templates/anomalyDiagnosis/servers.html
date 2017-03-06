@@ -1,19 +1,20 @@
 {% if servers %}
-<table style="width:100%">
+<table style="width:100%;border-width:1px;border-color:black">
     <tr>
-	<td>Name</td>
-	<td>IP</td>
-	<td>Network ID</td>
-	<td>Latest Update</td>
+        <td>ID</td>
+        <td>Name</td>
+        <td>IP</td>
+        <td>Network ID</td>
+        <td>Latest Update</td>
     </tr>
     {% for server in servers %}
     <tr>
-        <td> {{ server.name }} </td>
-	<td> {{ server.ip }} </td>
-	<td><a href="/diag/nodes_per_network?id={{ server.network_id }}"> Network {{ server.network_id }} </a></td>
-	<td>
-        (Client: {{ server.updates.last.client_ip }}, Server: {{ server.updates.last.server_ip }}, QoE: {{ server.updates.last.qoe }}, Time: {{ server.updates.last.timestamp }})
-    </td>
+        <td>{{ server.id }}</td>
+        <td> <a href="/diag/get_server?id={{ server.id }}">{{ server.name }} </a></td>
+        <td> {{ server.ip }} </td>
+        <td><a href="/diag/nodes_per_network?id={{ server.network_id }}"> Network {{ server.network_id }} </a></td>
+        <td>{{ server.latest_check }}</td>
+    </tr>
     {% endfor %}
 </table>
 {% else %}

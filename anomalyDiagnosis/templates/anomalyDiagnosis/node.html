@@ -27,6 +27,13 @@
         <li>Node IP: {{ node.ip }}</li>
         <li>Node type: {{ node.type }}</li>
         <li>Node Network: <a href="/diag/get_network?id={{ node.network_id }}"> {{ node.network_id }} </a></li>
+        <li>Sessions go-through:
+            <ul>
+            {% for session in node.related_sessions.all %}
+                <li><a href="/diag/get_session?id={{ session.id }}"> {{ session }} </a></li>
+            {% endfor %}
+            </ul>
+        </li>
         <li>Updated timestamp: {{ node.latest_check }}</li>
     </ul>
 

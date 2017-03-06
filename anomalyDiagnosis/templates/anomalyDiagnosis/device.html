@@ -28,6 +28,13 @@
         <li>Device OS: {{ device.os }}</li>
         <li>Device Browser: {{ device.browser }}</li>
         <li>Device Player: {{ device.player }}</li>
+        <li>Users using the device:
+            <ul>
+                {% for user in device.users.all %}
+                    <li><a href="/diag/get_user?id={{ user.id }}">{{ user }}</a></li>
+                {% endfor %}
+            </ul>
+        </li>
     </ul>
     <h2>Show updates for the device</h2>
     <div id="timecurve"></div>

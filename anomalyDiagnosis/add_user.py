@@ -75,10 +75,14 @@ def add_user(client_info):
         user_existed = True
 
         if user.device != device:
+            pre_device = user.device
             device_event = Event(user_id=user.id, type="DEVICE_CHANGE", prevVal=str(user.device), curVal=str(device))
             device_event.save()
             user.device = device
             user.events.add(device_event)
+
+            if user in pre_device.users.all():
+                pre_device.users.remove(user)
     except:
         user = User(client=client_node, device=device, server=server_node)
         user_existed = False

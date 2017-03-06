@@ -148,7 +148,7 @@ class Anomaly(models.Model):
     causes = models.ManyToManyField(Cause)
     related_session_status = models.ManyToManyField(Status, blank=True)
     timeToDiagnose = models.DecimalField(max_digits=10, decimal_places=5, default=-1)
-    timestamp = models.DateTimeField(auto_now_add=True)
+    timestamp = models.DateTimeField()
 
     def __str__(self):
         return self.type + " anomaly, " + str(self.qoe)
@@ -163,7 +163,7 @@ class User(models.Model):
     latest_check = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.client
+        return self.client.__str__()
 
 class DeviceInfo(models.Model):
     users = models.ManyToManyField(User, blank=True)

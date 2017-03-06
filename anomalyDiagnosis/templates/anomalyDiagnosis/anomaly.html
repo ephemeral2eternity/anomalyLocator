@@ -7,6 +7,11 @@
     <link href="http://visjs.org/dist/vis.min.css" rel="stylesheet" type="text/css" />
 
     <style type="text/css">
+        table, td, th {
+            border-collapse: collapse;
+            border: 1px solid darkgray;
+        }
+
         #mynetwork {
             width: 100%;
             height: 500px;
@@ -23,32 +28,42 @@
         <li>User reported anomaly: <a href="/diag/get_user?id={{ anomaly.user_id }}">{{ anomaly.user_id }}</a></li>
         <li>Session reported anomaly:<a href="/diag/get_session?id={{ anomaly.session_id }}">{{ anomaly.session_id }}</a></li>
         <li>Diagnosis time: {{ anomaly.timeToDiagnose }} seconds</li>
-        <li>Related Sessions: {{ anomaly.related_sessions }} </li>
+        <li>Related Sessions:
+            {% for status in anomaly.related_session_status.all %}
+                <a href="/diag/get_session?id={{ anomaly.session_id }}">{{ status.session_id }}</a>,
+            {% endfor %}
+        </li>
         <li>Timestamp: {{ anomaly.timestamp }}</li>
     </ul>
     <div id="mynetwork"></div>
     <h2>Show causes for the anomaly </h2>
     <table style="width:100%">
         <tr>
-            <td>Suspect Node</td>
-            <td>Node Attribute</td>
-            <td>Attribute ID</td>
-            <td>Attribute Value</td>
-            <td>Attribute QoE Score</td>
+            <td>Suspect Nodes</td>
+            <td>Origin Type</td>
+            <td>Origin ID</td>
+            <td>Origin Value</td>
             <td>Probablity to cause the anomaly</td>
             <td># of sessions reported</td>
             <td>IDs of sessions</td>
         </tr>
         {% for cause in anomaly.causes.all|dictsortreversed:"prob" %}
         <tr>
-            <td><a href="/diag/get_node?id={{ cause.node.id }}"> {{ cause.node }} </a></td>
-            <td> {{ cause.attribute }} </td>
-            <td><a href="/diag/get_{{ cause.attribute }}?id={{ cause.attribute_id }}"> {{ cause.attribute_id }} </a></td>
-            <td> {{ cause.attribute_value }} </td>
-            <td> {{ cause.attribute_qoe_score }} </td>
+            <td>
+                {% for node in cause.suspects.all %}
+                    <a href="/diag/get_node?id={{ node.id }}"> {{ node }}</a><br>
+                {% endfor %}
+            </td>
+            <td> {{ cause.type }} </td>
+            <td><a href="/diag/get_{{ cause.type }}?id={{ cause.obj_id }}"> {{ cause.obj_id }} </a></td>
+            <td> {{ cause.value }} </td>
             <td> {{ cause.prob }} </td>
-            <td> {{ cause.session_num }} </td>
-            <td> {{ cause.related_sessions }} </td>
+            <td> {{ cause.related_session_status.count }} </td>
+            <td>
+                {% for status in cause.related_session_status.all %}
+                    <a href="/diag/get_session?id={{ status.session_id }}">{{ status.session_id }}</a>,
+                {% endfor %}
+            </td>
         </tr>
         {% endfor %}
     </table>

@@ -92,13 +92,15 @@
                 <td>User satisfied?</td>
                 <td>Timestamp</td>
             </tr>
-            {% for update in network.updates.all|dictsortreversed:"timestamp"|slice:"10" %}
-                <tr>
-                    <td><a href="/diag/get_session?id={{ update.session_id }}">{{ update.session_id }}</a></td>
-                    <td>{{ update.qoe }}</td>
-                    <td>{{ update.satisfied }}</td>
-                    <td>{{ update.timestamp }}</td>
-                </tr>
+            {% for session in network.related_sessions.all %}
+                {% for update in session.updates.all|dictsortreversed:"timestamp"|slice:"5" %}
+                    <tr>
+                        <td><a href="/diag/get_session?id={{ update.session_id }}">{{ update.session_id }}</a></td>
+                        <td>{{ update.qoe }}</td>
+                        <td>{{ update.satisfied }}</td>
+                        <td>{{ update.timestamp }}</td>
+                    </tr>
+                {% endfor %}
             {% endfor %}
         </table>
 </div>

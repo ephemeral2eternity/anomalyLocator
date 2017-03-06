@@ -15,6 +15,7 @@ from anomalyDiagnosis.thresholds import satisfied_qoe
 from datetime import date, datetime, timedelta
 from anomalyDiagnosis.diag_utils import *
 from anomalyDiagnosis.add_user import *
+from collections import defaultdict
 import urllib
 
 # Show detailed info of all clients connecting to this agent.
@@ -266,8 +267,7 @@ def getAnomalyGraphJson(request):
     params = url.split('?')[1]
     request_dict = urllib.parse.parse_qs(params)
     graph = {"nodes": [], "links": []}
-    suspect_node_ids = []
-    anomaly_session_nodes = []
+    node_status = {}
     nodes = []
     if ('id' in request_dict.keys()):
         anomaly_id = int(request_dict['id'][0])
@@ -276,70 +276,74 @@ def getAnomalyGraphJson(request):
         time_window_start = anomaly_ts - datetime.timedelta(minutes=update_graph_window)
         time_window_end = anomaly_ts + datetime.timedelta(minutes=update_graph_window)
 
-        ## Get all suspect node ids
-        for cause in anomaly.causes.all():
-            if cause.node:
-                suspect_node_ids.append(cause.node.id)
-
         ## Get anomaly session's nodes, with name, id, type, qoe and group
         anomaly_session = Session.objects.get(id=anomaly.session_id)
         for node in anomaly_session.route.all():
-            if node.id not in nodes:
+            if node.id not in node_status.keys():
+                node_status[node.id] = False
                 nodes.append(node.id)
-                anomaly_session_nodes.append(node.id)
                 node_dict = {"name": node.name, "type": node.type, "id": node.id}
-                node_dict["qoe"] = get_ave_QoE(node.updates, time_window_start, time_window_end)
-                if (node.id in suspect_node_ids):
-                    if len(suspect_node_ids) == 1:
-                        node_dict["group"] = "bad"
-                    else:
-                        node_dict["group"] = "suspect"
+                node_dict["qoe"] = get_ave_QoE(node, time_window_start, time_window_end)
 
-                    if node.type == "router":
-                        node_network = Network.objects.get(id=node.network_id)
-                        node_dict["network_id"] = node.network_id
-                        node_dict["label"] = node_network.__str__()
-                    elif node.type == "server":
-                        node_dict["label"] = node.__str__()
-                    else:
-                        node_user = User.objects.get(client=node)
-                        node_dict["user_id"] = node_user.id
-                        node_dict["label"] = node_user.device.__str__()
+                if node.type == "router":
+                    node_network = node.network
+                    node_dict["network_id"] = node.network.id
+                    node_dict["label"] = node_network.__str__()
+                elif node.type == "server":
+                    node_dict["label"] = node.__str__()
                 else:
-                    node_dict["group"] = "good"
-                graph["nodes"].append(node_dict)
+                    node_user = User.objects.get(client=node)
+                    node_dict["user_id"] = node_user.id
+                    node_dict["label"] = node_user.device.__str__()
 
-        ## Get related sessions' nodes, with name, id, type, qoe, and group
-        if anomaly.related_sessions.__contains__(','):
-            related_session_ids = anomaly.related_sessions.split(',')
-            for related_session_id in related_session_ids:
-                peer_session = Session.objects.get(id=related_session_id)
+                graph["nodes"].append(node_dict)
+            else:
+                node_status[node.id] |= False
+
+        ## Add peer sessions' nodes, with name, id, type, qoe, and group
+        if anomaly.related_session_status:
+            for session_status in anomaly.related_session_status.all():
+                session_id = session_status.session_id
+                peer_session = Session.objects.get(id=session_id)
                 for node in peer_session.route.all():
-                    if node.id not in nodes:
+                    if node.id not in node_status.keys():
+                        node_status[node.id] = session_status.isGood
                         nodes.append(node.id)
                         node_dict = {"name": node.name, "type": node.type, "id": node.id}
-                        node_dict["qoe"] = get_ave_QoE(node.updates, time_window_start, time_window_end)
-                        if (node.id in suspect_node_ids):
-                            if len(suspect_node_ids) == 1:
-                                node_dict["group"] = "bad"
-                            else:
-                                node_dict["group"] = "suspect"
+                        node_dict["qoe"] = get_ave_QoE(node, time_window_start, time_window_end)
+
+                        if node.type == "router":
+                            node_network = node.network
+                            node_dict["network_id"] = node.network.id
+                            node_dict["label"] = node_network.__str__()
+                        elif node.type == "server":
+                            node_dict["label"] = node.__str__()
                         else:
-                            node_dict["group"] = "good"
+                            node_user = User.objects.get(client=node)
+                            node_dict["user_id"] = node_user.id
+                            node_dict["label"] = node_user.device.__str__()
+
                         graph["nodes"].append(node_dict)
+                    else:
+                        node_status[node.id] |= session_status.isGood
+
+        ## Update all nodes group info as suspect or good.
+        for i, node_obj in enumerate(graph["nodes"]):
+            if node_status[node_obj["id"]]:
+                graph["nodes"][i]["group"] = "good"
+            else:
+                graph["nodes"][i]["group"] = "suspect"
 
         edge_objs = Edge.objects.filter(src_id__in=nodes, dst_id__in=nodes)
         for edge in edge_objs.all():
             srcID = nodes.index(edge.src.id)
             dstID = nodes.index(edge.dst.id)
-            if (edge.src.id in anomaly_session_nodes) and (edge.dst.id in anomaly_session_nodes):
-                edge_dict = {"source": srcID, "target": dstID, "group": "anomalySession"}
+            if (node_status[edge.src.id] and node_status[edge.dst.id]):
+                edge_dict = {"source": srcID, "target": dstID, "group": "suspect"}
             else:
-                edge_dict = {"source": srcID, "target": dstID, "group": "relatedSession"}
+                edge_dict = {"source": srcID, "target": dstID, "group": "good"}
             graph["links"].append(edge_dict)
 
-        # output = json.dumps(graph, indent=4, sort_keys=True)
-        # return HttpResponse(output, content_type="application/json")
         return JsonResponse(graph)
     else:
         return JsonResponse({})
@@ -349,27 +353,37 @@ def getUpdatesJson(request):
     url = request.get_full_path()
     params = url.split('?')[1]
     request_dict = urllib.parse.parse_qs(params)
-    updates_dict = {}
+    updates_dict = {'updates': []}
+    updates_list = defaultdict(list)
+    sessions = []
     if ('id' in request_dict.keys()) and ('type' in request_dict.keys()):
         obj_id = int(request_dict['id'][0])
         obj_type = request_dict['type'][0]
         if obj_type == "session":
             session = Session.objects.get(id=obj_id)
-            updates = session.updates
+            sessions.append(session)
         elif obj_type == "network":
             network = Network.objects.get(id=obj_id)
-            updates = network.updates
+            for session in network.related_sessions.all():
+                sessions.append(session)
         elif obj_type == "device":
             device = DeviceInfo.objects.get(id=obj_id)
-            updates = device.updates
+            for user in device.users.all():
+                for session in user.sessions.all():
+                    sessions.append(session)
         else:
             node = Node.objects.get(id=obj_id)
-            updates = node.updates
+            for session in node.related_sessions.all():
+                sessions.append(session)
 
-        updates_list = []
-        for update in updates.all():
-            updates_list.append({'x': update.timestamp.strftime("%Y-%m-%d %H:%M:%S"), 'y': update.qoe, 'group':update.session_id})
-        updates_dict['updates'] = updates_list
+        for session in sessions:
+            for update in session.updates.all():
+                updates_list[update.timestamp].append({'x': update.timestamp.strftime("%Y-%m-%d %H:%M:%S"), 'y': update.qoe, 'group':update.session_id})
+
+        tses = sorted(updates_list.keys())
+        for ts in tses:
+            for update_obj in updates_list[ts]:
+                updates_dict['updates'].append(update_obj)
 
         if ('anomaly' in request_dict.keys()):
             anomaly_id = int(request_dict['anomaly'][0])
@@ -378,7 +392,7 @@ def getUpdatesJson(request):
             update_start_window = anomaly_time - datetime.timedelta(minutes=5)
             update_end_window = anomaly_time + datetime.timedelta(minutes=5)
         else:
-            update_end_window = updates.last().timestamp
+            update_end_window = tses[-1]
             update_start_window = update_end_window - datetime.timedelta(minutes=10)
         updates_dict['start'] = update_start_window.strftime("%Y-%m-%d %H:%M:%S")
         updates_dict['end'] = update_end_window.strftime("%Y-%m-%d %H:%M:%S")
