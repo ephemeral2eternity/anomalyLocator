@@ -18,7 +18,7 @@ path_time_window = 24       ## 1 day
 satisfied_qoe = 2
 
 ## show updates in this window
-update_graph_window = 60        # 30 minutes before and after the anomaly
+update_graph_window = 5        # 5 minutes before and after the anomaly
 
 ## Weighted average probability
 alpha = 0.1

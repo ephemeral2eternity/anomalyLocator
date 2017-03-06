@@ -29,6 +29,7 @@ urlpatterns = [
 	url(r'^show_anomalies', views.showAnomalies, name='showAnomalies'),
 	url(r'^get_anomalies_by_user', views.getAnomaliesByUser, name='getAnomaliesByUser'),
 	url(r'^get_anomaly', views.getAnomalyByID, name='getAnomalyByID'),
+	url(r'^update_qoe_score', views.updateAttributeQoEScore, name='updateAttributeQoEScore'),
 	url(r'^edit_network', views.editNetwork, name='editNetwork'),
 	url(r'^get_net_graph_json', views.getJsonNetworkGraph, name='getJsonNetworkGraph'),
 	url(r'^get_net_graph', views.getNetworkGraph, name='getNetworkGraph'),

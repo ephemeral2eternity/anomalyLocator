@@ -261,6 +261,37 @@ def getAnomalyByID(request):
     else:
         return HttpResponse('Please denote the anomaly_id in the url: http://locator/diag/get_anomaly?id=anomaly_id')
 
+def updateAttributeQoEScore(request):
+    url = request.get_full_path()
+    params = url.split('?')[1]
+    request_dict = urllib.parse.parse_qs(params)
+    if ('id' in request_dict.keys()):
+        anomaly_id = int(request_dict['id'][0])
+        anomaly = Anomaly.objects.get(id=anomaly_id)
+
+        anomaly_ts = anomaly.timestamp
+        time_window_start = anomaly_ts - datetime.timedelta(minutes=update_graph_window)
+        time_window_end = anomaly_ts + datetime.timedelta(minutes=update_graph_window)
+
+        for cause in anomaly.causes.all():
+            if cause.type == "network":
+                obj = Network.objects.get(id=cause.obj_id)
+            elif cause.type == "server":
+                obj = Node.objects.get(id=cause.obj_id)
+            elif cause.type == "device":
+                obj = DeviceInfo.objects.get(id=cause.obj_id)
+            else:
+                continue
+
+            cause.qoe_score = get_ave_QoE(obj, time_window_start, time_window_end)
+            cause.save()
+
+        anomaly.save()
+        template = loader.get_template('anomalyDiagnosis/anomaly.html')
+        return HttpResponse(template.render({'anomaly':anomaly}, request))
+    else:
+        return HttpResponse('Please denote the anomaly_id in the url: http://locator/diag/get_anomaly?id=anomaly_id')
+
 
 def getAnomalyGraphJson(request):
     url = request.get_full_path()
@@ -451,10 +482,10 @@ def getRouterGraphJson(request):
                     node_updates = node.updates.filter(timestamp__range=(anomaly_time_window_start, anomaly_ts))
                     node_status, _ = check_status(node_updates, session_id)
                     graph["nodes"].append(
-                        {"name": node.name, "type": node.type, "id": node.id, "qs": node.node_qoe_score, "ip": node.ip, "suspect": node_status})
+                        {"name": node.name, "type": node.type, "id": node.id, "ip": node.ip, "suspect": node_status})
                 else:
                     graph["nodes"].append(
-                    {"name": node.name, "type": node.type, "id": node.id, "qs": node.node_qoe_score, "ip": node.ip})
+                    {"name": node.name, "type": node.type, "id": node.id, "ip": node.ip})
 
     edges = Edge.objects.filter(src_id__in=nodes, dst_id__in=nodes)
     for edge in edges.all():
@@ -475,6 +506,7 @@ def getJsonNetworkGraph(request):
     url = request.get_full_path()
     graph = {"links": [], "nodes": []}
     nodes = []
+    net_nodes = []
     if '?' in url:
         params = url.split('?')[1]
         request_dict = urllib.parse.parse_qs(params)
@@ -485,41 +517,37 @@ def getJsonNetworkGraph(request):
                 user = User.objects.get(client=client_node)
                 server_node = Node.objects.get(ip=session.server_ip)
 
-                if "user_" + str(user.id) not in nodes:
-                    nodes.append("user_" + str(user.id))
-                    graph["nodes"].append({"name": user.client.name, "type": "user", "id": user.id, "qs": user.device.device_qoe_score})
-
-                preID = nodes.index("user_" + str(user.id))
-
-                if "server_" + str(server_node.id) not in nodes:
-                    nodes.append("server_" + str(server_node.id))
-                    graph["nodes"].append({"name": server_node.name, "type": "server", "id": server_node.id, "qs": server_node.node_qoe_score})
-
-                lastID = nodes.index("server_" + str(server_node.id))
-
                 for net in session.sub_networks.all():
                     if "network_" + str(net.id) not in nodes:
                         nodes.append("network_" + str(net.id))
-                        graph["nodes"].append({"name": net.name, "type": "network", "id": net.id, "qs": net.network_qoe_score})
-                    curID = nodes.index("network_" + str(net.id))
-                    if preID <= curID:
-                        curEdge = {"source": preID, "target": curID}
+                        net_nodes.append(net.id)
+                        graph["nodes"].append({"name": net.name, "type": "network", "id": net.id})
+
+                edges = NetEdge.objects.filter(srcNet_id__in=net_nodes, dstNet_id__in=net_nodes)
+                for edge in edges.all():
+                    srcID = nodes.index("network_" + str(edge.srcNet.id))
+                    dstID = nodes.index("network_" + str(edge.dstNet.id))
+                    if edge.isIntra:
+                        link_group = "intra"
                     else:
-                        curEdge = {"source": curID, "target": preID}
-                    if curEdge not in graph["links"]:
-                        graph["links"].append(curEdge)
-                    preID = curID
+                        link_group = "inter"
+                    graph["links"].append({"source": srcID, "target": dstID, "group": link_group})
 
-                if preID <= lastID:
-                    lastEdge = {"source": preID, "target": lastID}
-                else:
-                    lastEdge = {"source": lastID, "target": preID}
 
-                if lastEdge not in graph["links"]:
-                    graph["links"].append(lastEdge)
+                if "user_" + str(user.id) not in nodes:
+                    nodes.append("user_" + str(user.id))
+                    graph["nodes"].append({"name": user.client.name, "type": "user", "id": user.id})
+                    firstID = nodes.index("user_" + str(user.id))
+                    userNetID = nodes.index("network_" + str(user.client.network.id))
+                    graph["links"].append({"source": firstID, "target": userNetID, "group": "intra"})
 
-            #output = json.dumps(graph, indent=4, sort_keys=True)
-            # return HttpResponse(output, content_type="application/json")
+                if "server_" + str(server_node.id) not in nodes:
+                    nodes.append("server_" + str(server_node.id))
+                    graph["nodes"].append({"name": server_node.name, "type": "server", "id": server_node.id})
+                    lastID = nodes.index("server_" + str(server_node.id))
+                    srvNetID = nodes.index("network_" + str(server_node.network.id))
+                    graph["links"].append({"source": srvNetID, "target": lastID, "group": "intra"})
+
             return JsonResponse(graph)
         else:
             return HttpResponse("No session is selected!")

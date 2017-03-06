@@ -37,6 +37,7 @@
     </ul>
     <div id="mynetwork"></div>
     <h2>Show causes for the anomaly </h2>
+    <a href="/diag/update_qoe_score?id={{ anomaly.id }}">Update attribute QoE score</a>
     <table style="width:100%">
         <tr>
             <td>Suspect Nodes</td>
@@ -46,6 +47,7 @@
             <td>Probablity to cause the anomaly</td>
             <td># of sessions reported</td>
             <td>IDs of sessions</td>
+            <td>Attribute QoE Score</td>
         </tr>
         {% for cause in anomaly.causes.all|dictsortreversed:"prob" %}
         <tr>
@@ -64,6 +66,7 @@
                     <a href="/diag/get_session?id={{ status.session_id }}">{{ status.session_id }}</a>,
                 {% endfor %}
             </td>
+            <td> {{ cause.qoe_score }}</td>
         </tr>
         {% endfor %}
     </table>

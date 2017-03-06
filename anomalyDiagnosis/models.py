@@ -26,7 +26,10 @@ class Node(models.Model):
     def __str__(self):
         return self.type + ":" + self.ip
 
-# Network defines a network that several routers in an end-to-end delivery path belongs to
+    def get_class_name(self):
+        return "node"
+
+    # Network defines a network that several routers in an end-to-end delivery path belongs to
 class Network(models.Model):
     type = models.CharField(max_length=100)
     name = models.CharField(max_length=100, default="")
@@ -48,6 +51,9 @@ class Network(models.Model):
     class Meta:
         index_together = ["ASNumber", "latitude", "longitude"]
         unique_together = ("ASNumber", "latitude", "longitude")
+
+    def get_class_name(self):
+        return "network"
 
 
 class Path(models.Model):
@@ -75,6 +81,9 @@ class Session(models.Model):
 
     def __str__(self):
         return self.client_ip + "<-->" + self.server_ip
+
+    def get_class_name(self):
+        return "session"
 
     class Meta:
         index_together = ["client_ip", "server_ip"]
@@ -130,15 +139,15 @@ class Status(models.Model):
 class Cause(models.Model):
     type = models.CharField(max_length=100)
     obj_id = models.IntegerField()
-    value = models.CharField(max_length=100)
-    # attribute_qoe_score = models.DecimalField(default=-1, max_digits=5, decimal_places=4)
+    value = models.CharField(max_length=500)
+    qoe_score = models.DecimalField(default=-1, max_digits=5, decimal_places=4)
     prob = models.DecimalField(decimal_places=4, max_digits=5)
     suspects = models.ManyToManyField(Node, blank=True)
     related_session_status = models.ManyToManyField(Status, blank=True)
-    timestamp = models.DateTimeField(auto_now_add=True)
+    timestamp = models.DateTimeField()
 
     def __str__(self):
-        return self.component + ":" + str(self.comp_value) + ":" + str(self.health)
+        return self.type + ":" + str(self.value) + ":" + str(self.prob)
 
 class Anomaly(models.Model):
     type = models.CharField(max_length=100)
@@ -165,6 +174,9 @@ class User(models.Model):
     def __str__(self):
         return self.client.__str__()
 
+    def get_class_name(self):
+        return "user"
+
 class DeviceInfo(models.Model):
     users = models.ManyToManyField(User, blank=True)
     device = models.CharField(max_length=100)
@@ -176,6 +188,9 @@ class DeviceInfo(models.Model):
 
     def __str__(self):
         return "(" + self.device + ", " + self.os + ", " + self.player + ", " + self.browser + ")"
+
+    def get_class_name(self):
+        return "device"
 
 class Edge(models.Model):
     src = models.ForeignKey(Node, on_delete=models.CASCADE, related_name='node_source')
