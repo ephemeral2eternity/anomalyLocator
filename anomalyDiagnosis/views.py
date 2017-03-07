@@ -523,17 +523,6 @@ def getJsonNetworkGraph(request):
                         net_nodes.append(net.id)
                         graph["nodes"].append({"name": net.name, "type": "network", "id": net.id})
 
-                edges = NetEdge.objects.filter(srcNet_id__in=net_nodes, dstNet_id__in=net_nodes)
-                for edge in edges.all():
-                    srcID = nodes.index("network_" + str(edge.srcNet.id))
-                    dstID = nodes.index("network_" + str(edge.dstNet.id))
-                    if edge.isIntra:
-                        link_group = "intra"
-                    else:
-                        link_group = "inter"
-                    graph["links"].append({"source": srcID, "target": dstID, "group": link_group})
-
-
                 if "user_" + str(user.id) not in nodes:
                     nodes.append("user_" + str(user.id))
                     graph["nodes"].append({"name": user.client.name, "type": "user", "id": user.id})
@@ -547,6 +536,16 @@ def getJsonNetworkGraph(request):
                     lastID = nodes.index("server_" + str(server_node.id))
                     srvNetID = nodes.index("network_" + str(server_node.network.id))
                     graph["links"].append({"source": srvNetID, "target": lastID, "group": "intra"})
+
+            edges = NetEdge.objects.filter(srcNet_id__in=net_nodes, dstNet_id__in=net_nodes)
+            for edge in edges.all():
+                srcID = nodes.index("network_" + str(edge.srcNet.id))
+                dstID = nodes.index("network_" + str(edge.dstNet.id))
+                if edge.isIntra:
+                    link_group = "intra"
+                else:
+                    link_group = "inter"
+                graph["links"].append({"source": srcID, "target": dstID, "group": link_group})
 
             return JsonResponse(graph)
         else:
