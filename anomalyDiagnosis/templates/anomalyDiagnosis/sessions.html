@@ -5,8 +5,8 @@
         <tr>
             <td>Checkbox</td>
             <td>Session ID</td>
-            <td>Client IP</td>
-            <td>Server IP</td>
+            <td>Client</td>
+            <td>Server</td>
             <td>Route Length</td>
             <td># of subnetworks</td>
             <td># of updates</td>
@@ -16,8 +16,8 @@
         <tr>
             <td><input type="checkbox" name="id" value="{{ session.id }}"></td>
             <td><a href="/diag/get_session?id={{ session.id }}"> {{ session.id }} </a></td>
-            <td> {{ session.client_ip }} </td>
-            <td> {{ session.server_ip }} </td>
+            <td> {{ session.client.name }} </td>
+            <td> {{ session.server.name }} </td>
             <td> {{ session.route.count }} </td>
             <td> {{ session.sub_networks.count }} </td>
             <td>{{ session.updates.count }}</td>
