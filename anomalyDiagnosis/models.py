@@ -69,8 +69,8 @@ class Path(models.Model):
 
 ## Session information
 class Session(models.Model):
-    client_ip = models.CharField(max_length=100)
-    server_ip = models.CharField(max_length=100)
+    client = models.OneToOneField(Node, related_name='client_node')
+    server = models.ForeignKey(Node, related_name='server_node')
     route = models.ManyToManyField(Node, through='Hop')
     sub_networks = models.ManyToManyField(Network, through='Subnetwork')
     path = models.ForeignKey(Path, null=True)
@@ -80,14 +80,14 @@ class Session(models.Model):
     latest_check = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.client_ip + "<-->" + self.server_ip
+        return self.client.name + "<-->" + self.server.name
 
     def get_class_name(self):
         return "session"
 
     class Meta:
-        index_together = ["client_ip", "server_ip"]
-        unique_together = ["client_ip", "server_ip"]
+        index_together = ["client", "server"]
+        unique_together = ["client", "server"]
 
 # Define hop with its sequence on a client's route
 class Hop(models.Model):
@@ -164,8 +164,8 @@ class Anomaly(models.Model):
 
 ## Monitor the user info
 class User(models.Model):
-    client = models.OneToOneField(Node, related_name='client_node')
-    server = models.ForeignKey(Node, related_name='server_node')
+    client = models.OneToOneField(Node, related_name='client')
+    server = models.ForeignKey(Node, related_name='server')
     sessions = models.ManyToManyField(Session)
     events = models.ManyToManyField(Event)
     device = models.ForeignKey("DeviceInfo")

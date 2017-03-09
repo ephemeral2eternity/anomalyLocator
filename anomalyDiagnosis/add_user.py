@@ -99,11 +99,11 @@ def add_user(client_info):
     ## Update the session route, subnetworks and path
     # Update session object
     try:
-        session = Session.objects.get(client_ip=client_info['ip'], server_ip=server_info['ip'])
+        session = Session.objects.get(client=client_node, server=server_node)
         session_exist = True
         print("Update existing session " + str(session))
     except:
-        session = Session(client_ip=client_info['ip'], server_ip=server_info['ip'])
+        session = Session(client=client_node, server=server_node)
         session_exist = False
         print("Add new session " + str(session))
     session.save()
@@ -203,11 +203,13 @@ def add_user(client_info):
             srcNodeAS = node_network.ASNumber
             dstNode = preNode
             dstNodeAS = preNet.ASNumber
-        else:
+        elif curNode.ip > preNode.ip:
             srcNode = preNode
             srcNodeAS = preNet.ASNumber
             dstNode = curNode
             dstNodeAS = node_network.ASNumber
+        else:
+            continue            ## Ignore the edge if the current hop equals the previous hop.
 
         try:
             edge_obj = Edge.objects.get(src=srcNode, dst=dstNode)

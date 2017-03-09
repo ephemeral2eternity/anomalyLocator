@@ -26,8 +26,10 @@
 
     <h1>Show details of session {{ session.id }}</h1>
     <ul>
-        <li>Session Client IP: {{ session.client_ip }}</li>
-        <li>Session Server IP: {{ session.server_ip }}</li>
+        <li>Session Client Name: {{ session.client.name }}</li>
+        <li>Session Client IP: {{ session.client.ip }}</li>
+        <li>Session Server IP: {{ session.server.name }}</li>
+        <li>Session Server IP: {{ session.server.ip }}</li>
         <li>Session Path Length: {{ session.path.length }}</li>
     </ul>
     <hr>

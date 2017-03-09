@@ -218,7 +218,7 @@ def anomaly_diagnosis(session, anomaly_ts, anomaly_qoe, anomaly_type):
     # print("[Debug]Suspect nodes located!")
 
     try:
-        user = User.objects.get(client__ip=session.client_ip)
+        user = User.objects.get(client=session.client)
         ranked_attributes = rank_suspects(user, session, suspect_nodes)
         # print("[Debug]Obtained ranked_attributes")
         anomaly = save_anomaly(user, session, anomaly_ts, anomaly_qoe, anomaly_type, related_sessions_status, ranked_attributes)
@@ -270,7 +270,7 @@ def detect_anomaly(session, recent_qoes):
 @transaction.atomic
 def update_attributes(client_ip, server_ip, qoes):
     try:
-        session = Session.objects.get(client_ip=client_ip, server_ip=server_ip)
+        session = Session.objects.get(client__ip=client_ip, server__ip=server_ip)
         for ts, qoe in qoes.items():
             dtfield = datetime.datetime.utcfromtimestamp(float(ts))
             update = Update(session_id=session.id, qoe=qoe, satisfied=(qoe >= satisfied_qoe), timestamp=dtfield)
