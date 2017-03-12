@@ -30,11 +30,13 @@
         <li>Diagnosis time: {{ anomaly.timeToDiagnose }} seconds</li>
         <li>Related Sessions:
             {% for status in anomaly.related_session_status.all %}
-                <a href="/diag/get_session?id={{ anomaly.session_id }}">{{ status.session_id }}:{{ status.isGood }},
+                <a href="/diag/get_session?id={{ anomaly.session_id }}">{{ status.session_id }}:{{ status.isGood }}</a>,
             {% endfor %}
         </li>
         <li>Timestamp: {{ anomaly.timestamp }}</li>
     </ul>
+    <hr>
+    <a href="/diag/get_ano_graph_json?id={{ anomaly.id }}">Get the graph json file</a>
     <div id="mynetwork"></div>
     <h2>Show causes for the anomaly </h2>
     <a href="/diag/update_qoe_score?id={{ anomaly.id }}">Update attribute QoE score</a>
