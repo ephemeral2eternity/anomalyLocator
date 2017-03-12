@@ -434,6 +434,70 @@ def getUpdatesJson(request):
     else:
         return JsonResponse({})
 
+def getUpdates(request):
+    url = request.get_full_path()
+    params = url.split('?')[1]
+    request_dict = urllib.parse.parse_qs(params)
+    sessions = []
+    updates = []
+    objs = []
+    if ('id' in request_dict.keys()) and ('type' in request_dict.keys()):
+        obj_ids = request_dict['id']
+        obj_ids_str = ",".join(obj_ids)
+        obj_type = str(request_dict['type'][0])
+        if obj_type == "session":
+            for obj_id in obj_ids:
+                session = Session.objects.get(id=int(obj_id))
+                sessions.append(session)
+                objs.append(session)
+        elif obj_type == "network":
+            for obj_id in obj_ids:
+                network = Network.objects.get(id=int(obj_id))
+                objs.append(network)
+                for session in network.related_sessions.all():
+                    sessions.append(session)
+        elif obj_type == "device":
+            for obj_id in obj_ids:
+                device = DeviceInfo.objects.get(id=int(obj_id))
+                objs.append(device)
+                for user in device.users.all():
+                    for session in user.sessions.all():
+                        sessions.append(session)
+        else:
+            for obj_id in obj_ids:
+                node = Node.objects.get(id=int(obj_id))
+                objs.append(node)
+                for session in node.related_sessions.all():
+                    sessions.append(session)
+
+        session_tses = [session.latest_check for session in sessions]
+
+        anomalyExisted = False
+        if ('anomaly' in request_dict.keys()):
+            anomaly_id = int(request_dict['anomaly'][0])
+            anomaly = Anomaly.objects.get(id=anomaly_id)
+            anomaly_time = anomaly.timestamp
+            update_time_window_start = anomaly_time - datetime.timedelta(minutes=5)
+            update_time_window_end = anomaly_time + datetime.timedelta(minutes=5)
+            anomalyExisted = True
+        else:
+            update_time_window_end = max(session_tses)
+            update_time_window_start = update_time_window_end - datetime.timedelta(minutes=10)
+
+        for session in sessions:
+            session_updates = session.updates.filter(timestamp__range=(update_time_window_start, update_time_window_end))
+            for update in session_updates.all():
+                updates.append(update)
+
+        if anomalyExisted:
+            rendered_data = {'obj_type': obj_type, 'objs': objs, 'obj_ids': obj_ids_str, 'updates': updates, 'start': update_time_window_start, 'end':update_time_window_end, 'anomaly':anomaly_id}
+        else:
+            rendered_data = {'obj_type': obj_type, 'objs': objs, 'obj_ids': obj_ids_str, 'updates': updates, 'start': update_time_window_start, 'end':update_time_window_end}
+
+        template = loader.get_template('anomalyDiagnosis/updates.html')
+        return HttpResponse(template.render(rendered_data, request))
+
+
 def getAnomaliesByUser(request):
     url = request.get_full_path()
     params = url.split('?')[1]

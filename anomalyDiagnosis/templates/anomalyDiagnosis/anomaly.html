@@ -53,7 +53,7 @@
         <tr>
             <td>
                 {% for node in cause.suspects.all %}
-                    <a href="/diag/get_node?id={{ node.id }}"> {{ node }}</a><br>
+                    <a href="/diag/get_updates?type=node&id={{ node.id }}&anomaly={{ anomaly.id }}"> {{ node }}</a><br>
                 {% endfor %}
             </td>
             <td> {{ cause.type }} </td>
@@ -66,7 +66,9 @@
                     <a href="/diag/get_session?id={{ status.session_id }}">{{ status.session_id }}</a>:{{ status.isGood }},
                 {% endfor %}
             </td>
-            <td> {{ cause.qoe_score }}</td>
+            <td>
+                {{ cause.qoe_score }}, <a href="/diag/get_updates?type={{ cause.type }}&id={{ cause.obj_id }}&anomaly={{ anomaly.id }}">All Values</a>
+            </td>
         </tr>
         {% endfor %}
     </table>

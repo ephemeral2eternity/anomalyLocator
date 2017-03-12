@@ -1,20 +1,66 @@
-{% if updates %}
-<table style="width:100%">
-    <tr>
-        <td>Update ID</td>
-        <td>Session ID</td>
-        <td>QoE</td>
-        <td>Timestamp</td>
-    </tr>
-    {% for update in updates %}
-    <tr>
-        <td> {{ update.id }} </td>
-        <td><a href="/diag/get_session?id={{ update.session_id }}"> {{ update.session_id }} </a></td>
-        <td> {{ update.qoe }} </td>
-        <td> {{ update.timestamp }} </td>
-    </tr>
+<!DOCTYPE html>
+<style>
+    .link {
+        stroke: #ccc;
+    }
+    .node text {
+        pointer-events: none;
+        font: 10px sans-serif;
+    }
+
+    #timecurve {
+        width: 80%;
+        height: 300px;
+        border: 1px solid lightgray;
+    }
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script type="text/javascript" src="http://visjs.org/dist/vis.js"></script>
+<link href="http://visjs.org/dist/vis.min.css" rel="stylesheet" type="text/css" />
+<script src="/static/draw_updates.js"></script>
+<body onload="onLoad()">
+<script type="text/javascript">
+function onLoad(){
+    var obj_type = "{{ obj_type }}";
+    var obj_ids = {{ obj_ids }};
+    var anomaly = {{ anomaly }};
+    drawUpdates(obj_type, obj_ids, anomaly);
+}
+</script>
+<h2>Show updates for following {{ obj_type }}s from {{ start }} to {{ end }}</h2>
+<div>
+{% if objs %}
+    <ul>
+    {% for obj in objs %}
+        <li>{{ obj.name }}, {{ obj }}</li>
     {% endfor %}
-</table>
+    </ul>
+{% endif %}
+</div>
+<hr>
+<div id="timecurve"></div>
+<hr>
+<div>
+{% if updates %}
+    <table style="width:100%">
+        <tr>
+            <td>Update ID</td>
+            <td>Session ID</td>
+            <td>QoE</td>
+            <td>Timestamp</td>
+        </tr>
+        {% for update in updates %}
+        <tr>
+            <td> {{ update.id }} </td>
+            <td><a href="/diag/get_session?id={{ update.session_id }}"> {{ update.session_id }} </a></td>
+            <td> {{ update.qoe }} </td>
+            <td> {{ update.timestamp }} </td>
+        </tr>
+        {% endfor %}
+    </table>
 {% else %}
     <p>No updates have been reported in the Update Table.</p>
 {% endif %}
+</div>
+</body>
