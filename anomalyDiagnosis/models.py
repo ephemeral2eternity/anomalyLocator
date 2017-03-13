@@ -69,7 +69,7 @@ class Path(models.Model):
 
 ## Session information
 class Session(models.Model):
-    client = models.OneToOneField(Node, related_name='client_node')
+    client = models.ForeignKey(Node, related_name='client_node')
     server = models.ForeignKey(Node, related_name='server_node')
     route = models.ManyToManyField(Node, through='Hop')
     sub_networks = models.ManyToManyField(Network, through='Subnetwork')

@@ -67,6 +67,7 @@
                 {% for status in cause.related_session_status.all %}
                     <a href="/diag/get_session?id={{ status.session_id }}">{{ status.session_id }}</a>:{{ status.isGood }},
                 {% endfor %}
+                <a href="/diag/get_status?type={{ cause.type }}&id={{ cause.obj_id }}&anomaly={{ anomaly.id }}">All Status</a>
             </td>
             <td>
                 {{ cause.qoe_score }}, <a href="/diag/get_updates?type={{ cause.type }}&id={{ cause.obj_id }}&anomaly={{ anomaly.id }}">All Values</a>

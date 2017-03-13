@@ -497,6 +497,129 @@ def getUpdates(request):
         template = loader.get_template('anomalyDiagnosis/updates.html')
         return HttpResponse(template.render(rendered_data, request))
 
+def getStatusJson(request):
+    url = request.get_full_path()
+    params = url.split('?')[1]
+    request_dict = urllib.parse.parse_qs(params)
+    status_dict = {'status': []}
+    tses = []
+    sessions = []
+    if ('id' in request_dict.keys()) and ('type' in request_dict.keys()):
+        obj_id = int(request_dict['id'][0])
+        obj_type = request_dict['type'][0]
+        if obj_type == "session":
+            session = Session.objects.get(id=obj_id)
+            sessions.append(session)
+        elif obj_type == "network":
+            network = Network.objects.get(id=obj_id)
+            for session in network.related_sessions.all():
+                sessions.append(session)
+        elif obj_type == "device":
+            device = DeviceInfo.objects.get(id=obj_id)
+            for user in device.users.all():
+                for session in user.sessions.all():
+                    sessions.append(session)
+        else:
+            node = Node.objects.get(id=obj_id)
+            for session in node.related_sessions.all():
+                sessions.append(session)
+
+        id = 1
+        for session in sessions:
+            for status in session.status.all():
+                if status.isGood:
+                    state = "Good"
+                else:
+                    state = "Bad"
+
+                start_ts = status.timestamp - datetime.timedelta(minutes=node_time_window)
+                tses.append(status.timestamp)
+
+                status_dict['status'].append(
+                    {'id':id, 'content':state, 'start':start_ts.strftime("%Y-%m-%d %H:%M:%S"), 'end':status.timestamp.strftime("%Y-%m-%d %H:%M:%S"), 'group': status.session_id})
+                id += 1
+
+        if ('anomaly' in request_dict.keys()):
+            anomaly_id = int(request_dict['anomaly'][0])
+            anomaly = Anomaly.objects.get(id=anomaly_id)
+            anomaly_time = anomaly.timestamp
+            update_start_window = anomaly_time - datetime.timedelta(minutes=5)
+            update_end_window = anomaly_time + datetime.timedelta(minutes=5)
+        else:
+            update_end_window = max(tses)
+            update_start_window = update_end_window - datetime.timedelta(minutes=10)
+
+        status_dict['start'] = update_start_window.strftime("%Y-%m-%d %H:%M:%S")
+        status_dict['end'] = update_end_window.strftime("%Y-%m-%d %H:%M:%S")
+
+        # output = json.dumps(updates_dict, indent=4, sort_keys=True)
+        # return HttpResponse(output, content_type="application/json")
+        return JsonResponse(status_dict)
+    else:
+        return JsonResponse({})
+
+def getStatus(request):
+    url = request.get_full_path()
+    params = url.split('?')[1]
+    request_dict = urllib.parse.parse_qs(params)
+    sessions = []
+    status_list = []
+    objs = []
+    if ('id' in request_dict.keys()) and ('type' in request_dict.keys()):
+        obj_ids = request_dict['id']
+        obj_ids_str = ",".join(obj_ids)
+        obj_type = str(request_dict['type'][0])
+        if obj_type == "session":
+            for obj_id in obj_ids:
+                session = Session.objects.get(id=int(obj_id))
+                sessions.append(session)
+                objs.append(session)
+        elif obj_type == "network":
+            for obj_id in obj_ids:
+                network = Network.objects.get(id=int(obj_id))
+                objs.append(network)
+                for session in network.related_sessions.all():
+                    sessions.append(session)
+        elif obj_type == "device":
+            for obj_id in obj_ids:
+                device = DeviceInfo.objects.get(id=int(obj_id))
+                objs.append(device)
+                for user in device.users.all():
+                    for session in user.sessions.all():
+                        sessions.append(session)
+        else:
+            for obj_id in obj_ids:
+                node = Node.objects.get(id=int(obj_id))
+                objs.append(node)
+                for session in node.related_sessions.all():
+                    sessions.append(session)
+
+        session_tses = [session.latest_check for session in sessions]
+
+        anomalyExisted = False
+        if ('anomaly' in request_dict.keys()):
+            anomaly_id = int(request_dict['anomaly'][0])
+            anomaly = Anomaly.objects.get(id=anomaly_id)
+            anomaly_time = anomaly.timestamp
+            time_window_start = anomaly_time - datetime.timedelta(minutes=5)
+            time_window_end = anomaly_time + datetime.timedelta(minutes=5)
+            anomalyExisted = True
+        else:
+            time_window_end = max(session_tses)
+            time_window_start = time_window_end - datetime.timedelta(minutes=10)
+
+        for session in sessions:
+            session_status = session.status.filter(timestamp__range=(time_window_start, time_window_end))
+            for status in session_status.all():
+                status_list.append(status)
+
+        if anomalyExisted:
+            rendered_data = {'obj_type': obj_type, 'objs': objs, 'obj_ids': obj_ids_str, 'statuses': status_list, 'start': time_window_start, 'end':time_window_end, 'anomaly':anomaly_id}
+        else:
+            rendered_data = {'obj_type': obj_type, 'objs': objs, 'obj_ids': obj_ids_str, 'statuses': status_list, 'start': time_window_start, 'end':time_window_end}
+
+    template = loader.get_template('anomalyDiagnosis/statuses.html')
+    return HttpResponse(template.render(rendered_data, request))
 
 def getAnomaliesByUser(request):
     url = request.get_full_path()

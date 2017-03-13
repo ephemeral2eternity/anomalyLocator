@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<style>
+    body, input {
+        font: 12pt verdana;
+    }
+
+    /* custom styles for individual items, load this after vis.css/vis-timeline-graph2d.min.css */
+    /* create a custom sized dot at the bottom of the red item */
+    .vis-item.Bad {
+        background-color: red;
+        border-color: darkred;
+        color: white;
+        font-family: monospace;
+        box-shadow: 0 0 10px gray;
+    }
+
+    .vis-item.Inactive {
+        background-color: darkgray;
+        border-color: gray;
+    }
+
+    #timecurve {
+        width: 80%;
+        height: 300px;
+        border: 1px solid lightgray;
+    }
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+<script src="http://visjs.org/dist/vis.js"></script>
+<link href="http://visjs.org/dist/vis-timeline-graph2d.min.css" rel="stylesheet" type="text/css" />
+<script src="/static/draw_updates.js"></script>
+<body onload="onLoad()">
+<script type="text/javascript">
+function onLoad(){
+    var obj_type = "{{ obj_type }}";
+    var obj_ids = {{ obj_ids }};
+    var anomaly = {{ anomaly }};
+    drawStatus(obj_type, obj_ids, anomaly);
+}
+</script>
+<h2>Show status for following {{ obj_type }}s from {{ start }} to {{ end }}</h2>
+<div>
+{% if objs %}
+    <ul>
+    {% for obj in objs %}
+        <li>{{ obj.name }}, {{ obj }}</li>
+    {% endfor %}
+    </ul>
+{% endif %}
+</div>
+<hr>
+<div id="timecurve"></div>
+<hr>
+<div>
+{% if statuses %}
+    <table style="width:100%">
+        <tr>
+            <td>Status ID</td>
+            <td>Session ID</td>
+            <td>Is session Good?</td>
+            <td>Timestamp</td>
+        </tr>
+        {% for status in statuses %}
+        <tr>
+            <td> {{ status.id }} </td>
+            <td><a href="/diag/get_session?id={{ status.session_id }}"> {{ status.session_id }} </a></td>
+            <td> {{ status.isGood }} </td>
+            <td> {{ status.timestamp }} </td>
+        </tr>
+        {% endfor %}
+    </table>
+{% else %}
+    <p>No statuses have been detected for the object.</p>
+{% endif %}
+</div>
+</body>
