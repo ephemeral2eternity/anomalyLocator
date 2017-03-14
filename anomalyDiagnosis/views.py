@@ -1,19 +1,10 @@
 from django.shortcuts import render, render_to_response
 from django.http import HttpResponse, JsonResponse
-from anomalyDiagnosis.models import Update, Event
 from django.template import RequestContext, loader
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
-from django.utils import timezone
-from django.db import transaction
 from django.db.models import Q
-import json
-import socket
-import csv
-import time
-import pytz
-from anomalyDiagnosis.thresholds import satisfied_qoe
 from datetime import date, datetime, timedelta
-from anomalyDiagnosis.diag_utils import *
+from anomalyDiagnosis.update_utils import *
 from anomalyDiagnosis.add_user import *
 from collections import defaultdict
 import urllib
@@ -273,7 +264,7 @@ def getAnomalyByID(request):
     else:
         return HttpResponse('Please denote the anomaly_id in the url: http://locator/diag/get_anomaly?id=anomaly_id')
 
-def updateAttributeQoEScore(request):
+def updateOriginQoEScore(request):
     url = request.get_full_path()
     params = url.split('?')[1]
     request_dict = urllib.parse.parse_qs(params)
@@ -281,28 +272,17 @@ def updateAttributeQoEScore(request):
         anomaly_id = int(request_dict['id'][0])
         anomaly = Anomaly.objects.get(id=anomaly_id)
 
-        anomaly_ts = anomaly.timestamp
-        time_window_start = anomaly_ts - datetime.timedelta(minutes=update_graph_window)
-        time_window_end = anomaly_ts + datetime.timedelta(minutes=update_graph_window)
-
-        for cause in anomaly.causes.all():
-            if cause.type == "network":
-                obj = Network.objects.get(id=cause.obj_id)
-            elif cause.type == "server":
-                obj = Node.objects.get(id=cause.obj_id)
-            elif cause.type == "device":
-                obj = DeviceInfo.objects.get(id=cause.obj_id)
-            else:
-                continue
-
-            cause.qoe_score = get_ave_QoE(obj, time_window_start, time_window_end)
-            cause.save()
-
-        anomaly.save()
+        anomaly = update_origin_qoe_score(anomaly)
         template = loader.get_template('anomalyDiagnosis/anomaly.html')
         return HttpResponse(template.render({'anomaly':anomaly}, request))
     else:
         return HttpResponse('Please denote the anomaly_id in the url: http://locator/diag/get_anomaly?id=anomaly_id')
+
+def updateAllQoEScore(request):
+    anomalies = Anomaly.objects.all()
+    for anomaly in anomalies:
+        anomaly = update_origin_qoe_score(anomaly)
+    return HttpResponse("Update the QoE score for all causes in all anomalies!")
 
 
 def getAnomalyGraphJson(request):
