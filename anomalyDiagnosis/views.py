@@ -148,12 +148,24 @@ def editNetwork(request):
         if request.method == "POST":
             network_info = request.POST.dict()
             # print(network_info)
-            network.isp = network_info['isp']
-            network.ASNumber = int(network_info['asn'])
-            network.city = network_info['city']
-            network.region = network_info['region']
-            network.country = network_info['country']
-            network.save()
+            try:
+                org_network = Network.objects.get(ASNumber=int(network_info['asn']), latitude=network.latitude, longitude=network.longitude)
+                for node in network.nodes.all():
+                    if node not in org_network.nodes.all():
+                        org_network.nodes.add(node)
+                for session in network.related_sessions.all():
+                    if session not in org_network.related_sessions.all():
+                        org_network.related_sessions.add(session)
+                org_network.save()
+                network.delete()
+                network = org_network
+            except:
+                network.isp = network_info['isp']
+                network.ASNumber = int(network_info['asn'])
+                network.city = network_info['city']
+                network.region = network_info['region']
+                network.country = network_info['country']
+                network.save()
             template = loader.get_template('anomalyDiagnosis/network.html')
             return HttpResponse(template.render({'network':network}, request))
         else:
