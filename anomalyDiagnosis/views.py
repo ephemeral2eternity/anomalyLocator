@@ -380,24 +380,28 @@ def getUpdatesJson(request):
     updates_list = defaultdict(list)
     sessions = []
     if ('id' in request_dict.keys()) and ('type' in request_dict.keys()):
-        obj_id = int(request_dict['id'][0])
+        obj_ids = request_dict['id']
         obj_type = request_dict['type'][0]
         if obj_type == "session":
-            session = Session.objects.get(id=obj_id)
-            sessions.append(session)
+            for obj_id in obj_ids:
+                session = Session.objects.get(id=int(obj_id))
+                sessions.append(session)
         elif obj_type == "network":
-            network = Network.objects.get(id=obj_id)
-            for session in network.related_sessions.all():
-                sessions.append(session)
-        elif obj_type == "device":
-            device = DeviceInfo.objects.get(id=obj_id)
-            for user in device.users.all():
-                for session in user.sessions.all():
+            for obj_id in obj_ids:
+                network = Network.objects.get(id=int(obj_id))
+                for session in network.related_sessions.all():
                     sessions.append(session)
+        elif obj_type == "device":
+            for obj_id in obj_ids:
+                device = DeviceInfo.objects.get(id=int(obj_id))
+                for user in device.users.all():
+                    for session in user.sessions.all():
+                        sessions.append(session)
         else:
-            node = Node.objects.get(id=obj_id)
-            for session in node.related_sessions.all():
-                sessions.append(session)
+            for obj_id in obj_ids:
+                node = Node.objects.get(id=int(obj_id))
+                for session in node.related_sessions.all():
+                    sessions.append(session)
 
         for session in sessions:
             for update in session.updates.all():
@@ -433,6 +437,7 @@ def getUpdates(request):
     sessions = []
     updates = []
     objs = []
+    anomalyExisted = False
     if ('id' in request_dict.keys()) and ('type' in request_dict.keys()):
         obj_ids = request_dict['id']
         obj_ids_str = ",".join(obj_ids)
@@ -461,33 +466,44 @@ def getUpdates(request):
                 objs.append(node)
                 for session in node.related_sessions.all():
                     sessions.append(session)
+    elif ('anomaly' in request_dict.keys()):
+        anomaly_id = int(request_dict['anomaly'][0])
+        anomaly = Anomaly.objects.get(id=anomaly_id)
+        obj_type = "session"
+        obj_ids = []
+        for related_session_status in anomaly.related_session_status.all():
+            session = Session.objects.get(id=related_session_status.session_id)
+            sessions.append(session)
+            objs.append(session)
+            obj_ids.append(str(related_session_status.session_id))
+        obj_ids_str = ",".join(obj_ids)
+    else:
+        return HttpResponse("You have to use \"type\" and \"id\" to specify an object or use \"anomaly\" to specify an anomaly to show QoE curves!")
 
+    if 'anomaly' in request_dict.keys():
+        anomalyExisted = True
+        anomaly_id = int(request_dict['anomaly'][0])
+        anomaly = Anomaly.objects.get(id=anomaly_id)
+        anomaly_time = anomaly.timestamp
+        update_time_window_start = anomaly_time - datetime.timedelta(minutes=5)
+        update_time_window_end = anomaly_time + datetime.timedelta(minutes=5)
+    else:
         session_tses = [session.latest_check for session in sessions]
+        update_time_window_end = max(session_tses)
+        update_time_window_start = update_time_window_end - datetime.timedelta(minutes=10)
 
-        anomalyExisted = False
-        if ('anomaly' in request_dict.keys()):
-            anomaly_id = int(request_dict['anomaly'][0])
-            anomaly = Anomaly.objects.get(id=anomaly_id)
-            anomaly_time = anomaly.timestamp
-            update_time_window_start = anomaly_time - datetime.timedelta(minutes=5)
-            update_time_window_end = anomaly_time + datetime.timedelta(minutes=5)
-            anomalyExisted = True
-        else:
-            update_time_window_end = max(session_tses)
-            update_time_window_start = update_time_window_end - datetime.timedelta(minutes=10)
+    for session in sessions:
+        session_updates = session.updates.filter(timestamp__range=(update_time_window_start, update_time_window_end))
+        for update in session_updates.all():
+            updates.append(update)
 
-        for session in sessions:
-            session_updates = session.updates.filter(timestamp__range=(update_time_window_start, update_time_window_end))
-            for update in session_updates.all():
-                updates.append(update)
+    if anomalyExisted:
+        rendered_data = {'obj_type': obj_type, 'objs': objs, 'obj_ids': obj_ids_str, 'updates': updates, 'start': update_time_window_start, 'end':update_time_window_end, 'anomaly':anomaly.id}
+    else:
+        rendered_data = {'obj_type': obj_type, 'objs': objs, 'obj_ids': obj_ids_str, 'updates': updates, 'start': update_time_window_start, 'end':update_time_window_end}
 
-        if anomalyExisted:
-            rendered_data = {'obj_type': obj_type, 'objs': objs, 'obj_ids': obj_ids_str, 'updates': updates, 'start': update_time_window_start, 'end':update_time_window_end, 'anomaly':anomaly_id}
-        else:
-            rendered_data = {'obj_type': obj_type, 'objs': objs, 'obj_ids': obj_ids_str, 'updates': updates, 'start': update_time_window_start, 'end':update_time_window_end}
-
-        template = loader.get_template('anomalyDiagnosis/updates.html')
-        return HttpResponse(template.render(rendered_data, request))
+    template = loader.get_template('anomalyDiagnosis/updates.html')
+    return HttpResponse(template.render(rendered_data, request))
 
 def getStatusJson(request):
     url = request.get_full_path()
@@ -497,24 +513,28 @@ def getStatusJson(request):
     tses = []
     sessions = []
     if ('id' in request_dict.keys()) and ('type' in request_dict.keys()):
-        obj_id = int(request_dict['id'][0])
+        obj_ids = request_dict['id']
         obj_type = request_dict['type'][0]
         if obj_type == "session":
-            session = Session.objects.get(id=obj_id)
-            sessions.append(session)
+            for obj_id in obj_ids:
+                session = Session.objects.get(id=int(obj_id))
+                sessions.append(session)
         elif obj_type == "network":
-            network = Network.objects.get(id=obj_id)
-            for session in network.related_sessions.all():
-                sessions.append(session)
-        elif obj_type == "device":
-            device = DeviceInfo.objects.get(id=obj_id)
-            for user in device.users.all():
-                for session in user.sessions.all():
+            for obj_id in obj_ids:
+                network = Network.objects.get(id=int(obj_id))
+                for session in network.related_sessions.all():
                     sessions.append(session)
+        elif obj_type == "device":
+            for obj_id in obj_ids:
+                device = DeviceInfo.objects.get(id=int(obj_id))
+                for user in device.users.all():
+                    for session in user.sessions.all():
+                        sessions.append(session)
         else:
-            node = Node.objects.get(id=obj_id)
-            for session in node.related_sessions.all():
-                sessions.append(session)
+            for obj_id in obj_ids:
+                node = Node.objects.get(id=int(obj_id))
+                for session in node.related_sessions.all():
+                    sessions.append(session)
 
         id = 1
         for session in sessions:
@@ -585,30 +605,44 @@ def getStatus(request):
                 objs.append(node)
                 for session in node.related_sessions.all():
                     sessions.append(session)
+    elif ('anomaly' in request_dict.keys()):
+        anomaly_id = int(request_dict['anomaly'][0])
+        anomaly = Anomaly.objects.get(id=anomaly_id)
+        obj_type = "session"
+        obj_ids = []
+        for session_status in anomaly.related_session_status.all():
+            session = Session.objects.get(id=session_status.session_id)
+            sessions.append(session)
+            objs.append(session)
+            obj_ids.append(str(session_status.session_id))
+        obj_ids_str = ",".join(obj_ids)
+    else:
+        return HttpResponse(
+            "You have to use \"type\" and \"id\" to specify an object or use \"anomaly\" to specify an anomaly to show QoE curves!")
 
-        session_tses = [session.latest_check for session in sessions]
+    session_tses = [session.latest_check for session in sessions]
 
-        anomalyExisted = False
-        if ('anomaly' in request_dict.keys()):
-            anomaly_id = int(request_dict['anomaly'][0])
-            anomaly = Anomaly.objects.get(id=anomaly_id)
-            anomaly_time = anomaly.timestamp
-            time_window_start = anomaly_time - datetime.timedelta(minutes=5)
-            time_window_end = anomaly_time + datetime.timedelta(minutes=5)
-            anomalyExisted = True
-        else:
-            time_window_end = max(session_tses)
-            time_window_start = time_window_end - datetime.timedelta(minutes=10)
+    anomalyExisted = False
+    if ('anomaly' in request_dict.keys()):
+        anomaly_id = int(request_dict['anomaly'][0])
+        anomaly = Anomaly.objects.get(id=anomaly_id)
+        anomaly_time = anomaly.timestamp
+        time_window_start = anomaly_time - datetime.timedelta(minutes=5)
+        time_window_end = anomaly_time + datetime.timedelta(minutes=5)
+        anomalyExisted = True
+    else:
+        time_window_end = max(session_tses)
+        time_window_start = time_window_end - datetime.timedelta(minutes=10)
 
-        for session in sessions:
-            session_status = session.status.filter(timestamp__range=(time_window_start, time_window_end))
-            for status in session_status.all():
-                status_list.append(status)
+    for session in sessions:
+        session_status = session.status.filter(timestamp__range=(time_window_start, time_window_end))
+        for status in session_status.all():
+            status_list.append(status)
 
-        if anomalyExisted:
-            rendered_data = {'obj_type': obj_type, 'objs': objs, 'obj_ids': obj_ids_str, 'statuses': status_list, 'start': time_window_start, 'end':time_window_end, 'anomaly':anomaly_id}
-        else:
-            rendered_data = {'obj_type': obj_type, 'objs': objs, 'obj_ids': obj_ids_str, 'statuses': status_list, 'start': time_window_start, 'end':time_window_end}
+    if anomalyExisted:
+        rendered_data = {'obj_type': obj_type, 'objs': objs, 'obj_ids': obj_ids_str, 'statuses': status_list, 'start': time_window_start, 'end':time_window_end, 'anomaly':anomaly.id}
+    else:
+        rendered_data = {'obj_type': obj_type, 'objs': objs, 'obj_ids': obj_ids_str, 'statuses': status_list, 'start': time_window_start, 'end':time_window_end}
 
     template = loader.get_template('anomalyDiagnosis/statuses.html')
     return HttpResponse(template.render(rendered_data, request))

@@ -160,7 +160,7 @@ class Anomaly(models.Model):
     timestamp = models.DateTimeField()
 
     def __str__(self):
-        return self.type + " anomaly, " + str(self.qoe)
+        return "Anomaly: " + self.type + ", " + str(self.qoe) + ", session: " + str(self.session_id)
 
 ## Monitor the user info
 class User(models.Model):
