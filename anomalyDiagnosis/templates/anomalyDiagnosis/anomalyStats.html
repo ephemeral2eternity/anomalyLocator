@@ -27,23 +27,87 @@
         .vis-item.severe {
             border-color: darkred;
             color: darkred;
-            font-family: monospace;
+            /*font-family: monospace;*/
         }
 
         .vis-item.medium {
             border-color: darkorange;
             color: darkorange;
-            font-family: monospace;
+            /*font-family: monospace;*/
         }
 
         .vis-item.light {
             border-color: darkgreen;
             color: darkgreen;
-            font-family: monospace;
+            /*font-family: monospace;*/
         }
+
+        .vis-foreground .vis-group {
+            position: relative;
+            box-sizing: border-box;
+            border-bottom: 1px solid #274a60;
+            height: 38px !important;
+        }
+
+        .vis-timeline .vis-point {
+            stroke-width: 2px;
+            fill-opacity: 1.0;
+            top: 5px !important;
+        }
+
+        .vis-labelset .vis-label {
+        }
+
+        .vis-labelset .vis-label {
+            position: relative;
+            /* left: 0; */
+            top: 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .vis-label {
+            height: 38px !important;
+        }
+
+        .vis-item {
+            position: absolute;
+            color: #fff;
+            border-color: #97B0F8;
+            border-width: 1px;
+            background-color: #D5DDF6;
+            display: inline-block;
+            overflow: hidden;
+        }
+
+        .vis-item.vis-range .vis-item-content {
+          position: relative;
+          display: inline-block;
+        }
+
+        .vis-item.vis-background .vis-item-content {
+          position: absolute;
+          display: inline-block;
+        }
+
+        .vis-item.vis-item-content {
+          white-space: nowrap;
+          box-sizing: border-box;
+          padding: 5px;
+        }
+
+        .vis-item-content {
+            opacity: 0;
+        }
+
+        .vis-selected .vis-item-content {
+            opacity: 1;
+        }
+
 
         #anomalies {
             width: 80%;
+            height: auto;
             border: 1px solid lightgray;
         }
 

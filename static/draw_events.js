@@ -70,7 +70,8 @@ function draw_anomalies(anomaly_url) {
             },
             editable: false,
             orientation: 'top',
-            showCurrentTime: false
+            showCurrentTime: false,
+            stack:false
         };
 
         var timeline = new vis.Timeline(container);
