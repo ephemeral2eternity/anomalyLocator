@@ -169,7 +169,6 @@ def rank_suspects(user, session, suspect_nodes):
     # print("Successfully ranked suspect nodes for anomaly on session " + str(session))
     return ranked_attributes
 
-@transaction.atomic
 def save_anomaly(user, session, anomaly_ts, anomaly_qoe, anomaly_type, related_sessions_status, ranked_attributes):
     anomaly_dt = datetime.datetime.utcfromtimestamp(float(anomaly_ts))
     anomaly = Anomaly(user_id=user.id, session_id=session.id, qoe=anomaly_qoe, type=anomaly_type, timestamp=anomaly_dt)
