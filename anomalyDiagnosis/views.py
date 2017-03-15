@@ -1,19 +1,10 @@
 from django.shortcuts import render, render_to_response
 from django.http import HttpResponse, JsonResponse
-from anomalyDiagnosis.models import Update, Event
 from django.template import RequestContext, loader
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
-from django.utils import timezone
-from django.db import transaction
 from django.db.models import Q
-import json
-import socket
-import csv
-import time
-import pytz
-from anomalyDiagnosis.thresholds import satisfied_qoe
 from datetime import date, datetime, timedelta
-from anomalyDiagnosis.diag_utils import *
+from anomalyDiagnosis.update_utils import *
 from anomalyDiagnosis.add_user import *
 from collections import defaultdict
 import urllib
@@ -148,12 +139,24 @@ def editNetwork(request):
         if request.method == "POST":
             network_info = request.POST.dict()
             # print(network_info)
-            network.isp = network_info['isp']
-            network.ASNumber = int(network_info['asn'])
-            network.city = network_info['city']
-            network.region = network_info['region']
-            network.country = network_info['country']
-            network.save()
+            try:
+                org_network = Network.objects.get(ASNumber=int(network_info['asn']), latitude=network.latitude, longitude=network.longitude)
+                for node in network.nodes.all():
+                    if node not in org_network.nodes.all():
+                        org_network.nodes.add(node)
+                for session in network.related_sessions.all():
+                    if session not in org_network.related_sessions.all():
+                        org_network.related_sessions.add(session)
+                org_network.save()
+                network.delete()
+                network = org_network
+            except:
+                network.isp = network_info['isp']
+                network.ASNumber = int(network_info['asn'])
+                network.city = network_info['city']
+                network.region = network_info['region']
+                network.country = network_info['country']
+                network.save()
             template = loader.get_template('anomalyDiagnosis/network.html')
             return HttpResponse(template.render({'network':network}, request))
         else:
@@ -261,7 +264,89 @@ def getAnomalyByID(request):
     else:
         return HttpResponse('Please denote the anomaly_id in the url: http://locator/diag/get_anomaly?id=anomaly_id')
 
-def updateAttributeQoEScore(request):
+def getAnomalyEventJson(request):
+    anomalies = Anomaly.objects.all()
+    anomaly_events = []
+    id = 0
+    for anomaly in anomalies:
+        if anomaly.type == "persistent":
+            anomaly_type = "severe"
+        elif anomaly.type == "recurrent":
+            anomaly_type = "medium"
+        elif anomaly.type == "occasional":
+            anomaly_type = "light"
+        else:
+            anomaly_type = anomaly.type
+
+        anomaly_events.append({"id":id, "group":anomaly.session_id, "content":anomaly_type, "start":anomaly.timestamp.strftime("%Y-%m-%d %H:%M:%S")})
+        id += 1
+
+    return JsonResponse({"anomalies":anomaly_events})
+
+def getAnomalyTypeJson(request):
+    anomalies = Anomaly.objects.all()
+    anomaly_types = {"severe":0, "medium":0, "light":0}
+    for anomaly in anomalies:
+        if anomaly.type == "persistent":
+            anomaly_type = "severe"
+        elif anomaly.type == "recurrent":
+            anomaly_type = "medium"
+        elif anomaly.type == "occasional":
+            anomaly_type = "light"
+        else:
+            anomaly_type = anomaly.type
+
+        anomaly_types[anomaly_type] += 1
+
+    return JsonResponse(anomaly_types)
+
+def getAnomalyOriginJson(request):
+    anomalies = Anomaly.objects.all()
+    anomaly_origins = {}
+    for anomaly in anomalies:
+        top_cause = get_top_cause(anomaly)
+        # print(anomaly.id)
+        # print(top_cause)
+        if anomaly.type == "persistent":
+            anomaly_type = "severe"
+        elif anomaly.type == "recurrent":
+            anomaly_type = "medium"
+        elif anomaly.type == "occasional":
+            anomaly_type = "light"
+        else:
+            anomaly_type = anomaly.type
+        if top_cause:
+            for k,v in top_cause.items():
+                if k not in anomaly_origins.keys():
+                    anomaly_origins[k] = []
+                anomaly_origins[k].append({"type": anomaly_type, "count":v})
+
+    top_origins = sorted(anomaly_origins.keys())
+    origin_num = len(top_origins)
+    origin_stats_dict = {
+        "origin":top_origins,
+        "light":[0]*origin_num,
+        "medium":[0]*origin_num,
+        "severe":[0]*origin_num,
+        "total":[0]*origin_num
+    }
+
+    for i, origin in enumerate(top_origins):
+        anomaly_pts = anomaly_origins[origin]
+        for anomaly_pt in anomaly_pts:
+            origin_stats_dict[anomaly_pt["type"]][i] += anomaly_pt["count"]
+            origin_stats_dict["total"][i] += anomaly_pt["count"]
+
+    # print(top_origins)
+
+    return JsonResponse(origin_stats_dict, safe=False)
+
+def showAnomalyStats(request):
+    anomaly_count = Anomaly.objects.all().count()
+    template = loader.get_template('anomalyDiagnosis/anomalyStats.html')
+    return HttpResponse(template.render({"anomaly_count":anomaly_count}, request))
+
+def updateOriginQoEScore(request):
     url = request.get_full_path()
     params = url.split('?')[1]
     request_dict = urllib.parse.parse_qs(params)
@@ -269,28 +354,17 @@ def updateAttributeQoEScore(request):
         anomaly_id = int(request_dict['id'][0])
         anomaly = Anomaly.objects.get(id=anomaly_id)
 
-        anomaly_ts = anomaly.timestamp
-        time_window_start = anomaly_ts - datetime.timedelta(minutes=update_graph_window)
-        time_window_end = anomaly_ts + datetime.timedelta(minutes=update_graph_window)
-
-        for cause in anomaly.causes.all():
-            if cause.type == "network":
-                obj = Network.objects.get(id=cause.obj_id)
-            elif cause.type == "server":
-                obj = Node.objects.get(id=cause.obj_id)
-            elif cause.type == "device":
-                obj = DeviceInfo.objects.get(id=cause.obj_id)
-            else:
-                continue
-
-            cause.qoe_score = get_ave_QoE(obj, time_window_start, time_window_end)
-            cause.save()
-
-        anomaly.save()
+        anomaly = update_origin_qoe_score(anomaly)
         template = loader.get_template('anomalyDiagnosis/anomaly.html')
         return HttpResponse(template.render({'anomaly':anomaly}, request))
     else:
         return HttpResponse('Please denote the anomaly_id in the url: http://locator/diag/get_anomaly?id=anomaly_id')
+
+def updateAllQoEScore(request):
+    anomalies = Anomaly.objects.all()
+    for anomaly in anomalies:
+        anomaly = update_origin_qoe_score(anomaly)
+    return HttpResponse("Update the QoE score for all causes in all anomalies!")
 
 
 def getAnomalyGraphJson(request):
@@ -388,24 +462,28 @@ def getUpdatesJson(request):
     updates_list = defaultdict(list)
     sessions = []
     if ('id' in request_dict.keys()) and ('type' in request_dict.keys()):
-        obj_id = int(request_dict['id'][0])
+        obj_ids = request_dict['id']
         obj_type = request_dict['type'][0]
         if obj_type == "session":
-            session = Session.objects.get(id=obj_id)
-            sessions.append(session)
+            for obj_id in obj_ids:
+                session = Session.objects.get(id=int(obj_id))
+                sessions.append(session)
         elif obj_type == "network":
-            network = Network.objects.get(id=obj_id)
-            for session in network.related_sessions.all():
-                sessions.append(session)
-        elif obj_type == "device":
-            device = DeviceInfo.objects.get(id=obj_id)
-            for user in device.users.all():
-                for session in user.sessions.all():
+            for obj_id in obj_ids:
+                network = Network.objects.get(id=int(obj_id))
+                for session in network.related_sessions.all():
                     sessions.append(session)
+        elif obj_type == "device":
+            for obj_id in obj_ids:
+                device = DeviceInfo.objects.get(id=int(obj_id))
+                for user in device.users.all():
+                    for session in user.sessions.all():
+                        sessions.append(session)
         else:
-            node = Node.objects.get(id=obj_id)
-            for session in node.related_sessions.all():
-                sessions.append(session)
+            for obj_id in obj_ids:
+                node = Node.objects.get(id=int(obj_id))
+                for session in node.related_sessions.all():
+                    sessions.append(session)
 
         for session in sessions:
             for update in session.updates.all():
@@ -441,6 +519,7 @@ def getUpdates(request):
     sessions = []
     updates = []
     objs = []
+    anomalyExisted = False
     if ('id' in request_dict.keys()) and ('type' in request_dict.keys()):
         obj_ids = request_dict['id']
         obj_ids_str = ",".join(obj_ids)
@@ -469,33 +548,44 @@ def getUpdates(request):
                 objs.append(node)
                 for session in node.related_sessions.all():
                     sessions.append(session)
+    elif ('anomaly' in request_dict.keys()):
+        anomaly_id = int(request_dict['anomaly'][0])
+        anomaly = Anomaly.objects.get(id=anomaly_id)
+        obj_type = "session"
+        obj_ids = []
+        for related_session_status in anomaly.related_session_status.all():
+            session = Session.objects.get(id=related_session_status.session_id)
+            sessions.append(session)
+            objs.append(session)
+            obj_ids.append(str(related_session_status.session_id))
+        obj_ids_str = ",".join(obj_ids)
+    else:
+        return HttpResponse("You have to use \"type\" and \"id\" to specify an object or use \"anomaly\" to specify an anomaly to show QoE curves!")
 
+    if 'anomaly' in request_dict.keys():
+        anomalyExisted = True
+        anomaly_id = int(request_dict['anomaly'][0])
+        anomaly = Anomaly.objects.get(id=anomaly_id)
+        anomaly_time = anomaly.timestamp
+        update_time_window_start = anomaly_time - datetime.timedelta(minutes=5)
+        update_time_window_end = anomaly_time + datetime.timedelta(minutes=5)
+    else:
         session_tses = [session.latest_check for session in sessions]
+        update_time_window_end = max(session_tses)
+        update_time_window_start = update_time_window_end - datetime.timedelta(minutes=10)
 
-        anomalyExisted = False
-        if ('anomaly' in request_dict.keys()):
-            anomaly_id = int(request_dict['anomaly'][0])
-            anomaly = Anomaly.objects.get(id=anomaly_id)
-            anomaly_time = anomaly.timestamp
-            update_time_window_start = anomaly_time - datetime.timedelta(minutes=5)
-            update_time_window_end = anomaly_time + datetime.timedelta(minutes=5)
-            anomalyExisted = True
-        else:
-            update_time_window_end = max(session_tses)
-            update_time_window_start = update_time_window_end - datetime.timedelta(minutes=10)
+    for session in sessions:
+        session_updates = session.updates.filter(timestamp__range=(update_time_window_start, update_time_window_end))
+        for update in session_updates.all():
+            updates.append(update)
 
-        for session in sessions:
-            session_updates = session.updates.filter(timestamp__range=(update_time_window_start, update_time_window_end))
-            for update in session_updates.all():
-                updates.append(update)
+    if anomalyExisted:
+        rendered_data = {'obj_type': obj_type, 'objs': objs, 'obj_ids': obj_ids_str, 'updates': updates, 'start': update_time_window_start, 'end':update_time_window_end, 'anomaly':anomaly.id}
+    else:
+        rendered_data = {'obj_type': obj_type, 'objs': objs, 'obj_ids': obj_ids_str, 'updates': updates, 'start': update_time_window_start, 'end':update_time_window_end}
 
-        if anomalyExisted:
-            rendered_data = {'obj_type': obj_type, 'objs': objs, 'obj_ids': obj_ids_str, 'updates': updates, 'start': update_time_window_start, 'end':update_time_window_end, 'anomaly':anomaly_id}
-        else:
-            rendered_data = {'obj_type': obj_type, 'objs': objs, 'obj_ids': obj_ids_str, 'updates': updates, 'start': update_time_window_start, 'end':update_time_window_end}
-
-        template = loader.get_template('anomalyDiagnosis/updates.html')
-        return HttpResponse(template.render(rendered_data, request))
+    template = loader.get_template('anomalyDiagnosis/updates.html')
+    return HttpResponse(template.render(rendered_data, request))
 
 def getStatusJson(request):
     url = request.get_full_path()
@@ -505,24 +595,28 @@ def getStatusJson(request):
     tses = []
     sessions = []
     if ('id' in request_dict.keys()) and ('type' in request_dict.keys()):
-        obj_id = int(request_dict['id'][0])
+        obj_ids = request_dict['id']
         obj_type = request_dict['type'][0]
         if obj_type == "session":
-            session = Session.objects.get(id=obj_id)
-            sessions.append(session)
+            for obj_id in obj_ids:
+                session = Session.objects.get(id=int(obj_id))
+                sessions.append(session)
         elif obj_type == "network":
-            network = Network.objects.get(id=obj_id)
-            for session in network.related_sessions.all():
-                sessions.append(session)
-        elif obj_type == "device":
-            device = DeviceInfo.objects.get(id=obj_id)
-            for user in device.users.all():
-                for session in user.sessions.all():
+            for obj_id in obj_ids:
+                network = Network.objects.get(id=int(obj_id))
+                for session in network.related_sessions.all():
                     sessions.append(session)
+        elif obj_type == "device":
+            for obj_id in obj_ids:
+                device = DeviceInfo.objects.get(id=int(obj_id))
+                for user in device.users.all():
+                    for session in user.sessions.all():
+                        sessions.append(session)
         else:
-            node = Node.objects.get(id=obj_id)
-            for session in node.related_sessions.all():
-                sessions.append(session)
+            for obj_id in obj_ids:
+                node = Node.objects.get(id=int(obj_id))
+                for session in node.related_sessions.all():
+                    sessions.append(session)
 
         id = 1
         for session in sessions:
@@ -593,30 +687,44 @@ def getStatus(request):
                 objs.append(node)
                 for session in node.related_sessions.all():
                     sessions.append(session)
+    elif ('anomaly' in request_dict.keys()):
+        anomaly_id = int(request_dict['anomaly'][0])
+        anomaly = Anomaly.objects.get(id=anomaly_id)
+        obj_type = "session"
+        obj_ids = []
+        for session_status in anomaly.related_session_status.all():
+            session = Session.objects.get(id=session_status.session_id)
+            sessions.append(session)
+            objs.append(session)
+            obj_ids.append(str(session_status.session_id))
+        obj_ids_str = ",".join(obj_ids)
+    else:
+        return HttpResponse(
+            "You have to use \"type\" and \"id\" to specify an object or use \"anomaly\" to specify an anomaly to show QoE curves!")
 
-        session_tses = [session.latest_check for session in sessions]
+    session_tses = [session.latest_check for session in sessions]
 
-        anomalyExisted = False
-        if ('anomaly' in request_dict.keys()):
-            anomaly_id = int(request_dict['anomaly'][0])
-            anomaly = Anomaly.objects.get(id=anomaly_id)
-            anomaly_time = anomaly.timestamp
-            time_window_start = anomaly_time - datetime.timedelta(minutes=5)
-            time_window_end = anomaly_time + datetime.timedelta(minutes=5)
-            anomalyExisted = True
-        else:
-            time_window_end = max(session_tses)
-            time_window_start = time_window_end - datetime.timedelta(minutes=10)
+    anomalyExisted = False
+    if ('anomaly' in request_dict.keys()):
+        anomaly_id = int(request_dict['anomaly'][0])
+        anomaly = Anomaly.objects.get(id=anomaly_id)
+        anomaly_time = anomaly.timestamp
+        time_window_start = anomaly_time - datetime.timedelta(minutes=5)
+        time_window_end = anomaly_time + datetime.timedelta(minutes=5)
+        anomalyExisted = True
+    else:
+        time_window_end = max(session_tses)
+        time_window_start = time_window_end - datetime.timedelta(minutes=10)
 
-        for session in sessions:
-            session_status = session.status.filter(timestamp__range=(time_window_start, time_window_end))
-            for status in session_status.all():
-                status_list.append(status)
+    for session in sessions:
+        session_status = session.status.filter(timestamp__range=(time_window_start, time_window_end))
+        for status in session_status.all():
+            status_list.append(status)
 
-        if anomalyExisted:
-            rendered_data = {'obj_type': obj_type, 'objs': objs, 'obj_ids': obj_ids_str, 'statuses': status_list, 'start': time_window_start, 'end':time_window_end, 'anomaly':anomaly_id}
-        else:
-            rendered_data = {'obj_type': obj_type, 'objs': objs, 'obj_ids': obj_ids_str, 'statuses': status_list, 'start': time_window_start, 'end':time_window_end}
+    if anomalyExisted:
+        rendered_data = {'obj_type': obj_type, 'objs': objs, 'obj_ids': obj_ids_str, 'statuses': status_list, 'start': time_window_start, 'end':time_window_end, 'anomaly':anomaly.id}
+    else:
+        rendered_data = {'obj_type': obj_type, 'objs': objs, 'obj_ids': obj_ids_str, 'statuses': status_list, 'start': time_window_start, 'end':time_window_end}
 
     template = loader.get_template('anomalyDiagnosis/statuses.html')
     return HttpResponse(template.render(rendered_data, request))

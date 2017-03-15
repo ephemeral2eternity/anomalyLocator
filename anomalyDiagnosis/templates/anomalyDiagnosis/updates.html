@@ -23,7 +23,7 @@
 <script type="text/javascript">
 function onLoad(){
     var obj_type = "{{ obj_type }}";
-    var obj_ids = {{ obj_ids }};
+    var obj_ids = "{{ obj_ids }}";
     var anomaly = {{ anomaly }};
     drawUpdates(obj_type, obj_ids, anomaly);
 }
@@ -33,7 +33,7 @@ function onLoad(){
 {% if objs %}
     <ul>
     {% for obj in objs %}
-        <li>{{ obj.name }}, {{ obj }}</li>
+        <li>{{ obj_type }}: {{ obj.id }},  {{ obj }}</li>
     {% endfor %}
     </ul>
 {% endif %}

@@ -20,7 +20,7 @@ class Node(models.Model):
     type = models.CharField(max_length=100)
     network = models.ForeignKey('Network', blank=True)
     # node_qoe_score = models.DecimalField(default=5, max_digits=5, decimal_places=4)
-    related_sessions = models.ManyToManyField('Session', through='Hop')
+    related_sessions = models.ManyToManyField('Session')
     latest_check = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -33,12 +33,12 @@ class Node(models.Model):
 class Network(models.Model):
     type = models.CharField(max_length=100)
     name = models.CharField(max_length=100, default="")
-    latitude = models.DecimalField(max_digits=10, decimal_places=4, default=0.0)
-    longitude = models.DecimalField(max_digits=10, decimal_places=4, default=0.0)
+    latitude = models.DecimalField(max_digits=10, decimal_places=6, default=0.0)
+    longitude = models.DecimalField(max_digits=10, decimal_places=6, default=0.0)
     ASNumber = models.IntegerField(default=-1)
     nodes = models.ManyToManyField(Node, blank=True, related_name='net_nodes')
     # network_qoe_score = models.DecimalField(default=5, max_digits=5, decimal_places=4)
-    related_sessions = models.ManyToManyField('Session', through='Subnetwork')
+    related_sessions = models.ManyToManyField('Session')
     city = models.CharField(max_length=100, default="")
     region = models.CharField(max_length=100, default="")
     country = models.CharField(max_length=100, default="")
@@ -160,7 +160,7 @@ class Anomaly(models.Model):
     timestamp = models.DateTimeField()
 
     def __str__(self):
-        return self.type + " anomaly, " + str(self.qoe)
+        return "Anomaly: " + self.type + ", " + str(self.qoe) + ", session: " + str(self.session_id)
 
 ## Monitor the user info
 class User(models.Model):

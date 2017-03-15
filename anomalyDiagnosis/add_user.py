@@ -2,6 +2,17 @@ from anomalyDiagnosis.models import Node, User, Session, DeviceInfo, Network, Ho
 from anomalyDiagnosis.models import Event, Path
 from django.db import transaction
 
+def add_related_session(session):
+    for node in session.route.all():
+        if session not in node.related_sessions.all():
+            node.related_sessions.add(session)
+            node.save()
+
+    for net in session.sub_networks.all():
+        if session not in net.related_sessions.all():
+            net.related_sessions.add(session)
+            net.save()
+
 @transaction.atomic
 def add_user(client_info):
     ############################################################################################################
@@ -115,7 +126,7 @@ def add_user(client_info):
         client_hop = Hop.objects.get(session=session, node=client_node, hopID=hop_id)
     except:
         client_hop = Hop(session=session, node=client_node, hopID=hop_id)
-    client_hop.save()
+        client_hop.save()
 
     ## Session update subnetwork
     net_id = 0
@@ -123,7 +134,7 @@ def add_user(client_info):
         client_subnet = Subnetwork.objects.get(session=session, network=client_network, netID=net_id)
     except:
         client_subnet = Subnetwork(session=session, network=client_network, netID=net_id)
-    client_subnet.save()
+        client_subnet.save()
 
     ## Update all nodes' info in the route
     preNode = client_node
@@ -131,6 +142,7 @@ def add_user(client_info):
     route_updated = False
     for i, node in enumerate(client_info['route']):
         node_ip = node['ip']
+        # print(node_ip)
 
         if node_ip == client_info['ip']:
             continue
@@ -156,7 +168,7 @@ def add_user(client_info):
             node_network = Network(type=net_type, ASNumber=node['AS'], name=node['ISP'],
                                    latitude=node['latitude'], longitude=node['longitude'],
                                    city=node['city'], region=node['region'], country=node['country'])
-        node_network.save()
+            node_network.save()
 
         try:
             node_obj = Node.objects.get(ip=node_ip)
@@ -278,6 +290,8 @@ def add_user(client_info):
     if session not in user.sessions.all():
         user.sessions.add(session)
     user.save()
+
+    add_related_session(session)
 
     if user not in device.users.all():
         device.users.add(user)

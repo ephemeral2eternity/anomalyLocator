@@ -32,6 +32,10 @@
             {% for status in anomaly.related_session_status.all %}
                 <a href="/diag/get_session?id={{ anomaly.session_id }}">{{ status.session_id }}:{{ status.isGood }}</a>,
             {% endfor %}
+            <ul>
+                <li><a href="/diag/get_updates?anomaly={{ anomaly.id }}">Get all updates from related sessions</a></li>
+                <li><a href="/diag/get_status?anomaly={{ anomaly.id }}">Get all statuses from related sessions</a></li>
+            </ul>
         </li>
         <li>Timestamp: {{ anomaly.timestamp }}</li>
     </ul>
@@ -55,7 +59,7 @@
         <tr>
             <td>
                 {% for node in cause.suspects.all %}
-                    <a href="/diag/get_updates?type=node&id={{ node.id }}&anomaly={{ anomaly.id }}"> {{ node }}</a><br>
+                    <a href="/diag/get_updates?type=node&"id={{ node.id }}&anomaly={{ anomaly.id }}"> {{ node }}</a><br>
                 {% endfor %}
             </td>
             <td> {{ cause.type }} </td>

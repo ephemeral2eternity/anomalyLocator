@@ -5,8 +5,9 @@ import time
 import socket
 import requests
 import json
+import operator
 # from multiprocessing import Process, freeze_support
-from anomalyDiagnosis.models import Node, Network, DeviceInfo, User, Session, Event, Status, Anomaly, Cause, Path, Update
+from anomalyDiagnosis.models import User, Status, Anomaly, Cause, Path, Network, Node, DeviceInfo
 from anomalyDiagnosis.thresholds import *
 from anomalyDiagnosis.ipinfo import *
 from django.db import transaction
@@ -205,13 +206,6 @@ def save_anomaly(user, session, anomaly_ts, anomaly_qoe, anomaly_type, related_s
     # print("Save ranked anomaly with id: " + str(anomaly.id))
     return anomaly
 
-'''
-def fork_anomaly_diagnosis(session, anomaly_qoe, anomaly_type):
-    p = Process(target=anomaly_diagnosis, args=(session, anomaly_qoe, anomaly_type))
-    p.start()
-    return p
-'''
-
 def anomaly_diagnosis(session, anomaly_ts, anomaly_qoe, anomaly_type):
     # print("Running anomaly diagnosis for session: " + str(session))
     suspect_nodes, related_sessions_status = locate_suspects(session)
@@ -236,11 +230,11 @@ def detect_anomaly(session, recent_qoes):
     if anomaly_pts > 0:
         anomaly_ratio = anomaly_pts / float(total_pts)
         if anomaly_ratio < 0.2:
-            anomaly_type = "occasional"
+            anomaly_type = "light"
         elif anomaly_ratio < 0.7:
-            anomaly_type = "recurrent"
+            anomaly_type = "medium"
         else:
-            anomaly_type = "persistent"
+            anomaly_type = "severe"
 
         anomaly_qoe = sum(recent_qoes.values()) / float(total_pts)
         anomaly_ts = max(anomaly_tses)
@@ -266,7 +260,6 @@ def detect_anomaly(session, recent_qoes):
         session_status.save()
         session.status.add(session_status)
         session.save()
-
 
 def update_attributes(client_ip, server_ip, qoes):
     try:
@@ -325,7 +318,6 @@ def add_event(client_ip, event_dict):
 
     return isAdded
 
-
 def get_ave_QoE(obj, ts_start, ts_end):
     qoes = []
     sessions = []
@@ -355,3 +347,62 @@ def get_ave_QoE(obj, ts_start, ts_end):
     else:
         aveQoE = -1.0
     return aveQoE
+
+# chenw-20170314
+def get_top_cause(anomaly):
+    top_causes = {}
+    cause_prob = {}
+    cause_qoe = {}
+
+    ## Get all causes' probability and QoE scores, ignore events right now
+    for cause in anomaly.causes.all():
+        if cause.type == "network":
+            obj = Network.objects.get(id=cause.obj_id)
+            obj_key = obj.name
+        elif cause.type == "server":
+            obj = Node.objects.get(id=cause.obj_id)
+            obj_key = obj.name
+        elif cause.type == "device":
+            obj = DeviceInfo.objects.get(id=cause.obj_id)
+            obj_key = obj.__str__()
+        else:
+            continue
+
+        if obj_key not in cause_prob.keys():
+            cause_prob[obj_key] = cause.prob
+            cause_qoe[obj_key] = cause.qoe_score
+        elif cause_prob[obj_key] < cause.prob:
+            cause_prob[obj_key] = cause.prob
+            cause_qoe[obj_key] = cause.qoe_score
+        else:
+            continue
+
+    sorted_cause_prob = sorted(cause_prob.items(), key=operator.itemgetter(1), reverse=True)
+    max_prob = sorted_cause_prob[0][1]
+
+    top_causes_by_prob = []
+    top_causes_by_prob_qoe_scores = {}
+    for item in sorted_cause_prob:
+        if item[1] >= max_prob:
+            top_causes_by_prob.append(item[0])
+            top_causes_by_prob_qoe_scores[item[0]] = cause_qoe[item[0]]
+        else:
+            break
+
+    top_causes_by_prob_and_qoe = []
+    sorted_top_causes_by_prob_qoe_scores = sorted(top_causes_by_prob_qoe_scores.items(), key=operator.itemgetter(1))
+    top_cause_qoe_score = sorted_top_causes_by_prob_qoe_scores[0][1]
+    for item in sorted_top_causes_by_prob_qoe_scores:
+        if item[1] <= top_cause_qoe_score:
+            top_causes_by_prob_and_qoe.append(item[0])
+        else:
+            break
+
+    if len(top_causes_by_prob_and_qoe) > 0:
+        for cause_key in top_causes_by_prob_and_qoe:
+            top_causes[cause_key] = 1 / float(len(top_causes_by_prob_and_qoe))
+
+    return top_causes
+
+
+
