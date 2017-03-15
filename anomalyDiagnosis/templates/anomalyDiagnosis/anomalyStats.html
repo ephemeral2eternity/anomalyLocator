@@ -1,0 +1,82 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Anomaly Statistics</title>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.4/moment.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <script type="text/javascript" src="http://visjs.org/dist/vis.js"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <link href="http://visjs.org/dist/vis.min.css" rel="stylesheet" type="text/css" />
+    <script src="/static/draw_events.js"></script>
+    <script src="/static/draw_charts.js"></script>
+    <script>
+        function onload() {
+            draw_anomalies("/diag/get_anomaly_events_json");
+            draw_pie_chart("/diag/get_anomaly_types_json");
+            draw_top_origins("/diag/get_anomaly_origins_json");
+        }
+    </script>
+    <style>
+        body, input {
+            font: 12pt verdana;
+        }
+
+        /* custom styles for individual items, load this after vis.css/vis-timeline-graph2d.min.css */
+        /* create a custom sized dot at the bottom of the red item */
+        .vis-item.severe {
+            border-color: darkred;
+            color: darkred;
+            font-family: monospace;
+        }
+
+        .vis-item.medium {
+            border-color: darkorange;
+            color: darkorange;
+            font-family: monospace;
+        }
+
+        .vis-item.light {
+            border-color: darkgreen;
+            color: darkgreen;
+            font-family: monospace;
+        }
+
+        #anomalies {
+            width: 80%;
+            border: 1px solid lightgray;
+        }
+
+        #pieChart{
+            min-width: 310px;
+            height: 400px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        #barChart{
+            min-width: 310px;
+            height: 400px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body onload="onload()">
+<h1>Anomaly Statistics</h1>
+<h2>Total: {{ anomaly_count }}</h2>
+<h3>Show all anomalies in timeline event plot </h3>
+<div id="anomalies">
+    <div class="menu">
+        <input type="button" class="btn" id="zoomIn" value="Zoom in"/>
+        <input type="button" class="btn" id="zoomOut" value="Zoom out"/>
+        <input type="button" class="btn" id="moveLeft" value="Move left"/>
+        <input type="button" class="btn" id="moveRight" value="Move right"/>
+        <input type="button" class="btn" id="fit" value="Default">
+    </div>
+</div>
+<h3>Anomalies per category</h3>
+<div id="pieChart"></div>
+<h3>Top origins for anomalies</h3>
+<div id="barChart"></div>
+</body>
+</html>

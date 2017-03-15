@@ -264,6 +264,88 @@ def getAnomalyByID(request):
     else:
         return HttpResponse('Please denote the anomaly_id in the url: http://locator/diag/get_anomaly?id=anomaly_id')
 
+def getAnomalyEventJson(request):
+    anomalies = Anomaly.objects.all()
+    anomaly_events = []
+    id = 0
+    for anomaly in anomalies:
+        if anomaly.type == "persistent":
+            anomaly_type = "severe"
+        elif anomaly.type == "recurrent":
+            anomaly_type = "medium"
+        elif anomaly.type == "occasional":
+            anomaly_type = "light"
+        else:
+            anomaly_type = anomaly.type
+
+        anomaly_events.append({"id":id, "group":anomaly.session_id, "content":anomaly_type, "start":anomaly.timestamp.strftime("%Y-%m-%d %H:%M:%S")})
+        id += 1
+
+    return JsonResponse({"anomalies":anomaly_events})
+
+def getAnomalyTypeJson(request):
+    anomalies = Anomaly.objects.all()
+    anomaly_types = {"severe":0, "medium":0, "light":0}
+    for anomaly in anomalies:
+        if anomaly.type == "persistent":
+            anomaly_type = "severe"
+        elif anomaly.type == "recurrent":
+            anomaly_type = "medium"
+        elif anomaly.type == "occasional":
+            anomaly_type = "light"
+        else:
+            anomaly_type = anomaly.type
+
+        anomaly_types[anomaly_type] += 1
+
+    return JsonResponse(anomaly_types)
+
+def getAnomalyOriginJson(request):
+    anomalies = Anomaly.objects.all()
+    anomaly_origins = {}
+    for anomaly in anomalies:
+        top_cause = get_top_cause(anomaly)
+        # print(anomaly.id)
+        # print(top_cause)
+        if anomaly.type == "persistent":
+            anomaly_type = "severe"
+        elif anomaly.type == "recurrent":
+            anomaly_type = "medium"
+        elif anomaly.type == "occasional":
+            anomaly_type = "light"
+        else:
+            anomaly_type = anomaly.type
+        if top_cause:
+            for k,v in top_cause.items():
+                if k not in anomaly_origins.keys():
+                    anomaly_origins[k] = []
+                anomaly_origins[k].append({"type": anomaly_type, "count":v})
+
+    top_origins = sorted(anomaly_origins.keys())
+    origin_num = len(top_origins)
+    origin_stats_dict = {
+        "origin":top_origins,
+        "light":[0]*origin_num,
+        "medium":[0]*origin_num,
+        "severe":[0]*origin_num,
+        "total":[0]*origin_num
+    }
+
+    for i, origin in enumerate(top_origins):
+        anomaly_pts = anomaly_origins[origin]
+        for anomaly_pt in anomaly_pts:
+            origin_stats_dict[anomaly_pt["type"]][i] += anomaly_pt["count"]
+            origin_stats_dict["total"][i] += anomaly_pt["count"]
+
+    # print(top_origins)
+
+    return JsonResponse(origin_stats_dict, safe=False)
+
+def showAnomalyStats(request):
+    anomaly_count = Anomaly.objects.all().count()
+    template = loader.get_template('anomalyDiagnosis/anomalyStats.html')
+    return HttpResponse(template.render({"anomaly_count":anomaly_count}, request))
+
 def updateOriginQoEScore(request):
     url = request.get_full_path()
     params = url.split('?')[1]
