@@ -25,7 +25,7 @@ def add_user(client_info):
         client_network = Network(type="access", name=client_info['ISP'], ASNumber=client_info['AS'],
                                  latitude=client_info['latitude'], longitude=client_info['longitude'],
                                  city=client_info['city'], region=client_info['region'], country=client_info['country'])
-        print(client_network.__str__())
+        # print(client_network.__str__())
         client_network.save()
 
     # Update the client node
@@ -53,7 +53,7 @@ def add_user(client_info):
         srv_network = Network(type="cloud", name=server_info['ISP'], ASNumber=server_info['AS'],
                               latitude=server_info['latitude'], longitude=server_info['longitude'],
                               city=server_info['city'], region=server_info['region'], country=server_info['country'])
-        print(srv_network.__str__())
+        # print(srv_network.__str__())
         srv_network.save()
 
     ## Update server node
@@ -107,6 +107,7 @@ def add_user(client_info):
             user.events.add(srv_event)
     else:
         user.server = server_node
+    user.save()
 
     ###############################################################################################################
     ## Update the session route, subnetworks and path
@@ -119,8 +120,7 @@ def add_user(client_info):
         session = Session(client=client_node, server=server_node)
         session_exist = False
         print("Add new session " + str(session))
-    session.save()
-    user.save()
+        session.save()
 
     ## Session update route
     hop_id = 0
@@ -164,7 +164,7 @@ def add_user(client_info):
             net_type = "transit"
 
         try:
-            node_network = Network.objects.get(type=net_type, ASNumber=node['AS'],
+            node_network = Network.objects.get(ASNumber=node['AS'],
                                                latitude=node['latitude'], longitude=node['longitude'])
         except:
             node_network = Network(type=net_type, ASNumber=node['AS'], name=node['ISP'],
