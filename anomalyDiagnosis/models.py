@@ -15,7 +15,7 @@ class Update(models.Model):
 
 # Node class defines a node that is either a router, or a client , or a server
 class Node(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=500)
     ip = models.CharField(max_length=100, unique=True)
     type = models.CharField(max_length=100)
     network = models.ForeignKey('Network', blank=True)
