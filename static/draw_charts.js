@@ -134,6 +134,10 @@ function draw_top_origins(json_url) {
     // Apply the theme
     Highcharts.setOptions(Highcharts.theme);
     $.getJSON(json_url, function (json) {
+        console.log(json.origin);
+        console.log(json.light);
+        console.log(json.medium);
+        console.log(json.severe);
         Highcharts.chart('barChart', {
             chart: {
                 type: 'column'
@@ -174,7 +178,7 @@ function draw_top_origins(json_url) {
             tooltip: {
                 headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
                 pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
-                '<td style="padding:0"><b>{point.y:.1f}</b></td></tr>',
+                '<td style="padding:0"><b>{point.y:.1f}</b>[{point.label}]</td></tr>',
                 footerFormat: '</table>',
                 shared: true,
                 useHTML: true

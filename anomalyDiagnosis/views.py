@@ -278,7 +278,7 @@ def getAnomalyEventJson(request):
         else:
             anomaly_type = anomaly.type
 
-        anomaly_events.append({"id":id, "group":anomaly.session_id, "content":anomaly_type, "start":anomaly.timestamp.strftime("%Y-%m-%d %H:%M:%S")})
+        anomaly_events.append({"id":id, "group":anomaly.session_id, "content": "anomaly:" + str(anomaly.id), "anomaly_type":anomaly_type, "start":anomaly.timestamp.strftime("%Y-%m-%d %H:%M:%S")})
         id += 1
 
     return JsonResponse({"anomalies":anomaly_events})
@@ -319,25 +319,39 @@ def getAnomalyOriginJson(request):
             for k,v in top_cause.items():
                 if k not in anomaly_origins.keys():
                     anomaly_origins[k] = []
-                anomaly_origins[k].append({"type": anomaly_type, "count":v})
+                anomaly_origins[k].append({"type": anomaly_type, "count":v, "id":anomaly.id})
 
     top_origins = sorted(anomaly_origins.keys())
     origin_num = len(top_origins)
     origin_stats_dict = {
         "origin":top_origins,
-        "light":[0]*origin_num,
-        "medium":[0]*origin_num,
-        "severe":[0]*origin_num,
-        "total":[0]*origin_num
+        "light":[],
+        "medium":[],
+        "severe":[],
+        "total":[]
     }
 
     for i, origin in enumerate(top_origins):
         anomaly_pts = anomaly_origins[origin]
-        for anomaly_pt in anomaly_pts:
-            origin_stats_dict[anomaly_pt["type"]][i] += anomaly_pt["count"]
-            origin_stats_dict["total"][i] += anomaly_pt["count"]
+        cur_obj = {
+            "light": {"y":0, "label":""},
+            "medium": {"y":0, "label":""},
+            "severe": {"y":0, "label":""},
+            "total": {"y":0, "label":""}
+        }
 
-    # print(top_origins)
+        for anomaly_pt in anomaly_pts:
+            cur_obj[anomaly_pt["type"]]["y"] += anomaly_pt["count"]
+            cur_obj["total"]["y"] += anomaly_pt["count"]
+            cur_obj[anomaly_pt["type"]]["label"] += str(anomaly_pt["id"]) + ","
+            cur_obj["total"]["label"] += str(anomaly_pt["id"]) + ","
+
+        origin_stats_dict["light"].append(cur_obj["light"])
+        origin_stats_dict["medium"].append(cur_obj["medium"])
+        origin_stats_dict["severe"].append(cur_obj["severe"])
+        origin_stats_dict["total"].append(cur_obj["total"])
+
+    print(origin_stats_dict)
 
     return JsonResponse(origin_stats_dict, safe=False)
 

@@ -39,7 +39,7 @@ function draw_anomalies(anomaly_url) {
         var unique_groups = [];
         for (var i = 0; i < items.length; i ++) {
             items[i].type = "point";
-            items[i].className = items[i].content;
+            items[i].className = items[i].anomaly_type;
             if (include(unique_groups, items[i].group)) {
                 continue;
             }
@@ -95,5 +95,6 @@ function draw_anomalies(anomaly_url) {
         document.getElementById('fit').onclick = function () {
             timeline.fit();
         };
+
     });
 }
