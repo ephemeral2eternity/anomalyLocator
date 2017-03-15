@@ -25,7 +25,7 @@ def add_user(client_info):
         client_network = Network(type="access", name=client_info['ISP'], ASNumber=client_info['AS'],
                                  latitude=client_info['latitude'], longitude=client_info['longitude'],
                                  city=client_info['city'], region=client_info['region'], country=client_info['country'])
-    client_network.save()
+        client_network.save()
 
     # Update the client node
     try:
@@ -34,8 +34,8 @@ def add_user(client_info):
         client_node.name = client_info['name']
     except:
         client_node = Node(name=client_info['name'], ip=client_info['ip'], type='client')
-    client_node.network = client_network
-    client_node.save()
+        client_node.network = client_network
+        client_node.save()
 
     if client_node not in client_network.nodes.all():
         client_network.nodes.add(client_node)
@@ -61,8 +61,8 @@ def add_user(client_info):
         server_node.type = "server"
     except:
         server_node = Node(ip=server_info['ip'], name=server_info['name'], type="server")
-    server_node.network = srv_network
-    server_node.save()
+        server_node.network = srv_network
+        server_node.save()
 
     if server_node not in srv_network.nodes.all():
         srv_network.nodes.add(server_node)
@@ -78,7 +78,7 @@ def add_user(client_info):
     except:
         device = DeviceInfo(device=device_info['device'], os=device_info['os'],
                             player=device_info['player'], browser=device_info['browser'])
-    device.save()
+        device.save()
 
     # Update User Info
     try:
