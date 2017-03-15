@@ -267,7 +267,7 @@ def detect_anomaly(session, recent_qoes):
         session.status.add(session_status)
         session.save()
 
-@transaction.atomic
+
 def update_attributes(client_ip, server_ip, qoes):
     try:
         session = Session.objects.get(client__ip=client_ip, server__ip=server_ip)
