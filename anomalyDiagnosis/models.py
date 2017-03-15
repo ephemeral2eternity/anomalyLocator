@@ -32,7 +32,7 @@ class Node(models.Model):
     # Network defines a network that several routers in an end-to-end delivery path belongs to
 class Network(models.Model):
     type = models.CharField(max_length=100)
-    name = models.CharField(max_length=100, default="")
+    name = models.CharField(max_length=500, default="")
     latitude = models.DecimalField(max_digits=10, decimal_places=6, default=0.0)
     longitude = models.DecimalField(max_digits=10, decimal_places=6, default=0.0)
     ASNumber = models.IntegerField(default=-1)

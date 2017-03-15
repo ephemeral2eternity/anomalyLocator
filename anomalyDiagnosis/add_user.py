@@ -22,9 +22,9 @@ def add_user(client_info):
         client_network = Network.objects.get(ASNumber=client_info['AS'],
                                              latitude=client_info['latitude'], longitude=client_info['longitude'])
     except:
-        client_network = Network(type="access", name=client_info['ISP'], ASNumber=client_info['AS'],
+        client_network = Network(type="access", name=client_info['ISP'].encode('unicode_escape'), ASNumber=client_info['AS'],
                                  latitude=client_info['latitude'], longitude=client_info['longitude'],
-                                 city=client_info['city'], region=client_info['region'], country=client_info['country'])
+                                 city=client_info['city'].encode('unicode_escape'), region=client_info['region'].encode('unicode_escape'), country=client_info['country'].encode('unicode_escape'))
         # print(client_network.__str__())
         client_network.save()
 
@@ -50,9 +50,9 @@ def add_user(client_info):
         srv_network = Network.objects.get(ASNumber=server_info['AS'],
                                           latitude=server_info['latitude'], longitude=server_info['longitude'])
     except:
-        srv_network = Network(type="cloud", name=server_info['ISP'], ASNumber=server_info['AS'],
+        srv_network = Network(type="cloud", name=server_info['ISP'].encode('unicode_escape'), ASNumber=server_info['AS'],
                               latitude=server_info['latitude'], longitude=server_info['longitude'],
-                              city=server_info['city'], region=server_info['region'], country=server_info['country'])
+                              city=server_info['city'].encode('unicode_escape'), region=server_info['region'].encode('unicode_escape'), country=server_info['country'].encode('unicode_escape'))
         # print(srv_network.__str__())
         srv_network.save()
 
@@ -167,9 +167,9 @@ def add_user(client_info):
             node_network = Network.objects.get(ASNumber=node['AS'],
                                                latitude=node['latitude'], longitude=node['longitude'])
         except:
-            node_network = Network(type=net_type, ASNumber=node['AS'], name=node['ISP'],
+            node_network = Network(type=net_type, ASNumber=node['AS'], name=node['ISP'].encode('unicode_escape'),
                                    latitude=node['latitude'], longitude=node['longitude'],
-                                   city=node['city'], region=node['region'], country=node['country'])
+                                   city=node['city'].encode('unicode_escape'), region=node['region'].encode('unicode_escape'), country=node['country'].encode('unicode_escape'))
             node_network.save()
 
         try:
