@@ -39,14 +39,11 @@ function draw_pie_chart(json_url){
                 name: 'Anomaly Severity',
                 innerSize: '50%',
                 data: [
-                    ['Severe', json.severe],
+                    ['Light', json.light],
                     ['Medium', json.medium],
-                    ['Light', json.light]
+                    ['Severe', json.severe]
                 ]
             }]
-        });
-        Highcharts.setOptions({
-            colors: ['#8B0000', '#FFA500', '#006400']
         });
     });
 }
