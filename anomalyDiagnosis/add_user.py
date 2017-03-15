@@ -52,7 +52,7 @@ def add_user(client_info):
         srv_network = Network(type="cloud", name=server_info['ISP'], ASNumber=server_info['AS'],
                               latitude=server_info['latitude'], longitude=server_info['longitude'],
                               city=server_info['city'], region=server_info['region'], country=server_info['country'])
-    srv_network.save()
+        srv_network.save()
 
     ## Update server node
     try:
@@ -168,6 +168,7 @@ def add_user(client_info):
             node_network = Network(type=net_type, ASNumber=node['AS'], name=node['ISP'],
                                    latitude=node['latitude'], longitude=node['longitude'],
                                    city=node['city'], region=node['region'], country=node['country'])
+            print(node_network.__str__())
             node_network.save()
 
         try:
