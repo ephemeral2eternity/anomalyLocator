@@ -19,6 +19,7 @@
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
     <script type="text/javascript" src="http://visjs.org/dist/vis.js"></script>
     <link href="http://visjs.org/dist/vis.min.css" rel="stylesheet" type="text/css" />
+    <script src="/static/draw_updates.js"></script>
 </head>
 <body onload="drawUpdates({{ node.id }})">
 {% if node %}
@@ -26,7 +27,7 @@
         <li>Node Name: {{ node.name }}</li>
         <li>Node IP: {{ node.ip }}</li>
         <li>Node type: {{ node.type }}</li>
-        <li>Node Network: <a href="/diag/get_network?id={{ node.network_id }}"> {{ node.network_id }} </a></li>
+        <li>Node Network: <a href="/diag/get_network?id={{ node.network.id }}"> {{ node.network.id }} </a></li>
         <li>Sessions go-through:
             <ul>
             {% for session in node.related_sessions.all %}
@@ -43,6 +44,11 @@
     <p>No node ip denoted.</p>
 {% endif %}
 <script type="text/javascript">
+    var node_id_str = {{ node.id|safe }};
+    var obj_type = "node";
+    drawUpdates(obj_type, node_id_str);
+
+    /*
     function drawUpdates(node_id) {
         Array.prototype.contains = function(obj) {
             var i = this.length;
@@ -89,6 +95,7 @@
             var Graph2d = new vis.Graph2d(container, dataset, groups, options);
         });
     }
+    */
 </script>
 </body>
 </html>

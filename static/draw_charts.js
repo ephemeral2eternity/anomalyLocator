@@ -1,6 +1,15 @@
 /**
  * Created by Chen Wang on 3/14/2017.
  */
+function writeAnomalyIDs(idList){
+    var idlist_html_str = ""
+    for (var i = 0; i < idList.length; i ++) {
+        idlist_html_str += "<a href='/diag/get_anomaly?id=" + idList[i].toString() + "'>" + idList[i].toString() + "</a>";
+        idlist_html_str += ", "
+    }
+    return idlist_html_str
+}
+
 function draw_pie_chart(json_url){
     $.getJSON(json_url, function (json) {
         Highcharts.chart('pieChart', {
@@ -20,14 +29,12 @@ function draw_pie_chart(json_url){
             },
             plotOptions: {
                 pie: {
+                    cursor: 'pointer',
                     dataLabels: {
                         enabled: true,
-                        distance: -50,
-                        format: '<b>{point.name}</b><br>{point.percentage:.1f} %',
-                        style: {
-                            fontWeight: 'bold',
-                            color: 'white'
-                        }
+                        // distance: -50,
+                        format: '<b>{point.name}</b><br>{point.percentage:.1f}%<br>',
+                        style: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
                     },
                     startAngle: -90,
                     endAngle: 90,
@@ -39,12 +46,22 @@ function draw_pie_chart(json_url){
                 name: 'Anomaly Severity',
                 innerSize: '50%',
                 data: [
-                    ['Light', json.light],
-                    ['Medium', json.medium],
-                    ['Severe', json.severe]
+                    {name: 'Light', y: json.light.y, label: json.light.label},
+                    {name: 'Medium', y: json.medium.y, label: json.medium.label},
+                    {name: 'Severe', y: json.severe.y, label: json.severe.label}
                 ]
             }]
         });
+
+        var id_list = "";
+
+        id_list += "<ul>";
+        id_list += "<li>Light anomaly ids: " + writeAnomalyIDs(json.light.label) + "</li>";
+        id_list += "<li>Medium anomaly ids: " + writeAnomalyIDs(json.medium.label) + "</li>";
+        id_list += "<li>Severe anomaly ids: " + writeAnomalyIDs(json.severe.label) + "</li>";
+        id_list += "</ul>";
+
+        document.getElementById("AnomalyIDlist").innerHTML = id_list;
     });
 }
 
@@ -178,7 +195,7 @@ function draw_top_origins(json_url) {
             tooltip: {
                 headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
                 pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
-                '<td style="padding:0"><b>{point.y:.1f}</b>[{point.label}]</td></tr>',
+                '<td style="padding:0"><b>{point.y:.1f}</b></td></tr>',
                 footerFormat: '</table>',
                 shared: true,
                 useHTML: true
