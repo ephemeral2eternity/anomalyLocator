@@ -307,39 +307,42 @@ def getClassifiedAnomaliesJson(request):
 ## Get the anomaly count over various transit/access/cloud ISPs/networks, servers, and devices
 def getAnomalyOriginHistogramJson(request):
     anomaly_origins = classifyAnomalyOrigins()
-    top_origins = sorted(anomaly_origins.keys())
-    origin_num = len(top_origins)
-    origin_stats_dict = {
-        "origin":top_origins,
-        "light":[],
-        "medium":[],
-        "severe":[],
-        "total":[]
-    }
-
-    for i, origin in enumerate(top_origins):
-        anomaly_pts = anomaly_origins[origin]
-        cur_obj = {
-            "light": {"y":0, "label":""},
-            "medium": {"y":0, "label":""},
-            "severe": {"y":0, "label":""},
-            "total": {"y":0, "label":""}
+    all_origin_stats_dict = {}
+    for origin_type in anomaly_origins.keys():
+        cur_anomaly_origins = anomaly_origins[origin_type]
+        top_origins = sorted(cur_anomaly_origins.keys())
+        origin_stats_dict = {
+            "origin":top_origins,
+            "light":[],
+            "medium":[],
+            "severe":[],
+            "total":[]
         }
 
-        for anomaly_pt in anomaly_pts:
-            cur_obj[anomaly_pt["type"]]["y"] += anomaly_pt["count"]
-            cur_obj["total"]["y"] += anomaly_pt["count"]
-            cur_obj[anomaly_pt["type"]]["label"] += str(anomaly_pt["id"]) + ","
-            cur_obj["total"]["label"] += str(anomaly_pt["id"]) + ","
+        for i, origin in enumerate(top_origins):
+            anomaly_pts = cur_anomaly_origins[origin]
+            cur_obj = {
+                "light": {"y":0, "label":""},
+                "medium": {"y":0, "label":""},
+                "severe": {"y":0, "label":""},
+                "total": {"y":0, "label":""}
+            }
 
-        origin_stats_dict["light"].append(cur_obj["light"])
-        origin_stats_dict["medium"].append(cur_obj["medium"])
-        origin_stats_dict["severe"].append(cur_obj["severe"])
-        origin_stats_dict["total"].append(cur_obj["total"])
+            for anomaly_pt in anomaly_pts:
+                cur_obj[anomaly_pt["type"]]["y"] += anomaly_pt["count"]
+                cur_obj["total"]["y"] += anomaly_pt["count"]
+                cur_obj[anomaly_pt["type"]]["label"] += str(anomaly_pt["id"]) + ","
+                cur_obj["total"]["label"] += str(anomaly_pt["id"]) + ","
 
-    print(origin_stats_dict)
+            origin_stats_dict["light"].append(cur_obj["light"])
+            origin_stats_dict["medium"].append(cur_obj["medium"])
+            origin_stats_dict["severe"].append(cur_obj["severe"])
+            origin_stats_dict["total"].append(cur_obj["total"])
 
-    return JsonResponse(origin_stats_dict, safe=False)
+        # print(origin_stats_dict)
+        all_origin_stats_dict[origin_type] = origin_stats_dict
+
+    return JsonResponse(all_origin_stats_dict, safe=False)
 
 def showAnomalyStats(request):
     anomaly_count = Anomaly.objects.all().count()

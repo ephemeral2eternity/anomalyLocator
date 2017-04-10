@@ -14,7 +14,7 @@
         function onload() {
             draw_anomalies("/diag/get_anomaly_events_json");
             draw_pie_chart("/diag/get_anomaly_types_json");
-            draw_top_origins("/diag/get_anomaly_origins_json");
+            draw_top_origins("/diag/get_anomaly_origins_hist_json");
         }
     </script>
     <style>
@@ -141,7 +141,13 @@
 <h3>Anomalies per category</h3>
 <div id="pieChart"></div>
 <div id="AnomalyIDlist" width="100%"></div>
-<h3>Top origins for anomalies</h3>
-<div id="barChart"></div>
+<h3># of anomalies that are identified in transit ISPs</h3>
+<div id="transitISP"></div>
+<h3># of anomalies that are identified in access ISPs</h3>
+<div id="accessISP"></div>
+<h3># of anomalies that are identified in transit networks</h3>
+<div id="transitNet"></div>
+<h3># of anomalies that are identified in access networks</h3>
+<div id="accessNet"></div>
 </body>
 </html>
