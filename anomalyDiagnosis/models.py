@@ -45,7 +45,7 @@ class Network(models.Model):
     latest_check = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.type + ", AS " + str(self.ASNumber) + ", (" + str(self.latitude) + ", " + str(
+        return "AS " + str(self.ASNumber) + ", (" + str(self.latitude) + ", " + str(
             self.longitude) + ")"
 
     class Meta:

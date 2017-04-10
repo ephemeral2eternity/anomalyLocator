@@ -300,27 +300,13 @@ def getAnomalyTypeJson(request):
 
     return JsonResponse(anomaly_types)
 
-def getAnomalyOriginJson(request):
-    anomalies = Anomaly.objects.all()
-    anomaly_origins = {}
-    for anomaly in anomalies:
-        top_cause = get_top_cause(anomaly)
-        # print(anomaly.id)
-        # print(top_cause)
-        if anomaly.type == "persistent":
-            anomaly_type = "severe"
-        elif anomaly.type == "recurrent":
-            anomaly_type = "medium"
-        elif anomaly.type == "occasional":
-            anomaly_type = "light"
-        else:
-            anomaly_type = anomaly.type
-        if top_cause:
-            for k,v in top_cause.items():
-                if k not in anomaly_origins.keys():
-                    anomaly_origins[k] = []
-                anomaly_origins[k].append({"type": anomaly_type, "count":v, "id":anomaly.id})
+def getClassifiedAnomaliesJson(request):
+    anomaly_origins = classifyAnomalyOrigins()
+    return JsonResponse(anomaly_origins, safe=False)
 
+## Get the anomaly count over various transit/access/cloud ISPs/networks, servers, and devices
+def getAnomalyOriginHistogramJson(request):
+    anomaly_origins = classifyAnomalyOrigins()
     top_origins = sorted(anomaly_origins.keys())
     origin_num = len(top_origins)
     origin_stats_dict = {

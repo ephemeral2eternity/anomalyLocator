@@ -347,61 +347,91 @@ def get_ave_QoE(obj, ts_start, ts_end):
         aveQoE = -1.0
     return aveQoE
 
-# chenw-20170314
+### @function get_top_cause(anomaly)
+#   @params:
+#       anomaly : the anomaly object
+#   @return: top_causes ---- a list of causes objects that is ranked as top in causing the given anomaly
 def get_top_cause(anomaly):
-    top_causes = {}
-    cause_prob = {}
-    cause_qoe = {}
+    top_causes = []
 
     ## Get all causes' probability and QoE scores, ignore events right now
-    for cause in anomaly.causes.all():
-        if cause.type == "network":
-            obj = Network.objects.get(id=cause.obj_id)
-            obj_key = obj.name
-        elif cause.type == "server":
-            obj = Node.objects.get(id=cause.obj_id)
-            obj_key = obj.name
-        elif cause.type == "device":
-            obj = DeviceInfo.objects.get(id=cause.obj_id)
-            obj_key = obj.__str__()
-        else:
-            continue
+    causes = anomaly.causes.order_by('-prob', '-qoe_score').all()
+    if causes.count() > 0:
+        top_cause = causes.first()
+        top_causes.append(top_cause)
+        top_prob = top_cause.prob
+        top_qoe_score = top_cause.qoe_score
+    else:
+        return []
 
-        if obj_key not in cause_prob.keys():
-            cause_prob[obj_key] = cause.prob
-            cause_qoe[obj_key] = cause.qoe_score
-        elif cause_prob[obj_key] < cause.prob:
-            cause_prob[obj_key] = cause.prob
-            cause_qoe[obj_key] = cause.qoe_score
-        else:
-            continue
-
-    sorted_cause_prob = sorted(cause_prob.items(), key=operator.itemgetter(1), reverse=True)
-    max_prob = sorted_cause_prob[0][1]
-
-    top_causes_by_prob = []
-    top_causes_by_prob_qoe_scores = {}
-    for item in sorted_cause_prob:
-        if item[1] >= max_prob:
-            top_causes_by_prob.append(item[0])
-            top_causes_by_prob_qoe_scores[item[0]] = cause_qoe[item[0]]
-        else:
-            break
-
-    top_causes_by_prob_and_qoe = []
-    sorted_top_causes_by_prob_qoe_scores = sorted(top_causes_by_prob_qoe_scores.items(), key=operator.itemgetter(1))
-    top_cause_qoe_score = sorted_top_causes_by_prob_qoe_scores[0][1]
-    for item in sorted_top_causes_by_prob_qoe_scores:
-        if item[1] <= top_cause_qoe_score:
-            top_causes_by_prob_and_qoe.append(item[0])
-        else:
-            break
-
-    if len(top_causes_by_prob_and_qoe) > 0:
-        for cause_key in top_causes_by_prob_and_qoe:
-            top_causes[cause_key] = 1 / float(len(top_causes_by_prob_and_qoe))
+    for cause in causes:
+        if (cause != top_cause) and (cause.prob == top_prob) and (cause.qoe_score == top_qoe_score):
+            top_causes.append(cause)
 
     return top_causes
 
+### @function classifyAnomalyOrigins()
+#   @return: anomaly_origins ---- classify the top origins for all anomalies into transit/access/cloud ISP/network, server and device
+def classifyAnomalyOrigins():
+    anomalies = Anomaly.objects.all()
+    anomaly_origins = {"transitISP":{}, "accessISP":{}, "cloudISP":{}, "transitNet":{}, "accessNet":{}, "cloudNet":{}, "server":{}, "device":{}}
+    for anomaly in anomalies:
+        top_causes = get_top_cause(anomaly)
+
+        num_top_cause = len(top_causes)
+        if anomaly.type == "persistent":
+            anomaly_type = "severe"
+        elif anomaly.type == "recurrent":
+            anomaly_type = "medium"
+        elif anomaly.type == "occasional":
+            anomaly_type = "light"
+        else:
+            anomaly_type = anomaly.type
+
+        if num_top_cause > 0:
+            origin_count = 1 / float(num_top_cause)
+            for cause in top_causes:
+                origin_type = cause.type
+                if origin_type == "network":
+                    obj = Network.objects.get(id=cause.obj_id)
+                    print(obj.type)
+                    if obj.type == "transit":
+                        if obj.name not in anomaly_origins["transitISP"].keys():
+                            anomaly_origins["transitISP"][obj.name] = []
+                        anomaly_origins["transitISP"][obj.name].append({"type": anomaly_type, "count":origin_count, "id":anomaly.id})
+
+                        if obj.__str__() not in anomaly_origins["transitNet"].keys():
+                            anomaly_origins["transitISP"][obj.__str__()] = []
+                        anomaly_origins["transitISP"][obj.__str__()].append({"type": anomaly_type, "count":origin_count, "id":anomaly.id})
+                    elif obj.type == "access":
+                        if obj.name not in anomaly_origins["accessISP"].keys():
+                            anomaly_origins["accessISP"][obj.name] = []
+                        anomaly_origins["accessISP"][obj.name].append({"type": anomaly_type, "count":origin_count, "id":anomaly.id})
+
+                        if obj.__str__() not in anomaly_origins["accessNet"].keys():
+                            anomaly_origins["accessNet"][obj.__str__()] = []
+                        anomaly_origins["accessNet"][obj.__str__()].append({"type": anomaly_type, "count":origin_count, "id":anomaly.id})
+                    else:
+                        if obj.name not in anomaly_origins["cloudISP"].keys():
+                            anomaly_origins["cloudISP"][obj.name] = []
+                        anomaly_origins["cloudISP"][obj.name].append({"type": anomaly_type, "count":origin_count, "id":anomaly.id})
+
+                        if obj.__str__() not in anomaly_origins["cloudNet"].keys():
+                            anomaly_origins["cloudNet"][obj.__str__()] = []
+                        anomaly_origins["cloudNet"][obj.__str__()].append({"type": anomaly_type, "count":origin_count, "id":anomaly.id})
+                elif origin_type == "server":
+                    obj = Node.objects.get(id=cause.obj_id)
+                    if obj.ip not in anomaly_origins[origin_type].keys():
+                        anomaly_origins[origin_type][obj.ip] = []
+                    anomaly_origins[origin_type][obj.ip].append({"type": anomaly_type, "count":origin_count, "id":anomaly.id})
+                elif origin_type == "device":
+                    obj = DeviceInfo.objects.get(id=cause.obj_id)
+                    if obj.__str__() not in anomaly_origins[origin_type].keys():
+                        anomaly_origins[origin_type][obj.__str__()] = []
+                    anomaly_origins[origin_type][obj.__str__()].append({"type": anomaly_type, "count":origin_count, "id":anomaly.id})
+                else:
+                    continue
+
+    return anomaly_origins
 
 

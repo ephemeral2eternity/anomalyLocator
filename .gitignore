@@ -11,3 +11,7 @@ anomalyLocator/__pycache__/*
 anomalyDiagnosis/__pycache__/
 anomalyLocator/__pycache__/
 locator/__pycache__/
+.idea/inspectionProfiles/
+anomalyDiagnosis/migrations/
+data/
+anomalyLocator/migrations/

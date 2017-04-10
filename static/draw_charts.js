@@ -46,22 +46,22 @@ function draw_pie_chart(json_url){
                 name: 'Anomaly Severity',
                 innerSize: '50%',
                 data: [
-                    {name: 'Light', y: json.light.y, label: json.light.label},
-                    {name: 'Medium', y: json.medium.y, label: json.medium.label},
-                    {name: 'Severe', y: json.severe.y, label: json.severe.label}
+                    {name: 'Light', y: json.light},
+                    {name: 'Medium', y: json.medium},
+                    {name: 'Severe', y: json.severe}
                 ]
             }]
         });
 
-        var id_list = "";
+        // var id_list = "";
 
-        id_list += "<ul>";
-        id_list += "<li>Light anomaly ids: " + writeAnomalyIDs(json.light.label) + "</li>";
-        id_list += "<li>Medium anomaly ids: " + writeAnomalyIDs(json.medium.label) + "</li>";
-        id_list += "<li>Severe anomaly ids: " + writeAnomalyIDs(json.severe.label) + "</li>";
-        id_list += "</ul>";
+        // id_list += "<ul>";
+        // id_list += "<li>Light anomaly ids: " + writeAnomalyIDs(json.light.label) + "</li>";
+        // id_list += "<li>Medium anomaly ids: " + writeAnomalyIDs(json.medium.label) + "</li>";
+        // id_list += "<li>Severe anomaly ids: " + writeAnomalyIDs(json.severe.label) + "</li>";
+        // id_list += "</ul>";
 
-        document.getElementById("AnomalyIDlist").innerHTML = id_list;
+        // document.getElementById("AnomalyIDlist").innerHTML = id_list;
     });
 }
 
