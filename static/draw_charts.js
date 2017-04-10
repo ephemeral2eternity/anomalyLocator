@@ -164,6 +164,20 @@ function draw_origin_hist(data, divTag){
     // Apply the theme
     Highcharts.setOptions(Highcharts.theme);
 
+    var origins;
+    if (divTag.includes("ISP") || divTag.includes("Net")){
+        console.log(divTag + "includes ISP or Net");
+        origins = [];
+        for (var i = 0; i < data.origin.length; i ++) {
+            origins.push("AS " + data.origin[i]);
+        }
+    }
+    else {
+        console.log(divTag + "does not include ISP or Net");
+        origins = data.origin;
+    }
+
+
     Highcharts.chart(divTag, {
         chart: {
             type: 'column'
@@ -181,7 +195,7 @@ function draw_origin_hist(data, divTag){
             }
         },
         xAxis: {
-            categories: data.origin,
+            categories: origins,
             crosshair: true,
             labels: {
                 // rotation: -45,
