@@ -7,10 +7,13 @@ import requests
 import json
 import operator
 # from multiprocessing import Process, freeze_support
-from anomalyDiagnosis.models import User, Status, Anomaly, Cause, Path, Network, Node, DeviceInfo
+from anomalyDiagnosis.models import User, Session, Status, Anomaly, Cause, Path, Network, Node, DeviceInfo, Event, Update
 from anomalyDiagnosis.thresholds import *
 from anomalyDiagnosis.ipinfo import *
 from django.db import transaction
+
+def get_hostname():
+    return socket.gethostname()
 
 def get_exp_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -374,6 +377,7 @@ def get_top_cause(anomaly):
 #   @return: anomaly_origins ---- classify the top origins for all anomalies into transit/access/cloud ISP/network, server and device
 def classifyAnomalyOrigins():
     anomalies = Anomaly.objects.all()
+    locator_name = get_hostname()
     anomaly_origins = {"transitISP":{}, "accessISP":{}, "cloudISP":{}, "transitNet":{}, "accessNet":{}, "cloudNet":{}, "server":{}, "device":{}}
     for anomaly in anomalies:
         top_causes = get_top_cause(anomaly)
@@ -398,37 +402,37 @@ def classifyAnomalyOrigins():
                     if obj.type == "transit":
                         if obj.name not in anomaly_origins["transitISP"].keys():
                             anomaly_origins["transitISP"][obj.name] = []
-                        anomaly_origins["transitISP"][obj.name].append({"type": anomaly_type, "count":origin_count, "id":anomaly.id})
+                        anomaly_origins["transitISP"][obj.name].append({"type": anomaly_type, "count":origin_count, "id":locator_name + ":" + str(anomaly.id)})
 
                         if obj.__str__() not in anomaly_origins["transitNet"].keys():
                             anomaly_origins["transitNet"][obj.__str__()] = []
-                        anomaly_origins["transitNet"][obj.__str__()].append({"type": anomaly_type, "count":origin_count, "id":anomaly.id})
+                        anomaly_origins["transitNet"][obj.__str__()].append({"type": anomaly_type, "count":origin_count, "id":locator_name + ":" + str(anomaly.id)})
                     elif obj.type == "access":
                         if obj.name not in anomaly_origins["accessISP"].keys():
                             anomaly_origins["accessISP"][obj.name] = []
-                        anomaly_origins["accessISP"][obj.name].append({"type": anomaly_type, "count":origin_count, "id":anomaly.id})
+                        anomaly_origins["accessISP"][obj.name].append({"type": anomaly_type, "count":origin_count, "id":locator_name + ":" + str(anomaly.id)})
 
                         if obj.__str__() not in anomaly_origins["accessNet"].keys():
                             anomaly_origins["accessNet"][obj.__str__()] = []
-                        anomaly_origins["accessNet"][obj.__str__()].append({"type": anomaly_type, "count":origin_count, "id":anomaly.id})
+                        anomaly_origins["accessNet"][obj.__str__()].append({"type": anomaly_type, "count":origin_count, "id":locator_name + ":" + str(anomaly.id)})
                     else:
                         if obj.name not in anomaly_origins["cloudISP"].keys():
                             anomaly_origins["cloudISP"][obj.name] = []
-                        anomaly_origins["cloudISP"][obj.name].append({"type": anomaly_type, "count":origin_count, "id":anomaly.id})
+                        anomaly_origins["cloudISP"][obj.name].append({"type": anomaly_type, "count":origin_count, "id":locator_name + ":" + str(anomaly.id)})
 
                         if obj.__str__() not in anomaly_origins["cloudNet"].keys():
                             anomaly_origins["cloudNet"][obj.__str__()] = []
-                        anomaly_origins["cloudNet"][obj.__str__()].append({"type": anomaly_type, "count":origin_count, "id":anomaly.id})
+                        anomaly_origins["cloudNet"][obj.__str__()].append({"type": anomaly_type, "count":origin_count, "id":locator_name + ":" + str(anomaly.id)})
                 elif origin_type == "server":
                     obj = Node.objects.get(id=cause.obj_id)
                     if obj.ip not in anomaly_origins[origin_type].keys():
                         anomaly_origins[origin_type][obj.ip] = []
-                    anomaly_origins[origin_type][obj.ip].append({"type": anomaly_type, "count":origin_count, "id":anomaly.id})
+                    anomaly_origins[origin_type][obj.ip].append({"type": anomaly_type, "count":origin_count, "id":locator_name + ":" + str(anomaly.id)})
                 elif origin_type == "device":
                     obj = DeviceInfo.objects.get(id=cause.obj_id)
                     if obj.__str__() not in anomaly_origins[origin_type].keys():
                         anomaly_origins[origin_type][obj.__str__()] = []
-                    anomaly_origins[origin_type][obj.__str__()].append({"type": anomaly_type, "count":origin_count, "id":anomaly.id})
+                    anomaly_origins[origin_type][obj.__str__()].append({"type": anomaly_type, "count":origin_count, "id":locator_name + ":" + str(anomaly.id)})
                 else:
                     continue
 
