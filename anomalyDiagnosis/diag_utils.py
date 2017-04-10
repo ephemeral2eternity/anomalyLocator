@@ -400,25 +400,28 @@ def classifyAnomalyOrigins():
                     obj = Network.objects.get(id=cause.obj_id)
                     # print(obj.type)
                     if obj.type == "transit":
-                        if obj.name not in anomaly_origins["transitISP"].keys():
-                            anomaly_origins["transitISP"][obj.name] = []
-                        anomaly_origins["transitISP"][obj.name].append({"type": anomaly_type, "count":origin_count, "id":locator_name + ":" + str(anomaly.id)})
+                        isp_name = str(obj.ASNumber) + "," + obj.name
+                        if isp_name not in anomaly_origins["transitISP"].keys():
+                            anomaly_origins["transitISP"][isp_name] = []
+                        anomaly_origins["transitISP"][isp_name].append({"type": anomaly_type, "count":origin_count, "id":locator_name + ":" + str(anomaly.id)})
 
                         if obj.__str__() not in anomaly_origins["transitNet"].keys():
                             anomaly_origins["transitNet"][obj.__str__()] = []
                         anomaly_origins["transitNet"][obj.__str__()].append({"type": anomaly_type, "count":origin_count, "id":locator_name + ":" + str(anomaly.id)})
                     elif obj.type == "access":
-                        if obj.name not in anomaly_origins["accessISP"].keys():
-                            anomaly_origins["accessISP"][obj.name] = []
-                        anomaly_origins["accessISP"][obj.name].append({"type": anomaly_type, "count":origin_count, "id":locator_name + ":" + str(anomaly.id)})
+                        isp_name = str(obj.ASNumber) + "," + obj.name
+                        if isp_name not in anomaly_origins["accessISP"].keys():
+                            anomaly_origins["accessISP"][isp_name] = []
+                        anomaly_origins["accessISP"][isp_name].append({"type": anomaly_type, "count":origin_count, "id":locator_name + ":" + str(anomaly.id)})
 
                         if obj.__str__() not in anomaly_origins["accessNet"].keys():
                             anomaly_origins["accessNet"][obj.__str__()] = []
                         anomaly_origins["accessNet"][obj.__str__()].append({"type": anomaly_type, "count":origin_count, "id":locator_name + ":" + str(anomaly.id)})
                     else:
-                        if obj.name not in anomaly_origins["cloudISP"].keys():
-                            anomaly_origins["cloudISP"][obj.name] = []
-                        anomaly_origins["cloudISP"][obj.name].append({"type": anomaly_type, "count":origin_count, "id":locator_name + ":" + str(anomaly.id)})
+                        isp_name = str(obj.ASNumber) + "," + obj.name
+                        if isp_name not in anomaly_origins["cloudISP"].keys():
+                            anomaly_origins["cloudISP"][isp_name] = []
+                        anomaly_origins["cloudISP"][isp_name].append({"type": anomaly_type, "count":origin_count, "id":locator_name + ":" + str(anomaly.id)})
 
                         if obj.__str__() not in anomaly_origins["cloudNet"].keys():
                             anomaly_origins["cloudNet"][obj.__str__()] = []
