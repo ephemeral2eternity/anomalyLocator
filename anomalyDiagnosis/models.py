@@ -85,6 +85,16 @@ class Session(models.Model):
     def get_class_name(self):
         return "session"
 
+    def get_light_anomalies(self):
+        return self.anomalies.filter(type="light")
+
+    def get_medium_anomalies(self):
+        return self.anomalies.filter(type="medium")
+
+    def get_severe_anomalies(self):
+        return self.anomalies.filter(type="severe")
+
+
     class Meta:
         index_together = ["client", "server"]
         unique_together = ["client", "server"]

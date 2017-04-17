@@ -25,9 +25,9 @@
             <td> {{ session.route.count }} </td>
             <td> {{ session.sub_networks.count }} </td>
             <td>{{ session.updates.count }}</td>
-            <td>{{ session.anomalies|type:"light"|length }}</td>
-            <td>{{ session.anomalies|type:"medium"|length }}</td>
-            <td>{{ session.anomalies|type:"severe"|length }}</td>
+            <td>{{ session.get_light_anomalies.count }}</td>
+            <td>{{ session.get_medium_anomalies.count }}</td>
+            <td>{{ session.get_severe_anomalies.count }}</td>
             <td>{{ session.anomalies.count }}</td>
             <td>{{ session.latest_check }}</td>
         </tr>
