@@ -219,6 +219,8 @@ def anomaly_diagnosis(session, anomaly_ts, anomaly_qoe, anomaly_type):
         # print("[Debug]Obtained ranked_attributes")
         anomaly = save_anomaly(user, session, anomaly_ts, anomaly_qoe, anomaly_type, related_sessions_status, ranked_attributes)
 
+        session.anomalies.add(anomaly)
+        session.save()
         # print("Anomaly with id " + str(anomaly.id) + " is diagnosed and saved!")
         return anomaly
     except:

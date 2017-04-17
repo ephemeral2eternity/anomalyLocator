@@ -28,7 +28,7 @@
             <td>{{ session.get_light_anomalies.count }}</td>
             <td>{{ session.get_medium_anomalies.count }}</td>
             <td>{{ session.get_severe_anomalies.count }}</td>
-            <td>{{ session.anomalies.count }}</td>
+            <td>{{ session.get_all_anomalies.count }}</td>
             <td>{{ session.latest_check }}</td>
         </tr>
         {% endfor %}

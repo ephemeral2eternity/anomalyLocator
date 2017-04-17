@@ -86,14 +86,16 @@ class Session(models.Model):
         return "session"
 
     def get_light_anomalies(self):
-        return self.anomalies.filter(type="light")
+        return Anomaly.objects.filter(type="light", session_id=self.id)
 
     def get_medium_anomalies(self):
-        return self.anomalies.filter(type="medium")
+        return Anomaly.objects.filter(type="medium", session_id=self.id)
 
     def get_severe_anomalies(self):
-        return self.anomalies.filter(type="severe")
+        return Anomaly.objects.filter(type="severe", session_id=self.id)
 
+    def get_all_anomalies(self):
+        return Anomaly.objects.filter(session_id=self.id)
 
     class Meta:
         index_together = ["client", "server"]
