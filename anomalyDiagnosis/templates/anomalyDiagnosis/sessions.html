@@ -10,6 +10,10 @@
             <td>Route Length</td>
             <td># of subnetworks</td>
             <td># of updates</td>
+            <td># of light anomalies</td>
+            <td># of medium anomalies</td>
+            <td># of severe anomalies</td>
+            <td># of total anomalies</td>
             <td>Latest Check</td>
         </tr>
         {% for session in sessions.all %}
@@ -21,6 +25,10 @@
             <td> {{ session.route.count }} </td>
             <td> {{ session.sub_networks.count }} </td>
             <td>{{ session.updates.count }}</td>
+            <td>{{ session.anomalies|type:"light"|length }}</td>
+            <td>{{ session.anomalies|type:"medium"|length }}</td>
+            <td>{{ session.anomalies|type:"severe"|length }}</td>
+            <td>{{ session.anomalies.count }}</td>
             <td>{{ session.latest_check }}</td>
         </tr>
         {% endfor %}
