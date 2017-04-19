@@ -37,6 +37,12 @@
     <div id="timecurve"></div>
     <hr>
     <h2>Show anomalies detected on the session</h2>
+    <ul>
+        <li>Total Count: {{ session.get_all_anomalies.count }}</li>
+        <li>Severe Count: {{ session.get_severe_anomalies.count }}</li>
+        <li>Medium Count: {{ session.get_medium_anomalies.count }}</li>
+        <li>Light Count: {{ session.get_light_anomalies.count }}</li>
+    </ul>
     <table style="width:100%">
         <tr>
             <td>Anomaly ID</td>
