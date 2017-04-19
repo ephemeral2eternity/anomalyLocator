@@ -82,25 +82,33 @@
         {% endfor %}
     </table>
     <hr>
-    <div>
-        <h2>Show updates on this network</h2>
-            <table style="width:100%">
-                <tr>
-                    <td>Session ID</td>
-                    <td>QoE</td>
-                    <td>User satisfied?</td>
-                    <td>Timestamp</td>
-                </tr>
-                {% for update in session.updates.all|dictsortreversed:"timestamp"|slice:"10" %}
-                    <tr>
-                        <td><a href="/diag/get_session?id={{ update.session_id }}">{{ update.session_id }}</a></td>
-                        <td>{{ update.qoe }}</td>
-                        <td>{{ update.satisfied }}</td>
-                        <td>{{ update.timestamp }}</td>
-                    </tr>
+    <h2>Show anomalies detected on the session</h2>
+    <table style="width:100%">
+        <tr>
+            <td>Anomaly ID</td>
+            <td>Anomaly Type</td>
+            <td>Session reporting anomaly</td>
+            <td>User reporting anomaly</td>
+            <td>Related Sessions</td>
+            <td>Diagnosis time</td>
+            <td>Anomaly Timestamp</td>
+        </tr>
+        {% for anomaly in session.get_all_anomalies %}
+        <tr>
+            <td><a href="/diag/get_anomaly?id={{ anomaly.id }}"> {{ anomaly.id }} </a></td>
+            <td> {{ anomaly.type }} </td>
+            <td><a href="/diag/get_session?id={{ anomaly.session_id }}"> Session {{ anomaly.session_id }} </a></td>
+            <td><a href="/diag/get_user?id={{ anomaly.user_id }}"> User {{ anomaly.user_id }} </a></td>
+            <td>
+                {% for session_status in anomaly.related_session_status.all %}
+                    <a href="/diag/get_session?id={{ anomaly.session_id }}">{{ session_status.session_id }}</a>:{{ session_status.isGood }},
                 {% endfor %}
-            </table>
-    </div>
+            </td>
+            <td> {{ anomaly.timeToDiagnose }} </td>
+            <td> {{ anomaly.timestamp }} </td>
+        </tr>
+        {% endfor %}
+    </table>
 {% else %}
     <p>Please denote the session id in http://locator/diag/get_session?id=session_id.</p>
 {% endif %}
