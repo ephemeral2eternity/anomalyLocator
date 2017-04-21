@@ -29,13 +29,40 @@ class Node(models.Model):
     def get_class_name(self):
         return "node"
 
+
+## Add class ISP to represent different Internet Service Providers
+class ISP(models.Model):
+    ASNumber = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=500, default="")
+    networks = models.ManyToManyField("Network", blank=True, related_name="isp_nets")
+    type = models.CharField(max_length=100, default="transit")
+
+    def __str__(self):
+        return "AS " + str(self.ASNumber) + "(" + self.name + ")"
+
+    def get_class_name(self):
+        return "isp"
+
+    def get_geo_coverage(self):
+        return self.networks.all().distinct().count()
+
+    def get_node_size(self):
+        isp_size = 0
+        for network in self.networks.all().distinct():
+            isp_size += network.get_nodes_num()
+        return isp_size
+
+    def get_max_span(self):
+        isp_span = 0
+        for network in self.networks.all().distinct():
+            isp_span = max(network.get_max_size(), isp_span)
+        return isp_span
+
     # Network defines a network that several routers in an end-to-end delivery path belongs to
 class Network(models.Model):
-    type = models.CharField(max_length=100)
-    name = models.CharField(max_length=500, default="")
+    isp = models.ForeignKey(ISP, related_name="net_isp")
     latitude = models.DecimalField(max_digits=10, decimal_places=6, default=0.0)
     longitude = models.DecimalField(max_digits=10, decimal_places=6, default=0.0)
-    ASNumber = models.IntegerField(default=-1)
     nodes = models.ManyToManyField(Node, blank=True, related_name='net_nodes')
     # network_qoe_score = models.DecimalField(default=5, max_digits=5, decimal_places=4)
     related_sessions = models.ManyToManyField('Session')
@@ -45,7 +72,7 @@ class Network(models.Model):
     latest_check = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return str(self.ASNumber) + "," + str(self.latitude) + "," + str(
+        return str(self.isp.ASNumber) + "," + str(self.latitude) + "," + str(
             self.longitude)
 
     class Meta:
@@ -141,9 +168,9 @@ class Status(models.Model):
 
     def __str__(self):
         if self.isGood:
-            return str(self.session) + " is good @ " + str(self.timestamp)
+            return "Session " + str(self.session_id) + " is good @ " + str(self.timestamp)
         else:
-            return str(self.session) + " is bad @ " + str(self.timestamp)
+            return "Session " + str(self.session_id) + " is bad @ " + str(self.timestamp)
 
     class Meta:
         ordering = ['timestamp',]
@@ -177,7 +204,7 @@ class Anomaly(models.Model):
 ## Monitor the user info
 class User(models.Model):
     client = models.OneToOneField(Node, related_name='client')
-    server = models.ForeignKey(Node, related_name='server')
+    server = models.ForeignKey(Node)
     sessions = models.ManyToManyField(Session)
     events = models.ManyToManyField(Event)
     device = models.ForeignKey("DeviceInfo")
@@ -227,3 +254,13 @@ class NetEdge(models.Model):
 
     def __str__(self):
         return str(self.srcNet) + "---" + str(self.dstNet)
+
+class PeeringEdge(models.Model):
+    srcISP= models.ForeignKey(ISP, related_name='isp_source')
+    dstISP = models.ForeignKey(ISP, related_name='isp_target')
+
+    class Meta:
+        unique_together = ["srcISP", "dstISP"]
+
+    def __str__(self):
+        return str(self.srcISP) + "<--->" + str(self.dstISP)

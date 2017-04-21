@@ -909,7 +909,7 @@ def addRoute(request):
         # print(request.body)
         start_time = time.time()
         client_info = json.loads(request.body.decode("utf-8"))
-        add_user(client_info)
+        add_route(client_info)
         time_elapsed = time.time() - start_time
         print("The total time to process an add route request is : " + str(time_elapsed) + " seconds!")
         return HttpResponse("Add successfully!")

@@ -1,12 +1,13 @@
-from anomalyDiagnosis.models import Node, Network, DeviceInfo, Session, Event, Update, Anomaly, Cause
+from anomalyDiagnosis.models import Node, ISP, Network, DeviceInfo, Session, Event, Update, Anomaly, Cause
 from anomalyDiagnosis.diag_utils import *
+import pytz
 
 @transaction.atomic
 def update_attributes(client_ip, server_ip, qoes):
     try:
         session = Session.objects.get(client__ip=client_ip, server__ip=server_ip)
         for ts, qoe in qoes.items():
-            dtfield = datetime.datetime.utcfromtimestamp(float(ts))
+            dtfield = datetime.datetime.utcfromtimestamp(float(ts)).replace(tzinfo=pytz.utc)
             update = Update(session_id=session.id, qoe=qoe, satisfied=(qoe >= satisfied_qoe), timestamp=dtfield)
             update.save()
             session.updates.add(update)
@@ -31,9 +32,15 @@ def add_event(client_ip, event_dict):
             except:
                 srv_info = get_ipinfo(event_dict['curVal'])
                 try:
-                    srv_network = Network.objects.get(ASNumber=srv_info["AS"], latitude=srv_info["latitude"], longitude=srv_info["longitude"])
+                    isp = ISP.objects.get(ASNumber=srv_info["AS"])
                 except:
-                    srv_network = Network(name=srv_info["ISP"], ASNumber=srv_info["AS"],
+                    isp = ISP(ASNumber=srv_info["AS"], name=srv_info["ISP"], type="cloud")
+                    isp.save()
+
+                try:
+                    srv_network = Network.objects.get(isp=isp, latitude=srv_info["latitude"], longitude=srv_info["longitude"])
+                except:
+                    srv_network = Network(isp=isp,
                                           latitude=srv_info["latitude"], longitude=srv_info["longitude"],
                                           city=srv_info["city"], region=srv_info["region"], country=srv_info["country"])
                 srv_network.save()

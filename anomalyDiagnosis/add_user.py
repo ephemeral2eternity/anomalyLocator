@@ -1,6 +1,7 @@
-from anomalyDiagnosis.models import Node, User, Session, DeviceInfo, Network, Hop, Subnetwork, Edge, NetEdge
+from anomalyDiagnosis.models import Node, User, ISP, Session, DeviceInfo, Network, Hop, Subnetwork, Edge, NetEdge, PeeringEdge
 from anomalyDiagnosis.models import Event, Path
 from django.db import transaction
+from anomalyDiagnosis.ipinfo import *
 
 def add_related_session(session):
     for node in session.route.all():
@@ -13,67 +14,188 @@ def add_related_session(session):
             net.related_sessions.add(session)
             net.save()
 
+
+### @function add_node(node_ip, nodeTyp="router")
+#   @params:
+#       node_ip : the ip address of a given node
+#       nodeTyp : the type of a given node. Can be client, server, router in a video session
+#                 or pl_agent, which is a probing agent in PlanetLab
+#                 or azure_agent, which is a probing agent in Azure
+#   @return: the node object in Node model
 @transaction.atomic
-def add_user(client_info):
-    ############################################################################################################
-    ## Update the client side network and node
-    # Update the client network
+def add_node(node_ip, nodeTyp="router", nodeName=None, netTyp="transit"):
     try:
-        client_network = Network.objects.get(ASNumber=client_info['AS'],
-                                             latitude=client_info['latitude'], longitude=client_info['longitude'])
+        node = Node.objects.get(ip=node_ip)
     except:
-        client_network = Network(type="access", name=client_info['ISP'].encode('unicode_escape'), ASNumber=client_info['AS'],
-                                 latitude=client_info['latitude'], longitude=client_info['longitude'],
-                                 city=client_info['city'].encode('unicode_escape'), region=client_info['region'].encode('unicode_escape'), country=client_info['country'].encode('unicode_escape'))
-        # print(client_network.__str__())
-        client_network.save()
+        node_info = get_node_info(node_ip)
 
-    # Update the client node
+        try:
+            node_isp = ISP.objects.get(ASNumber=node_info["AS"])
+        except:
+            node_isp = ISP(ASNumber=node_info["AS"], name=node_info["ISP"])
+        node_isp.type = netTyp
+        node_isp.save()
+
+        latitude = float(node_info['latitude'])
+        latitude_str = '{0:.6f}'.format(latitude)
+        longitude = float(node_info['longitude'])
+        longitude_str = '{0:.6f}'.format(longitude)
+        # print("AS " + str(node_isp.ASNumber) + "(" + latitude_str + "," + longitude_str + ")" )
+        try:
+            node_network = Network.objects.get(isp=node_isp, latitude=latitude_str, longitude=longitude_str)
+        except:
+            node_network = Network(isp=node_isp, latitude=latitude_str, longitude=longitude_str, city=node_info["city"], region=node_info["region"], country=node_info["country"])
+            node_network.save()
+
+        if nodeName:
+            node = Node(ip=node_ip, name=nodeName, type=nodeTyp, network=node_network)
+        else:
+            node = Node(ip=node_ip, name=node_info['name'], type=nodeTyp, network=node_network)
+        node.save()
+
+        if node not in node_network.nodes.all():
+            node_network.nodes.add(node)
+            node_network.save()
+
+        if node_network not in node_isp.networks.all():
+            node_isp.networks.add(node_network)
+            node_isp.save()
+
+    return node
+
+### @function add_session(client, server)
+#   @params:
+#       client : the client node object of the session
+#       server : the server node object of the session
+@transaction.atomic
+def add_session(client, server):
     try:
-        client_node = Node.objects.get(ip=client_info['ip'])
-        client_node.type = 'client'
-        client_node.name = client_info['name']
+        session = Session.objects.get(client=client, server=server)
     except:
-        client_node = Node(name=client_info['name'], ip=client_info['ip'], type='client')
-        client_node.network = client_network
-        client_node.save()
+        session = Session(client=client, server=server)
+        session.save()
+    return session
 
-    if client_node not in client_network.nodes.all():
-        client_network.nodes.add(client_node)
-        client_network.save()
-
-    ###############################################################################################################
-    ## Update the server side object, node and network
-    # Update server network
-    server_info = client_info['server']
+### add_hop(hop, hop_id, session)
+#   @description: add the current node object as a hop in the session
+#   @params:
+#       hop : the node object of current hop
+#       hop_id : The hop id of current id in the session
+#       session : The session the hop is on.
+def add_hop(hop, hop_id, session):
+    ## Add hop of current node
     try:
-        srv_network = Network.objects.get(ASNumber=server_info['AS'],
-                                          latitude=server_info['latitude'], longitude=server_info['longitude'])
+        cur_hop = Hop.objects.get(node=hop, hopID=hop_id, session=session)
     except:
-        srv_network = Network(type="cloud", name=server_info['ISP'].encode('unicode_escape'), ASNumber=server_info['AS'],
-                              latitude=server_info['latitude'], longitude=server_info['longitude'],
-                              city=server_info['city'].encode('unicode_escape'), region=server_info['region'].encode('unicode_escape'), country=server_info['country'].encode('unicode_escape'))
-        # print(srv_network.__str__())
-        srv_network.save()
+        cur_hop = Hop(node=hop, hopID=hop_id, session=session)
+        cur_hop.save()
 
-    ## Update server node
+### add_subnet(node_net, net_id, session)
+#   @description: add the current network object as a subnet in the session
+#   @params:
+#       node_net : the network object
+#       net_id : the sequence number of the network in the session
+#       session : The session the network is on.
+def add_subnet(node_net, net_id, session):
     try:
-        server_node = Node.objects.get(ip=server_info['ip'])
-        server_node.name = server_info['name']
-        server_node.type = "server"
+        cur_net = Subnetwork.objects.get(network=node_net, netID=net_id, session=session)
     except:
-        server_node = Node(ip=server_info['ip'], name=server_info['name'], type="server")
-        server_node.network = srv_network
-        server_node.save()
+        cur_net = Subnetwork(network=node_net, netID=net_id, session=session)
+        cur_net.save()
 
-    if server_node not in srv_network.nodes.all():
-        srv_network.nodes.add(server_node)
-        srv_network.save()
+### @function update_peering(src_isp, dst_isp)
+#   @descr: Save the peering relationship in the database
+#   @params:
+#       src_isp : the source ISP in the peering link
+#       dst_isp : the destination ISP in the peering link
+@transaction.atomic
+def update_peering(src_isp, dst_isp):
+    if src_isp.ASNumber == dst_isp.ASNumber:
+        return
 
-    ###############################################################################################################
-    ## Update the user and the device
-    #  Update Device Info
-    device_info = client_info['device']
+    if src_isp.ASNumber > dst_isp.ASNumber:
+        tmp_isp = src_isp
+        src_isp = dst_isp
+        dst_isp = tmp_isp
+
+    try:
+        peering_link = PeeringEdge.objects.get(srcISP=src_isp, dstISP=dst_isp)
+    except:
+        peering_link = PeeringEdge(srcISP=src_isp, dstISP=dst_isp)
+        peering_link.save()
+
+### @function update_net_edge(srcNet, dstNet, isIntra)
+#   @descr: Save the edge between two networks in the database
+#   @params:
+#       srcNet : the source network of the link
+#       dstNet : the destination network of the link
+#       isIntra : denotes if the link is an intra ISP link
+@transaction.atomic
+def update_net_edge(srcNet, dstNet, isIntra):
+    if srcNet.id == dstNet.id:
+        return
+
+    if srcNet.id > dstNet.id:
+        tmpNet = srcNet
+        srcNet = dstNet
+        dstNet = tmpNet
+
+    try:
+        net_edge = NetEdge.objects.get(srcNet=srcNet, dstNet=dstNet)
+    except:
+        net_edge = NetEdge(srcNet=srcNet, dstNet=dstNet, isIntra=isIntra)
+        net_edge.save()
+
+### @function update_edge(src_node, dst_node, latency)
+#   @params:
+#       src_node : the source node obj
+#       dst_node: the destination node obj
+@transaction.atomic
+def update_edge(src_node, dst_node):
+    if src_node.ip == dst_node.ip:
+        return
+
+    if src_node.ip > dst_node.ip:
+        tmp_node = src_node
+        src_node = dst_node
+        dst_node = tmp_node
+
+    try:
+        link = Edge.objects.get(src=src_node, dst=dst_node)
+    except:
+        link_is_intra = (src_node.network.isp.ASNumber == dst_node.network.isp.ASNumber)
+        link = Edge(src=src_node, dst=dst_node, isIntra=link_is_intra)
+        link.save()
+
+        # Add peering link if necessary
+        if not link_is_intra:
+            update_peering(src_node.network.isp, dst_node.network.isp)
+
+        # Add network_edge if neccessary
+        if src_node.network.id != dst_node.network.id:
+            update_net_edge(src_node.network, dst_node.network, link_is_intra)
+    return link
+
+### @function add_server_to_user(server_node, user)
+#   @params:
+#       server_node : the server node obj
+#       dst_node: the user obj
+#   @return: return the updated user obj
+def update_server_for_user(server_node, user):
+    if user.server != server_node:
+        srv_event = Event(user_id=user.id, type="SRV_CHANGE", prevVal=user.server.ip, curVal=server_node.ip)
+        srv_event.save()
+        user.events.add(srv_event)
+    user.server = server_node
+    return user
+
+### @function add_user(client_node, device_info)
+#   @params:
+#       client_node : the user's client node
+#       device_info: the user's device info
+#   @return: return the updated user obj
+@transaction.atomic
+def add_user(client_node, server_node, device_info):
     try:
         device = DeviceInfo.objects.get(device=device_info['device'], os=device_info['os'],
                                         player=device_info['player'], browser=device_info['browser'])
@@ -97,204 +219,59 @@ def add_user(client_info):
             if user in pre_device.users.all():
                 pre_device.users.remove(user)
     except:
-        user = User(client=client_node, device=device, server=server_node)
+        user = User(client=client_node, device=device)
         user_existed = False
 
     if user_existed:
-        if user.server != server_node:
-            srv_event = Event(user_id=user.id, type="SRV_CHANGE", prevVal=user.server.ip, curVal=server_node.ip)
-            srv_event.save()
-            user.events.add(srv_event)
-    else:
-        user.server = server_node
+        user = update_server_for_user(server_node, user)
+
     user.save()
 
-    ###############################################################################################################
-    ## Update the session route, subnetworks and path
-    # Update session object
-    try:
-        session = Session.objects.get(client=client_node, server=server_node)
-        session_exist = True
-        print("Update existing session " + str(session))
-    except:
-        session = Session(client=client_node, server=server_node)
-        session_exist = False
-        print("Add new session " + str(session))
-        session.save()
+### @function add_route(route)
+#   @params:
+#       route : a json object of a traceroute session info
+#               The key denotes the hop number. 0 denotes the client and the maximum key denotes the server
+#               Each value object contains info {"ip": hop_ip_x.x.x.x, "name": hop_hostname, "time": time_to_get_to_the_hop}
+def add_route(client_info):
+    route = client_info['route']
+    device_info = client_info['device']
+    hop_ids = sorted(route.keys(), key=int)
+    client = route[hop_ids[0]]
+    server = route[hop_ids[-1]]
+    if (client['ip'] == "*") or (server["ip"] == "*"):
+        return
 
-    ## Session update route
-    hop_id = 0
-    try:
-        client_hop = Hop.objects.get(session=session, node=client_node, hopID=hop_id)
-    except:
-        client_hop = Hop(session=session, node=client_node, hopID=hop_id)
-        client_hop.save()
+    client_node = add_node(client["ip"], "client", client["name"], "access")
+    server_node = add_node(server["ip"], "server", server["name"], "cloud")
 
-    ## Session update subnetwork
-    net_id = 0
-    try:
-        client_subnet = Subnetwork.objects.get(session=session, network=client_network, netID=net_id)
-    except:
-        client_subnet = Subnetwork(session=session, network=client_network, netID=net_id)
-        client_subnet.save()
+    add_user(client_node, server_node, device_info)
 
-    ## Update all nodes' info in the route
-    preNode = client_node
-    preNet = client_network
-    route_updated = False
-    for i, node in enumerate(client_info['route']):
-        node_ip = node['ip']
-        # print(node_ip)
+    session = add_session(client_node, server_node)
+    sub_net_id = 0
+    add_hop(client_node, int(hop_ids[0]), session)
+    add_subnet(client_node.network, sub_net_id, session)
 
-        if node_ip == client_info['ip']:
+    pre_node = client_node
+    for hop_id in hop_ids[1:-1]:
+        cur_hop = route[hop_id]
+        if (cur_hop["ip"] == "*") or (is_reserved(cur_hop["ip"])):
             continue
 
-        # Get node type
-        if node_ip == server_node.ip:
-            node_type = "server"
-        else:
-            node_type = "router"
+        cur_node = add_node(cur_hop["ip"])
 
-        # Get network type
-        if node['AS'] == client_network.ASNumber:
-            net_type = "access"
-        elif node['AS'] == srv_network.ASNumber:
-            net_type = "cloud"
-        else:
-            net_type = "transit"
+        update_edge(pre_node, cur_node)
+        add_hop(cur_node, hop_id, session)
+        if cur_node.network.id != pre_node.network.id:
+            sub_net_id += 1
+            add_subnet(cur_node.network, sub_net_id, session)
 
-        try:
-            node_network = Network.objects.get(ASNumber=node['AS'],
-                                               latitude=node['latitude'], longitude=node['longitude'])
-        except:
-            node_network = Network(type=net_type, ASNumber=node['AS'], name=node['ISP'].encode('unicode_escape'),
-                                   latitude=node['latitude'], longitude=node['longitude'],
-                                   city=node['city'].encode('unicode_escape'), region=node['region'].encode('unicode_escape'), country=node['country'].encode('unicode_escape'))
-            node_network.save()
+        pre_node = cur_node
 
-        try:
-            node_obj = Node.objects.get(ip=node_ip)
-            node_obj.name = node['name']
-            node_obj.type = node_type
-        except:
-            node_obj = Node(name=node['name'], ip=node_ip, type=node_type)
-        node_obj.network = node_network
-        node_obj.save()
+    update_edge(pre_node, server_node)
+    add_hop(server_node, int(hop_ids[-1]), session)
 
-        if node_obj not in node_network.nodes.all():
-            node_network.nodes.add(node_obj)
-            node_network.save()
-
-        node_obj.network = node_network
-        node_obj.save()
-
-        ## save current hop to a route
-        hop_id += 1
-        try:
-            cur_hop = Hop.objects.get(session=session, node=node_obj, hopID=hop_id)
-        except:
-            cur_hop = Hop(session=session, node=node_obj, hopID=hop_id)
-            if session_exist:
-                org_hop = Hop.objects.filter(session=session, hopID=hop_id).last()
-                if org_hop:
-                    node_event = Event(user_id=user.id, type="ROUTE_CHANGE",
-                                       prevVal=str(hop_id)+":"+org_hop.node.ip,
-                                       curVal=str(hop_id)+":"+node_obj.ip)
-                else:
-                    node_event = Event(user_id=user.id, type="ROUTE_CHANGE",
-                                       prevVal=str(hop_id) + ":None",
-                                       curVal=str(hop_id) + ":" + node_obj.ip)
-                node_event.save()
-                user.events.add(node_event)
-
-        cur_hop.save()
-        # print("Client %s route length %d " % (client_obj.name, client_obj.route.count()))
-
-        ## Add Edge Object
-        curNode = node_obj
-        if curNode.ip < preNode.ip:
-            srcNode = curNode
-            srcNodeAS = node_network.ASNumber
-            dstNode = preNode
-            dstNodeAS = preNet.ASNumber
-        elif curNode.ip > preNode.ip:
-            srcNode = preNode
-            srcNodeAS = preNet.ASNumber
-            dstNode = curNode
-            dstNodeAS = node_network.ASNumber
-        else:
-            continue            ## Ignore the edge if the current hop equals the previous hop.
-
-        try:
-            edge_obj = Edge.objects.get(src=srcNode, dst=dstNode)
-        except:
-            edge_obj = Edge(src=srcNode, dst=dstNode)
-
-        if srcNodeAS != dstNodeAS:
-            edge_obj.isIntra = False
-        else:
-            edge_obj.isIntra = True
-
-        edge_obj.save()
-        preNode = curNode
-
-        ## Update subnetworks for the session.
-        if (node_network.id != preNet.id):
-            net_id += 1
-            try:
-                cur_subnet = Subnetwork.objects.get(session=session, network=node_network, netID=net_id)
-            except:
-                cur_subnet = Subnetwork(session=session, network=node_network, netID=net_id)
-                if session_exist:
-                    org_subnets = Subnetwork.objects.filter(session=session, netID=net_id).order_by('-pk')
-                    if len(org_subnets) > 0:
-                        org_subnet = org_subnets[0]
-                        net_event = Event(user_id=user.id, type="NET_CHANGE", prevVal=org_subnet.network.id,
-                                           curVal=node_network.id)
-                    else:
-                        net_event = Event(user_id=user.id, type="NET_CHANGE", prevVal="NULL",
-                                           curVal=node_network.id)
-                    net_event.save()
-                    user.events.add(net_event)
-            cur_subnet.save()
-
-            ## Add NetEdge object
-            curNet = node_network
-            if curNet.id < preNet.id:
-                srcNet = curNet
-                dstNet = preNet
-            else:
-                srcNet = preNet
-                dstNet = curNet
-
-            try:
-                net_edge = NetEdge.objects.get(srcNet=srcNet, dstNet=dstNet)
-            except:
-                net_edge = NetEdge(srcNet=srcNet, dstNet=dstNet)
-
-            if srcNet.ASNumber != dstNet.ASNumber:
-                net_edge.isIntra = False
-            else:
-                net_edge.isIntra = True
-
-            net_edge.save()
-            preNet = curNet
-
-    cur_path_len = hop_id + 1
-    try:
-        cur_path = Path.objects.get(session_id=session.id, length=cur_path_len)
-    except:
-        cur_path = Path(session_id=session.id, length=cur_path_len)
-    cur_path.save()
-    session.path = cur_path
-    session.save()
-
-    if session not in user.sessions.all():
-        user.sessions.add(session)
-    user.save()
+    if server_node.network.id != pre_node.network.id:
+        sub_net_id += 1
+        add_subnet(server_node.network, sub_net_id, session)
 
     add_related_session(session)
-
-    if user not in device.users.all():
-        device.users.add(user)
-    device.save()

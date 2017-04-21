@@ -1,7 +1,7 @@
 <h2>Show nodes in the following network</h2>
 <ul>
-    <li>Network Name: {{ network.name }}</li>
-    <li>Network AS: {{ network.ASNumber }}</li>
+    <li>Network Name: {{ network.isp.name }}</li>
+    <li>Network AS: {{ network.isp.ASNumber }}</li>
     <li>Network Location: ({{ network.latitude }}, {{ network.longitude }})</li>
     <li>Network City, Region, and Country: {{ network.city }}, {{ network.region }}, {{ network.country }}</li>
 </ul>

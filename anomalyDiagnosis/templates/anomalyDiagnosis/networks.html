@@ -11,9 +11,9 @@
     {% for network in networks %}
         <tr>
         <td><a href="/diag/get_network?id={{ network.id }}"> {{ network.id }} </a></td>
-        <td> {{ network.name }} </td>
-        <td> {{ network.type }} </td>
-        <td> AS {{ network.ASNumber }} </td>
+        <td> {{ network.isp.name }} </td>
+        <td> {{ network.isp.type }} </td>
+        <td> AS {{ network.isp.ASNumber }} </td>
         <td> ( {{ network.latitude }} , {{ network.longitude }} ), ({{ network.city }}, {{ network.region }}, {{ network.country }})</td>
         <td>{{ network.latest_check }}</td>
     {% endfor %}

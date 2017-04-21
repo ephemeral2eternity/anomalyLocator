@@ -142,8 +142,8 @@ LOGGING = {
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
-USE_TZ = False
-# USE_TZ = True         ## Disable DateTimeField naive datetime warning
+# USE_TZ = False
+USE_TZ = True         ## Disable DateTimeField naive datetime warning
 
 USE_I18N = True
 

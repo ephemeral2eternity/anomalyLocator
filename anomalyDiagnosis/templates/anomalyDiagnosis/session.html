@@ -107,9 +107,9 @@
             <tr>
                 <td> {{ subnet.netID }}</td>
                 <td><a href="/diag/get_network?id={{ subnet.network.id }}"> Network {{ subnet.network.id}} </a></td>
-                <td> {{ subnet.network.name }} </td>
-                <td> {{ subnet.network.ASNumber }} </td>
-                <td> {{ subnet.network.type }} </td>
+                <td> {{ subnet.network.isp.name }} </td>
+                <td> {{ subnet.network.isp.ASNumber }} </td>
+                <td> {{ subnet.network.isp.type }} </td>
                 <td> ({{ subnet.network.latitude }}, {{ subnet.network.longitude }}) </td>
                 <td> ({{ subnet.network.city }}, {{ subnet.network.region }}, {{ subnet.network.country }}) </td>
             </tr>
