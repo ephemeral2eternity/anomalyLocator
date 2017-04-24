@@ -219,13 +219,25 @@ def add_user(client_node, server_node, device_info):
             if user in pre_device.users.all():
                 pre_device.users.remove(user)
     except:
-        user = User(client=client_node, device=device)
+        user = User(client=client_node, server=server_node, device=device)
         user_existed = False
+        user.save()
 
     if user_existed:
         user = update_server_for_user(server_node, user)
+        user.save()
 
-    user.save()
+### @function add_path(session)
+#   @params: path_len ---- the length of the session path
+def add_path(session, path_len):
+    try:
+        curPath = Path.objects.get(session_id=session.id, length=path_len)
+    except:
+        curPath = Path(session_id=session.id, length=path_len)
+        curPath.save()
+    session.path = curPath
+    session.save()
+
 
 ### @function add_route(route)
 #   @params:
@@ -269,6 +281,8 @@ def add_route(client_info):
 
     update_edge(pre_node, server_node)
     add_hop(server_node, int(hop_ids[-1]), session)
+
+    add_path(session, max(hop_ids))
 
     if server_node.network.id != pre_node.network.id:
         sub_net_id += 1

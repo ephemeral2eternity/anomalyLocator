@@ -2,6 +2,8 @@
 # By Chen Wang, Jan 3, 2017
 import datetime
 import time
+from django.utils import timezone
+import pytz
 import socket
 import requests
 import json
@@ -36,9 +38,9 @@ def get_ipinfo(ip):
 def check_status(session, timestamp=None):
     # print("Check status for session " + str(session))
     if timestamp is None:
-        check_time = datetime.datetime.now()
+        check_time = timezone.now()
     else:
-        check_time = datetime.datetime.utcfromtimestamp(float(timestamp))
+        check_time = datetime.datetime.utcfromtimestamp(float(timestamp)).replace(tzinfo=pytz.utc)
 
     # To check if the session is still active.
     latest_status = session.status.filter(timestamp__lte=check_time).latest('timestamp')
@@ -148,7 +150,7 @@ def rank_suspects(user, session, suspect_nodes):
         # print(attribute_key + ", prob:" + str(prob))
 
     ## Check event proximity
-    cur_time = datetime.datetime.now()
+    cur_time = timezone.now()
     cur_timestamp = cur_time.timestamp()
     event_time_window_start = cur_time - datetime.timedelta(minutes=event_time_window)
     for event in user.events.filter(timestamp__range=(event_time_window_start, cur_time)).all():
@@ -173,7 +175,7 @@ def rank_suspects(user, session, suspect_nodes):
     return ranked_attributes
 
 def save_anomaly(user, session, anomaly_ts, anomaly_qoe, anomaly_type, related_sessions_status, ranked_attributes):
-    anomaly_dt = datetime.datetime.utcfromtimestamp(float(anomaly_ts))
+    anomaly_dt = datetime.datetime.utcfromtimestamp(float(anomaly_ts)).replace(tzinfo=pytz.utc)
     anomaly = Anomaly(user_id=user.id, session_id=session.id, qoe=anomaly_qoe, type=anomaly_type, timestamp=anomaly_dt)
     anomaly.save()
 

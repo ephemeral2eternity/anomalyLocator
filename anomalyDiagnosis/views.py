@@ -21,6 +21,13 @@ def showNetworks(request):
     template = loader.get_template('anomalyDiagnosis/networks.html')
     return HttpResponse(template.render({'networks': networks}, request))
 
+# @description Show all ISPs discovered
+def showISPs(request):
+    isps = ISP.objects.all()
+    peerings = PeeringEdge.objects.all()
+    template = loader.get_template('anomalyDiagnosis/isps.html')
+    return  HttpResponse(template.render({'isps':isps, 'peerings':peerings}, request))
+
 def showUsers(request):
     users = User.objects.all()
     template = loader.get_template('anomalyDiagnosis/users.html')
@@ -42,6 +49,40 @@ def showSessions(request):
     sessions = Session.objects.all()
     template = loader.get_template('anomalyDiagnosis/sessions.html')
     return HttpResponse(template.render({'sessions': sessions}, request))
+
+# @description Show details of a given ISP denoted by its ASNumber (as=xxx)
+def getISP(request):
+    url = request.get_full_path()
+    params = url.split('?')[1]
+    request_dict = urllib.parse.parse_qs(params)
+    if ('as' in request_dict.keys()):
+        as_num = int(request_dict['as'][0])
+        isp = ISP.objects.get(ASNumber=as_num)
+        peerings = PeeringEdge.objects.filter(Q(srcISP__ASNumber=isp.ASNumber)|Q(dstISP__ASNumber=isp.ASNumber))
+        peers = []
+        for pEdge in peerings.all():
+            if pEdge.srcISP.ASNumber == isp.ASNumber:
+                peers.append(pEdge.dstISP)
+            else:
+                peers.append(pEdge.srcISP)
+        template = loader.get_template('anomalyDiagnosis/isp.html')
+        return HttpResponse(template.render({'isp': isp, 'peers': peers}, request))
+    else:
+        return HttpResponse("Please denote the AS # in http://cloud_agent/diag/get_isp?as=as_num!")
+
+# @description Delete 1 isp
+def deleteISP(request):
+    url = request.get_full_path()
+    params = url.split('?')[1]
+    request_dict = urllib.parse.parse_qs(params)
+    if ('as' in request_dict.keys()):
+        as_num = int(request_dict['as'][0])
+        isp = ISP.objects.get(ASNumber=as_num)
+        isp.delete()
+        return showISPs(request)
+    else:
+        return HttpResponse("Please denote the AS # in http://cloud_agent/diag/delete_isp?as=as_num!")
+
 
 def getSession(request):
     url = request.get_full_path()

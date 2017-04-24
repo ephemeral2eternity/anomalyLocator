@@ -52,12 +52,6 @@ class ISP(models.Model):
             isp_size += network.get_nodes_num()
         return isp_size
 
-    def get_max_span(self):
-        isp_span = 0
-        for network in self.networks.all().distinct():
-            isp_span = max(network.get_max_size(), isp_span)
-        return isp_span
-
     # Network defines a network that several routers in an end-to-end delivery path belongs to
 class Network(models.Model):
     isp = models.ForeignKey(ISP, related_name="net_isp")
@@ -76,12 +70,14 @@ class Network(models.Model):
             self.longitude)
 
     class Meta:
-        index_together = ["ASNumber", "latitude", "longitude"]
-        unique_together = ("ASNumber", "latitude", "longitude")
+        index_together = ["isp", "latitude", "longitude"]
+        unique_together = ("isp", "latitude", "longitude")
 
     def get_class_name(self):
         return "network"
 
+    def get_nodes_num(self):
+        return self.nodes.distinct().count()
 
 class Path(models.Model):
     session_id = models.IntegerField()
@@ -204,7 +200,7 @@ class Anomaly(models.Model):
 ## Monitor the user info
 class User(models.Model):
     client = models.OneToOneField(Node, related_name='client')
-    server = models.ForeignKey(Node)
+    server = models.ForeignKey(Node, related_name='server')
     sessions = models.ManyToManyField(Session)
     events = models.ManyToManyField(Event)
     device = models.ForeignKey("DeviceInfo")

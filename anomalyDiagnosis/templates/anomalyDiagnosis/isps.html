@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>All ISPs</title>
+    <script language="JavaScript">
+        function toggle(source, ispType) {
+            var checkboxes = document.getElementsByName("as");
+            console.log(checkboxes);
+            var ispTypName = "transit";
+            if (ispType == 1)
+            {
+                ispTypName = "transit";
+            }
+            else if (ispType == 2)
+            {
+                ispTypName = "access";
+            }
+            else {
+                ispTypName = "cloud";
+            }
+            for (var i=0; i < checkboxes.length; i ++){
+                var val_str = checkboxes[i].value.toString();
+                console.log(val_str);
+                console.log(val_str.indexOf(ispTypName));
+                if (val_str.indexOf(ispTypName) >= 0) {
+                    checkboxes[i].checked = source.checked;
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+<h1>Show all ISPs monitored</h1>
+<h2>Total: {{ isps.count }}</h2>
+<form method="get">
+<input type="checkbox" onclick="toggle(this, 0)"/>Toggle Cloud ISPs
+<input type="checkbox" onclick="toggle(this, 1)"/>Toggle Transit ISPs
+<input type="checkbox" onclick="toggle(this, 2)"/>Toggle Access ISPs
+<table style="width:100%">
+    <tr>
+        <td>ID</td>
+        <td>ISP Name</td>
+        <td>ISP AS #</td>
+        <td>ISP Type</td>
+        <td># of networks in different locations</td>
+        <td>Size of the ISP</td>
+    </tr>
+    {% for isp in isps %}
+    <tr>
+        <td><input type="checkbox" name="as" value="{{ isp.type }}#{{ isp.ASNumber }}"></td>
+        <td> {{ isp.name }} </td>
+        <td> <a href="/get_isp?as={{ isp.ASNumber }}">AS {{ isp.ASNumber }} </a></td>
+        <td> {{ isp.type }} </td>
+        <td> {{ isp.networks.count }}</td>
+        <td> {{ isp.get_node_size }} </td>
+    </tr>
+    {% endfor %}
+</table>
+<input type="submit" value="Get ISP Map" onclick="javascript: form.action='/get_isp_map';"/>
+<input type="submit" value="Get ISP Peering" onclick="javascript: form.action='/get_isp_peering';"/>
+</form>
+</body>
+</html>
