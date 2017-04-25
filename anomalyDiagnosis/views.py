@@ -83,6 +83,143 @@ def deleteISP(request):
     else:
         return HttpResponse("Please denote the AS # in http://cloud_agent/diag/delete_isp?as=as_num!")
 
+# @description Draw isps' networks in different colors on a world map
+def getISPMap(request):
+    url = request.get_full_path()
+    if '?' in url:
+        params = url.split('?')[1]
+        request_dict = urllib.parse.parse_qs(params)
+        str_ids = request_dict['as']
+        ids = []
+        for str_id in str_ids:
+            ids.append(str_id.split("#")[1])
+        ids_json = json.dumps(ids)
+    else:
+        isps = ISP.objects.all().distinct()
+        ids = []
+        for isp in isps:
+            ids.append(isp.ASNumber)
+        ids_json = json.dumps(ids)
+    template = loader.get_template("anomalyDiagnosis/map.html")
+    return HttpResponse(template.render({'ids': ids_json}, request))
+
+# @description Draw isps' peering links in a chord graph
+def getISPPeering(request):
+    url = request.get_full_path()
+    if '?' in url:
+        params = url.split('?')[1]
+        request_dict = urllib.parse.parse_qs(params)
+        str_ids = request_dict['as']
+        ids = []
+        for str_id in str_ids:
+            ids.append(str_id.split("#")[1])
+        ids_json = json.dumps(ids)
+    else:
+        isps = ISP.objects.all().distinct()
+        ids = []
+        for isp in isps:
+            ids.append(isp.ASNumber)
+        ids_json = json.dumps(ids)
+    template = loader.get_template("anomalyDiagnosis/ispPeeringGraph.html")
+    return HttpResponse(template.render({'ids': ids_json}, request))
+
+# @description Get ISPs' networks info in json file. ISPs denoted by their AS numbers.
+# Prepare the data for function: getISPMap
+def getISPNetJson(request):
+    url = request.get_full_path()
+    isp_nets = {}
+    if '?' in url:
+        params = url.split('?')[1]
+        request_dict = urllib.parse.parse_qs(params)
+        if ('as' in request_dict.keys()):
+            as_nums = request_dict['as']
+            for asn in as_nums:
+                isp = ISP.objects.get(ASNumber=asn)
+                isp_nets[isp.name] = []
+                for net in isp.networks.distinct():
+                    isp_nets[isp.name].append({"lat": net.latitude, "lon": net.longitude, "netsize": net.nodes.count(), "asn": "AS " + str(isp.ASNumber)})
+    return JsonResponse(isp_nets, safe=False)
+
+def getMapJson(request):
+    servers = Node.objects.filter(type="server")
+
+    srv_objs = []
+    for srv in servers:
+        srv_objs.append({"lat": srv.network.latitude, "lon": srv.network.longitude, "name": srv.name, "ip": srv.ip, "type":"server"})
+
+    isps = ISP.objects.all()
+    isp_nets = []
+    for isp in isps:
+        for net in isp.networks.distinct():
+            isp_nets.append({"lat": net.latitude, "lon": net.longitude, "netsize": net.nodes.count(),
+                                       "asn": "AS " + str(isp.ASNumber), "type":"isp", "name":isp.name, "netID":net.id})
+
+    map_dict = {}
+    map_dict["server"] = srv_objs
+    map_dict["network"] = isp_nets
+
+    return JsonResponse(map_dict, safe=False)
+
+# @description Get the peering links in json file of all isps denoted by their as numbers.
+# Prepare the data for function: getISPPeering
+def getISPPeersJson(request):
+    url = request.get_full_path()
+    isp_nets = {}
+    peering_json = {}
+    all_isps_related = []
+    draw_all = False
+    as_nums = []
+    if '?' in url:
+        params = url.split('?')[1]
+        request_dict = urllib.parse.parse_qs(params)
+        if ('as' in request_dict.keys()):
+            as_nums = request_dict['as']
+            draw_all = False
+        else:
+            draw_all = True
+    else:
+        draw_all = True
+
+    if draw_all:
+        all_isps = ISP.objects.all()
+        for cur_as in all_isps:
+            all_isps_related.append(cur_as.name + "(AS " + str(cur_as.ASNumber) + ")")
+        all_peering_links = PeeringEdge.objects.all().distinct()
+    else:
+        isps_to_draw = []
+        for asn in as_nums:
+            cur_as = ISP.objects.get(ASNumber=asn)
+            isps_to_draw.append(asn)
+            cur_isp_name = cur_as.name + "(AS " + str(cur_as.ASNumber) + ")"
+            all_isps_related.append(cur_isp_name)
+
+        all_peering_links = PeeringEdge.objects.filter(
+            Q(srcISP__ASNumber__in=isps_to_draw) | Q(dstISP__ASNumber__in=isps_to_draw)).distinct()
+
+        for link in all_peering_links:
+            src_isp_name = link.srcISP.name + "(AS " + str(link.srcISP.ASNumber) + ")"
+            dst_isp_name = link.dstISP.name + "(AS " + str(link.dstISP.ASNumber) + ")"
+
+            if src_isp_name not in all_isps_related:
+                all_isps_related.append(src_isp_name)
+
+            if dst_isp_name not in all_isps_related:
+                all_isps_related.append(dst_isp_name)
+
+    all_isps_num = len(all_isps_related)
+    peering_mat = [[0 for x in range(all_isps_num)] for y in range(all_isps_num)]
+    for link in all_peering_links:
+        src_isp_name = link.srcISP.name + "(AS " + str(link.srcISP.ASNumber) + ")"
+        dst_isp_name = link.dstISP.name + "(AS " + str(link.dstISP.ASNumber) + ")"
+        src_idx = all_isps_related.index(src_isp_name)
+        dst_idx = all_isps_related.index(dst_isp_name)
+        peering_mat[src_idx][dst_idx] = 1
+        peering_mat[dst_idx][src_idx] = 1
+
+        peering_json["packageNames"] = all_isps_related
+        peering_json["matrix"] = peering_mat
+
+    return JsonResponse(peering_json, safe=False)
 
 def getSession(request):
     url = request.get_full_path()

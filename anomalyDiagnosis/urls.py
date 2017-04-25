@@ -49,4 +49,9 @@ urlpatterns = [
 	url(r'^get_ano_graph_json', views.getAnomalyGraphJson, name='getAnomalyGraphJson'),
 	url(r'^get_router_graph_json', views.getRouterGraphJson, name='getRouterGraphJson'),
 	url(r'^get_router_graph', views.getRouterGraph, name='getRouterGraph'),
+	url(r'^get_isp_peering', views.getISPPeering, name='getISPPeering'),
+	url(r'^get_isp_map', views.getISPMap, name='getISPMap'),
+	url(r'^get_isp_nets_json', views.getISPNetJson, name='getISPNetJson'),
+	url(r'^get_map_json', views.getMapJson, name='getMapJson'),
+	url(r'^get_isp_peers_json', views.getISPPeersJson, name='getISPPeersJson'),
 ]
