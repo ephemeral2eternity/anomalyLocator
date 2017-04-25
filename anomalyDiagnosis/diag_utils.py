@@ -403,7 +403,7 @@ def classifyAnomalyOrigins():
                 if origin_type == "network":
                     obj = Network.objects.get(id=cause.obj_id)
                     # print(obj.type)
-                    if obj.type == "transit":
+                    if obj.isp.type == "transit":
                         if obj.ASNumber not in anomaly_origins["transitISP"].keys():
                             anomaly_origins["transitISP"][obj.ASNumber] = []
                         anomaly_origins["transitISP"][obj.ASNumber].append({"type": anomaly_type, "count":origin_count, "id":locator_name + ":" + str(anomaly.id)})
@@ -411,7 +411,7 @@ def classifyAnomalyOrigins():
                         if obj.__str__() not in anomaly_origins["transitNet"].keys():
                             anomaly_origins["transitNet"][obj.__str__()] = []
                         anomaly_origins["transitNet"][obj.__str__()].append({"type": anomaly_type, "count":origin_count, "id":locator_name + ":" + str(anomaly.id)})
-                    elif obj.type == "access":
+                    elif obj.isp.type == "access":
                         if obj.ASNumber not in anomaly_origins["accessISP"].keys():
                             anomaly_origins["accessISP"][obj.ASNumber] = []
                         anomaly_origins["accessISP"][obj.ASNumber].append({"type": anomaly_type, "count":origin_count, "id":locator_name + ":" + str(anomaly.id)})
