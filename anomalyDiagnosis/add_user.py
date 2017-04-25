@@ -194,7 +194,7 @@ def update_server_for_user(server_node, user):
 #       device_info: the user's device info
 #   @return: return the updated user obj
 @transaction.atomic
-def add_user(client_node, server_node, device_info):
+def add_user(session, device_info):
     try:
         device = DeviceInfo.objects.get(device=device_info['device'], os=device_info['os'],
                                         player=device_info['player'], browser=device_info['browser'])
@@ -205,7 +205,7 @@ def add_user(client_node, server_node, device_info):
 
     # Update User Info
     try:
-        user = User.objects.get(client=client_node)
+        user = User.objects.get(client=session.client)
         user_existed = True
 
         if user.device != device:
@@ -218,7 +218,7 @@ def add_user(client_node, server_node, device_info):
             if user in pre_device.users.all():
                 pre_device.users.remove(user)
     except:
-        user = User(client=client_node, server=server_node, device=device)
+        user = User(client=session.client, server=session.server, device=device)
         user_existed = False
         user.save()
 
@@ -226,8 +226,12 @@ def add_user(client_node, server_node, device_info):
         device.users.add(user)
         device.save()
 
+    if session not in user.sessions.distinct():
+        user.sessions.add(session)
+        user.save()
+
     if user_existed:
-        user = update_server_for_user(server_node, user)
+        user = update_server_for_user(session.server, user)
         user.save()
 
 ### @function add_path(session)
@@ -259,9 +263,8 @@ def add_route(client_info):
     client_node = add_node(client["ip"], "client", client["name"], "access")
     server_node = add_node(server["ip"], "server", server["name"], "cloud")
 
-    add_user(client_node, server_node, device_info)
-
     session = add_session(client_node, server_node)
+    add_user(session, device_info)
     sub_net_id = 0
     add_hop(client_node, int(hop_ids[0]), session)
     add_subnet(client_node.network, sub_net_id, session)
