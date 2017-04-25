@@ -89,6 +89,7 @@ def add_hop(hop, hop_id, session):
         cur_hop = Hop(node=hop, hopID=hop_id, session=session)
         cur_hop.save()
 
+
 ### add_subnet(node_net, net_id, session)
 #   @description: add the current network object as a subnet in the session
 #   @params:

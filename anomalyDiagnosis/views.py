@@ -524,6 +524,31 @@ def getAnomalyOriginHistogramJson(request):
 
     return JsonResponse(all_origin_stats_dict, safe=False)
 
+# @ descr: get all anomalies in json formats
+def getAllAnomaliesJson(request):
+    anomalies = Anomaly.objects.all()
+    locator = socket.gethostname()
+    anomaly_json = []
+    for anomaly in anomalies:
+        anomalous_session = Session.objects.get(id=anomaly.session_id)
+        cur_anomaly = {"type": anomaly.type, "timestamp": anomaly.timestamp.timestamp(), "locator": locator, "causes":[]}
+        top_causes = get_top_cause(anomaly)
+        num_top_cause = len(top_causes)
+        if num_top_cause > 0:
+            origin_count = 1 / float(num_top_cause)
+        for cause in top_causes:
+            origin_type = cause.type
+            if origin_type == "network":
+                obj = Network.objects.get(id=cause.obj_id)
+            elif origin_type == "server":
+                obj = Node.objects.get(id=cause.obj_id)
+            elif origin_type == "device":
+                obj = DeviceInfo.objects.get(id=cause.obj_id)
+            else:
+                continue
+
+
+
 def showAnomalyStats(request):
     anomaly_count = Anomaly.objects.all().count()
     template = loader.get_template('anomalyDiagnosis/anomalyStats.html')
@@ -1003,7 +1028,7 @@ def getJsonNetworkGraph(request):
                     if "network_" + str(net.id) not in nodes:
                         nodes.append("network_" + str(net.id))
                         net_nodes.append(net.id)
-                        graph["nodes"].append({"name": net.name, "type": "network", "id": net.id})
+                        graph["nodes"].append({"name": net.isp.name, "type": "network", "id": net.id})
 
                 if "user_" + str(user.id) not in nodes:
                     nodes.append("user_" + str(user.id))
