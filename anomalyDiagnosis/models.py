@@ -84,6 +84,9 @@ class Path(models.Model):
     length = models.PositiveIntegerField()
     timestamp = models.DateTimeField(auto_now=True)
 
+    def get_class_name(self):
+        return "path"
+
     def __str__(self):
         return "( session " + str(self.session_id) + "," + str(self.length) + ")"
 
@@ -151,6 +154,9 @@ class Event(models.Model):
     prevVal = models.CharField(max_length=1000)
     curVal = models.CharField(max_length=1000)
     timestamp = models.DateTimeField(auto_now_add=True)
+
+    def get_class_name(self):
+        return "event"
 
     def __str__(self):
         return "(" + self.type + "," + self.prevVal + "," + str(self.curVal) + ")"

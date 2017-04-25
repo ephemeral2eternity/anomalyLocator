@@ -528,29 +528,55 @@ def getAnomalyOriginHistogramJson(request):
     return JsonResponse(all_origin_stats_dict, safe=False)
 
 # @ descr: get all anomalies in json formats
-'''
 def getAllAnomaliesJson(request):
     anomalies = Anomaly.objects.all()
     locator = socket.gethostname()
     anomaly_json = []
     for anomaly in anomalies:
         anomalous_session = Session.objects.get(id=anomaly.session_id)
-        cur_anomaly = {"type": anomaly.type, "timestamp": anomaly.timestamp.timestamp(), "locator": locator, "causes":[]}
+        cur_anomaly = {"type": anomaly.type, "timestamp": anomaly.timestamp.timestamp(), "locator": locator, "lid":anomaly.id,
+                       "session_lid":anomaly.session_id, "client":anomalous_session.client.ip, "server":anomalous_session.server.ip}
         top_causes = get_top_cause(anomaly)
         num_top_cause = len(top_causes)
         if num_top_cause > 0:
             origin_count = 1 / float(num_top_cause)
+        origin_list = []
         for cause in top_causes:
             origin_type = cause.type
             if origin_type == "network":
                 obj = Network.objects.get(id=cause.obj_id)
+                origin_list.append({"type":"network", "name":obj.isp.name, "as":obj.isp.ASNumber, "latitude":obj.latitude, "longitude":obj.longitude, "lid":obj.id, "count":origin_count})
             elif origin_type == "server":
                 obj = Node.objects.get(id=cause.obj_id)
+                origin_list.append(
+                    {"type": "server", "name": obj.name, "ip": obj.ip, "lid":obj.id, "count": origin_count})
             elif origin_type == "device":
                 obj = DeviceInfo.objects.get(id=cause.obj_id)
+                origin_list.append(
+                    {"type": "device", "lid":obj.id, "device":obj.__str__(), "count": origin_count})
+            elif origin_type == "event":
+                obj = Event.objects.get(id=cause.obj_id)
+                if obj.type == "ROUTE_CHANGE":
+                    origin_list.append(
+                        {"type": "route_change", "lid":anomalous_session.id, "prev": obj.prevVal,
+                         "cur": obj.curVal, "count": origin_count})
+                else:
+                    user_changed = User.objects.get(id=obj.user_id)
+                    if obj.type == "DEVICE_CHANGE":
+                        origin_list.append(
+                            {"type": "device", "user": user_changed.client.ip, "lid":user_changed.id, "prev": obj.prevVal,
+                             "cur": obj.curVal, "count": origin_count})
+                    else:
+                        origin_list.append(
+                            {"type": "server_change", "user": user_changed.client.ip, "lid":user_changed.id, "prev": obj.prevVal,
+                             "cur": obj.curVal, "count": origin_count})
             else:
-                continue
-'''
+                obj = Path.objects.get(id=cause.obj_id)
+                origin_list.append(
+                    {"type": "path", "lid":anomalous_session.id, "length": obj.length, "count": origin_count})
+        cur_anomaly["causes"] = origin_list
+        anomaly_json.append(cur_anomaly)
+    return JsonResponse(anomaly_json, safe=False)
 
 
 def showAnomalyStats(request):

@@ -441,5 +441,3 @@ def classifyAnomalyOrigins():
                     continue
 
     return anomaly_origins
-
-
