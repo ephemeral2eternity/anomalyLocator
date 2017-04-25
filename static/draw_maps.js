@@ -110,7 +110,6 @@ function drawMap() {
     // Add series with state capital bubbles
     $.getJSON(url, function (json) {
         var server_data = json.server;
-        var agent_data = json.agent;
         var network_data = json.network;
         var cur_net_data = [];
 
@@ -166,23 +165,6 @@ function drawMap() {
             }
         });
 
-        seriesData.push({
-            type: 'mappoint',
-            dataLabels: {
-                enabled: true,
-                format: '{point.name}'
-            },
-            name: "Agent",
-            data: agent_data,
-            enableMouseTracking: true,
-            color: H.getOptions().colors[2],
-            tooltip: {
-                pointFormat: '{point.ip}<br>' +
-                    'Name: {point.name}<br>' +
-                    'Lat: {point.lat}<br>' +
-                    'Lon: {point.lon}<br>'
-            }
-        });
 
         chart = Highcharts.mapChart('allMap', {
 
