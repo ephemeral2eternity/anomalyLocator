@@ -50,7 +50,7 @@
     <tr>
         <td><input type="checkbox" name="as" value="{{ isp.type }}#{{ isp.ASNumber }}"></td>
         <td> {{ isp.name }} </td>
-        <td> <a href="/get_isp?as={{ isp.ASNumber }}">AS {{ isp.ASNumber }} </a></td>
+        <td> <a href="/diag/get_isp?as={{ isp.ASNumber }}">AS {{ isp.ASNumber }} </a></td>
         <td> {{ isp.type }} </td>
         <td> {{ isp.networks.count }}</td>
         <td> {{ isp.get_node_size }} </td>
