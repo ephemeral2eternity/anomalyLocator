@@ -525,6 +525,7 @@ def getAnomalyOriginHistogramJson(request):
     return JsonResponse(all_origin_stats_dict, safe=False)
 
 # @ descr: get all anomalies in json formats
+'''
 def getAllAnomaliesJson(request):
     anomalies = Anomaly.objects.all()
     locator = socket.gethostname()
@@ -546,7 +547,7 @@ def getAllAnomaliesJson(request):
                 obj = DeviceInfo.objects.get(id=cause.obj_id)
             else:
                 continue
-
+'''
 
 
 def showAnomalyStats(request):
