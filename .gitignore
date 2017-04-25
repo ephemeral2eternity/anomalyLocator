@@ -18,3 +18,4 @@ anomalyLocator/migrations/
 .idea/anomalyLocator.iml
 .idea/misc.xml
 .idea/*
+.idea/
