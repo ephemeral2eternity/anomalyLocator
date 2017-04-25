@@ -222,6 +222,10 @@ def add_user(client_node, server_node, device_info):
         user_existed = False
         user.save()
 
+    if user not in device.users.all():
+        device.users.add(user)
+        device.save()
+
     if user_existed:
         user = update_server_for_user(server_node, user)
         user.save()

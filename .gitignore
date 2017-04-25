@@ -15,3 +15,4 @@ locator/__pycache__/
 anomalyDiagnosis/migrations/
 data/
 anomalyLocator/migrations/
+.idea/

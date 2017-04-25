@@ -442,6 +442,7 @@ def getAnomalyByID(request):
     else:
         return HttpResponse('Please denote the anomaly_id in the url: http://locator/diag/get_anomaly?id=anomaly_id')
 
+# @descr: prepare the anomalies data in time series to draw as event dots on different sessions.
 def getAnomalyEventJson(request):
     anomalies = Anomaly.objects.all()
     anomaly_events = []
@@ -461,6 +462,7 @@ def getAnomalyEventJson(request):
 
     return JsonResponse({"anomalies":anomaly_events})
 
+# @descr: get anomalies
 def getAnomalyTypeJson(request):
     anomalies = Anomaly.objects.all()
     anomaly_types = {"severe":0, "medium":0, "light":0}
