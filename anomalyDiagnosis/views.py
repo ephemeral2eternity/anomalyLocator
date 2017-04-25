@@ -535,7 +535,8 @@ def getAllAnomaliesJson(request):
     for anomaly in anomalies:
         anomalous_session = Session.objects.get(id=anomaly.session_id)
         cur_anomaly = {"type": anomaly.type, "timestamp": anomaly.timestamp.timestamp(), "locator": locator, "lid":anomaly.id,
-                       "session_lid":anomaly.session_id, "client":anomalous_session.client.ip, "server":anomalous_session.server.ip}
+                       "session_lid":anomaly.session_id, "client":anomalous_session.client.ip, "server":anomalous_session.server.ip,
+                       "timeToDiagnose":anomaly.timeToDiagnose}
         top_causes = get_top_cause(anomaly)
         num_top_cause = len(top_causes)
         if num_top_cause > 0:
