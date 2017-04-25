@@ -68,12 +68,14 @@ def add_node(node_ip, nodeTyp="router", nodeName=None, netTyp="transit"):
 #       server : the server node object of the session
 @transaction.atomic
 def add_session(client, server):
+    session_existed = False
     try:
         session = Session.objects.get(client=client, server=server)
+        session_existed = True
     except:
         session = Session(client=client, server=server)
         session.save()
-    return session
+    return session, session_existed
 
 ### add_hop(hop, hop_id, session)
 #   @description: add the current node object as a hop in the session
@@ -85,9 +87,19 @@ def add_hop(hop, hop_id, session):
     ## Add hop of current node
     try:
         cur_hop = Hop.objects.get(node=hop, hopID=hop_id, session=session)
+        return False, {}
     except:
+        try:
+            pre_hop = Hop.objects.filter(hopID=hop_id, session=session).last()
+            pre_hop_dict = {hop_id: pre_hop.node.ip}
+        except:
+            pre_hop_dict = {hop_id:""}
+
+
         cur_hop = Hop(node=hop, hopID=hop_id, session=session)
         cur_hop.save()
+
+        return True, pre_hop_dict
 
 
 ### add_subnet(node_net, net_id, session)
@@ -182,12 +194,14 @@ def update_edge(src_node, dst_node):
 #       dst_node: the user obj
 #   @return: return the updated user obj
 def update_server_for_user(server_node, user):
+    server_changed = False
     if user.server != server_node:
         srv_event = Event(user_id=user.id, type="SRV_CHANGE", prevVal=user.server.ip, curVal=server_node.ip)
         srv_event.save()
         user.events.add(srv_event)
+        server_changed = True
     user.server = server_node
-    return user
+    return user, server_changed
 
 ### @function add_user(client_node, device_info)
 #   @params:
@@ -196,6 +210,8 @@ def update_server_for_user(server_node, user):
 #   @return: return the updated user obj
 @transaction.atomic
 def add_user(session, device_info):
+    device_changed = False
+    server_changed = False
     try:
         device = DeviceInfo.objects.get(device=device_info['device'], os=device_info['os'],
                                         player=device_info['player'], browser=device_info['browser'])
@@ -215,6 +231,7 @@ def add_user(session, device_info):
             device_event.save()
             user.device = device
             user.events.add(device_event)
+            device_changed = True
 
             if user in pre_device.users.all():
                 pre_device.users.remove(user)
@@ -232,8 +249,10 @@ def add_user(session, device_info):
         user.save()
 
     if user_existed:
-        user = update_server_for_user(session.server, user)
+        user, server_changed = update_server_for_user(session.server, user)
         user.save()
+
+    return user, device_changed, server_changed
 
 ### @function add_path(session)
 #   @params: path_len ---- the length of the session path
@@ -245,6 +264,18 @@ def add_path(session, path_len):
         curPath.save()
     session.path = curPath
     session.save()
+
+
+### @function update_route_for_user(user, pre_route, cur_route)
+#   @params:
+#       user: the user with route changes
+#       pre_route : previous route json
+#       cur_route: current route json
+def update_route_for_user(user, session, pre_route, cur_route):
+    route_event = Event(user_id=user.id, session_id=session.id, type="ROUTE_CHANGE", prevVal=json.dumps(pre_route), curVal=json.dumps(cur_route))
+    route_event.save()
+    user.events.add(route_event)
+    user.save()
 
 
 ### @function add_route(route)
@@ -264,8 +295,13 @@ def add_route(client_info):
     client_node = add_node(client["ip"], "client", client["name"], "access")
     server_node = add_node(server["ip"], "server", server["name"], "cloud")
 
-    session = add_session(client_node, server_node)
-    add_user(session, device_info)
+    session, session_existed = add_session(client_node, server_node)
+
+    route_changed = False
+    existing_route = {}
+    new_route = {}
+
+    user, device_changed, server_changed = add_user(session, device_info)
     sub_net_id = 0
     add_hop(client_node, int(hop_ids[0]), session)
     add_subnet(client_node.network, sub_net_id, session)
@@ -279,7 +315,12 @@ def add_route(client_info):
         cur_node = add_node(cur_hop["ip"])
 
         update_edge(pre_node, cur_node)
-        add_hop(cur_node, hop_id, session)
+        hop_changed, pre_hop = add_hop(cur_node, hop_id, session)
+        if session_existed and hop_changed:
+            route_changed = True
+            existing_route.update(pre_hop)
+            new_route.update({hop_id:cur_node.ip})
+
         if cur_node.network.id != pre_node.network.id:
             sub_net_id += 1
             add_subnet(cur_node.network, sub_net_id, session)
@@ -287,7 +328,12 @@ def add_route(client_info):
         pre_node = cur_node
 
     update_edge(pre_node, server_node)
-    add_hop(server_node, int(hop_ids[-1]), session)
+    srv_hop_changed, pre_hop = add_hop(server_node, int(hop_ids[-1]), session)
+
+    if (not server_changed) and (srv_hop_changed) and session_existed:
+        route_changed = True
+        existing_route.update(pre_hop)
+        new_route.update({int(hop_ids[-1]):server_node.ip})
 
     add_path(session, max(hop_ids))
 
@@ -296,3 +342,6 @@ def add_route(client_info):
         add_subnet(server_node.network, sub_net_id, session)
 
     add_related_session(session)
+
+    if route_changed:
+        update_route_for_user(user, session, existing_route, new_route)

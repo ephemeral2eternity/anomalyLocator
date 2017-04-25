@@ -146,9 +146,10 @@ class Subnetwork(models.Model):
 # Monitor the event for each client.
 class Event(models.Model):
     user_id = models.IntegerField()
+    session_id = models.IntegerField(default=-1)
     type = models.CharField(max_length=1000)
-    prevVal = models.CharField(max_length=100)
-    curVal = models.CharField(max_length=100)
+    prevVal = models.CharField(max_length=1000)
+    curVal = models.CharField(max_length=1000)
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

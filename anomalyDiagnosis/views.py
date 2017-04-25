@@ -227,11 +227,14 @@ def getSession(request):
     request_dict = urllib.parse.parse_qs(params)
     if ('id' in request_dict.keys()):
         session_id = int(request_dict['id'][0])
-        session = Session.objects.get(id=session_id)
-        hops = Hop.objects.filter(session=session)
-        subnets = Subnetwork.objects.filter(session=session)
-        template = loader.get_template('anomalyDiagnosis/session.html')
-        return HttpResponse(template.render({'session': session, 'hops': hops, 'subnets':subnets}, request))
+        try:
+            session = Session.objects.get(id=session_id)
+            hops = Hop.objects.filter(session=session)
+            subnets = Subnetwork.objects.filter(session=session)
+            template = loader.get_template('anomalyDiagnosis/session.html')
+            return HttpResponse(template.render({'session': session, 'hops': hops, 'subnets':subnets}, request))
+        except:
+            return HttpResponse("Session with id : " + str(session_id) + " does not exist!")
     else:
         return showSessions(request)
 
