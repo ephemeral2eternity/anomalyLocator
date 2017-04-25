@@ -684,8 +684,12 @@ def getUpdatesJson(request):
             update_start_window = anomaly_time - datetime.timedelta(minutes=5)
             update_end_window = anomaly_time + datetime.timedelta(minutes=5)
         else:
-            update_end_window = tses[-1]
-            update_start_window = update_end_window - datetime.timedelta(minutes=10)
+            if len(tses) > 0:
+                update_end_window = tses[-1]
+                update_start_window = update_end_window - datetime.timedelta(minutes=10)
+            else:
+                update_end_window = timezone.now()
+                update_start_window = update_end_window - datetime.timedelta(minutes=10)
         updates_dict['start'] = update_start_window.strftime("%Y-%m-%d %H:%M:%S")
         updates_dict['end'] = update_end_window.strftime("%Y-%m-%d %H:%M:%S")
 
