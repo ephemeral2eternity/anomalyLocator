@@ -404,7 +404,7 @@ def classifyAnomalyOrigins():
                     obj = Network.objects.get(id=cause.obj_id)
                     # print(obj.type)
                     if obj.isp.type == "transit":
-                        if obj.ASNumber not in anomaly_origins["transitISP"].keys():
+                        if obj.isp.ASNumber not in anomaly_origins["transitISP"].keys():
                             anomaly_origins["transitISP"][obj.isp.ASNumber] = []
                         anomaly_origins["transitISP"][obj.isp.ASNumber].append({"type": anomaly_type, "count":origin_count, "id":locator_name + ":" + str(anomaly.id)})
 
@@ -412,7 +412,7 @@ def classifyAnomalyOrigins():
                             anomaly_origins["transitNet"][obj.__str__()] = []
                         anomaly_origins["transitNet"][obj.__str__()].append({"type": anomaly_type, "count":origin_count, "id":locator_name + ":" + str(anomaly.id)})
                     elif obj.isp.type == "access":
-                        if obj.ASNumber not in anomaly_origins["accessISP"].keys():
+                        if obj.isp.ASNumber not in anomaly_origins["accessISP"].keys():
                             anomaly_origins["accessISP"][obj.isp.ASNumber] = []
                         anomaly_origins["accessISP"][obj.isp.ASNumber].append({"type": anomaly_type, "count":origin_count, "id":locator_name + ":" + str(anomaly.id)})
 
@@ -420,7 +420,7 @@ def classifyAnomalyOrigins():
                             anomaly_origins["accessNet"][obj.__str__()] = []
                         anomaly_origins["accessNet"][obj.__str__()].append({"type": anomaly_type, "count":origin_count, "id":locator_name + ":" + str(anomaly.id)})
                     else:
-                        if obj.ASNumber not in anomaly_origins["cloudISP"].keys():
+                        if obj.isp.ASNumber not in anomaly_origins["cloudISP"].keys():
                             anomaly_origins["cloudISP"][obj.isp.ASNumber] = []
                         anomaly_origins["cloudISP"][obj.isp.ASNumber].append({"type": anomaly_type, "count":origin_count, "id":locator_name + ":" + str(anomaly.id)})
 
