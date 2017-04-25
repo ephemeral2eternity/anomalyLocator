@@ -23,7 +23,7 @@
     <li>Network ID: {{ network.id }}</li>
     <li>Network Name: {{ network.isp.name }}</li>
     <li>Network Type: {{ network.isp.type }}</li>
-    <li>Network AS #: {{ network.isp.ASNumber }}</li>
+    <li>Network AS #: <a href="/diag/get_isp?as={{ network.isp.ASNumber }}">{{ network.isp.ASNumber }}</a></li>
     <li>Network location: ({{ network.latitude }}, {{ network.longitude }})</li>
 	<li>City: {{ network.city }}</li>
 	<li>Region: {{ network.region }}</li>
