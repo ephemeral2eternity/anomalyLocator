@@ -138,7 +138,9 @@ def getISPNetJson(request):
                 isp_nets[isp.name] = []
                 for net in isp.networks.distinct():
                     isp_nets[isp.name].append({"lat": net.latitude, "lon": net.longitude, "netsize": net.nodes.count(), "asn": "AS " + str(isp.ASNumber)})
-    return JsonResponse(isp_nets, safe=False)
+    rsp = JsonResponse(isp_nets, safe=False)
+    rsp['Access-Control-Allow-Origin'] = '*'
+    return rsp
 
 def getMapJson(request):
     servers = Node.objects.filter(type="server")
@@ -158,7 +160,9 @@ def getMapJson(request):
     map_dict["server"] = srv_objs
     map_dict["network"] = isp_nets
 
-    return JsonResponse(map_dict, safe=False)
+    rsp = JsonResponse(map_dict, safe=False)
+    rsp['Access-Control-Allow-Origin'] = '*'
+    return rsp
 
 # @description Get the peering links in json file of all isps denoted by their as numbers.
 # Prepare the data for function: getISPPeering
@@ -219,7 +223,9 @@ def getISPPeersJson(request):
         peering_json["packageNames"] = all_isps_related
         peering_json["matrix"] = peering_mat
 
-    return JsonResponse(peering_json, safe=False)
+    rsp = JsonResponse(peering_json, safe=False)
+    rsp['Access-Control-Allow-Origin'] = '*'
+    return rsp
 
 def getSession(request):
     url = request.get_full_path()
@@ -305,9 +311,12 @@ def getNetworkJson(request):
 
         #output = json.dumps(graph, indent=4, sort_keys=True)
         #return HttpResponse(output, content_type="application/json")
-        return JsonResponse(graph)
+        rsp = JsonResponse(graph)
     else:
-        return JsonResponse({})
+        rsp = JsonResponse({})
+
+    rsp['Access-Control-Allow-Origin'] = '*'
+    return rsp
 
 @csrf_exempt
 def editNetwork(request):
@@ -463,7 +472,9 @@ def getAnomalyEventJson(request):
         anomaly_events.append({"id":id, "group":anomaly.session_id, "content": "anomaly:" + str(anomaly.id), "anomaly_type":anomaly_type, "start":anomaly.timestamp.strftime("%Y-%m-%d %H:%M:%S")})
         id += 1
 
-    return JsonResponse({"anomalies":anomaly_events})
+    rsp = JsonResponse({"anomalies":anomaly_events})
+    rsp['Access-Control-Allow-Origin'] = '*'
+    return rsp
 
 # @descr: get anomalies
 def getAnomalyTypeJson(request):
@@ -481,11 +492,15 @@ def getAnomalyTypeJson(request):
 
         anomaly_types[anomaly_type] += 1
 
-    return JsonResponse(anomaly_types)
+    rsp = JsonResponse(anomaly_types)
+    rsp['Access-Control-Allow-Origin'] = '*'
+    return rsp
 
 def getClassifiedAnomaliesJson(request):
     anomaly_origins = classifyAnomalyOrigins()
-    return JsonResponse(anomaly_origins, safe=False)
+    rsp = JsonResponse(anomaly_origins, safe=False)
+    rsp['Access-Control-Allow-Origin'] = '*'
+    return rsp
 
 ## Get the anomaly count over various transit/access/cloud ISPs/networks, servers, and devices
 def getAnomalyOriginHistogramJson(request):
@@ -525,7 +540,9 @@ def getAnomalyOriginHistogramJson(request):
         # print(origin_stats_dict)
         all_origin_stats_dict[origin_type] = origin_stats_dict
 
-    return JsonResponse(all_origin_stats_dict, safe=False)
+    rsp = JsonResponse(all_origin_stats_dict, safe=False)
+    rsp['Access-Control-Allow-Origin'] = '*'
+    return rsp
 
 # @ descr: get all anomalies in json formats
 def getAllAnomaliesJson(request):
@@ -585,7 +602,9 @@ def getAllAnomaliesJson(request):
                     {"type": "path", "lid":anomalous_session.id, "length": obj.length, "count": origin_count})
         cur_anomaly["causes"] = origin_list
         anomaly_json.append(cur_anomaly)
-    return JsonResponse(anomaly_json, safe=False)
+    rsp = JsonResponse(anomaly_json, safe=False)
+    rsp['Access-Control-Allow-Origin'] = '*'
+    return rsp
 
 
 def showAnomalyStats(request):
@@ -696,9 +715,11 @@ def getAnomalyGraphJson(request):
                 edge_dict = {"source": srcID, "target": dstID, "group": "good"}
             graph["links"].append(edge_dict)
 
-        return JsonResponse(graph)
+        rsp = JsonResponse(graph)
     else:
-        return JsonResponse({})
+        rsp = JsonResponse({})
+    rsp['Access-Control-Allow-Origin'] = '*'
+    return rsp
 
 
 def getUpdatesJson(request):
@@ -759,9 +780,12 @@ def getUpdatesJson(request):
 
         #output = json.dumps(updates_dict, indent=4, sort_keys=True)
         #return HttpResponse(output, content_type="application/json")
-        return JsonResponse(updates_dict)
+        rsp = JsonResponse(updates_dict)
     else:
-        return JsonResponse({})
+        rsp = JsonResponse({})
+    ## Allow access-control-allow-origin
+    rsp['Access-Control-Allow-Origin'] = '*'
+    return rsp
 
 def getUpdates(request):
     url = request.get_full_path()
@@ -899,9 +923,13 @@ def getStatusJson(request):
 
         # output = json.dumps(updates_dict, indent=4, sort_keys=True)
         # return HttpResponse(output, content_type="application/json")
-        return JsonResponse(status_dict)
+        rsp = JsonResponse(status_dict)
     else:
-        return JsonResponse({})
+        rsp = JsonResponse({})
+
+    ## Allow access-control-allow-origin
+    rsp['Access-Control-Allow-Origin'] = '*'
+    return rsp
 
 def getStatus(request):
     url = request.get_full_path()
@@ -1045,7 +1073,10 @@ def getRouterGraphJson(request):
 
     #output = json.dumps(graph, indent=4, sort_keys=True)
     #return HttpResponse(output, content_type="application/json")
-    return JsonResponse(graph)
+    ## Allow access-control-allow-origin
+    rsp = JsonResponse(graph)
+    rsp['Access-Control-Allow-Origin'] = '*'
+    return rsp
 
 @csrf_exempt
 def getJsonNetworkGraph(request):
@@ -1093,7 +1124,9 @@ def getJsonNetworkGraph(request):
                     link_group = "inter"
                 graph["links"].append({"source": srcID, "target": dstID, "group": link_group})
 
-            return JsonResponse(graph)
+            rsp = JsonResponse(graph)
+            rsp['Access-Control-Allow-Origin'] = '*'
+            return rsp
         else:
             return HttpResponse("No session is selected!")
     else:
