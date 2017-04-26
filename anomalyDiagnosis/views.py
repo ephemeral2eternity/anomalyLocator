@@ -529,7 +529,15 @@ def getAnomalyOriginHistogramJson(request):
 
 # @ descr: get all anomalies in json formats
 def getAllAnomaliesJson(request):
-    anomalies = Anomaly.objects.all()
+    url = request.get_full_path()
+    if "?" in url:
+        params = url.split('?')[1]
+        request_dict = urllib.parse.parse_qs(params)
+        last_ts = request_dict['ts'][0]
+        last_dt = datetime.datetime.utcfromtimestamp(float(last_ts)).replace(tzinfo=pytz.utc)
+        anomalies = Anomaly.objects.filter(timestamp__gt=last_dt)
+    else:
+        anomalies = Anomaly.objects.all()
     locator = socket.gethostname()
     anomaly_json = []
     for anomaly in anomalies:
