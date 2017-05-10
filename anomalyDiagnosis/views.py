@@ -606,6 +606,37 @@ def getAllAnomaliesJson(request):
     rsp['Access-Control-Allow-Origin'] = '*'
     return rsp
 
+#######################################################################################################################
+## @descr: dump all sessions' QoE values into a json response
+#######################################################################################################################
+def getAllQoEsJson(request):
+    url = request.get_full_path()
+    ts_existed = False
+    if "?" in url:
+        params = url.split('?')[1]
+        request_dict = urllib.parse.parse_qs(params)
+        last_ts = request_dict['ts'][0]
+        last_dt = datetime.datetime.utcfromtimestamp(float(last_ts)).replace(tzinfo=pytz.utc)
+        ts_existed = True
+
+    locator = socket.gethostname()
+    sessions_qoes_json = []
+    sessions = Session.objects.all()
+    for session in sessions:
+        if ts_existed:
+            session_qoes = session.updates.filter(timestamp__gt=last_dt)
+        else:
+            session_qoes = session.updates.all()
+        cur_session = {"server":session.server.ip, "client":session.client.ip, "lid":session.id, "locator":locator}
+        qoes_list = {}
+        for update in session_qoes:
+            qoes_list[update.timestamp.timestamp()] = update.qoe
+        cur_session["qoes"] = qoes_list
+        sessions_qoes_json.append(cur_session)
+
+    rsp = JsonResponse(sessions_qoes_json, safe=False)
+    rsp['Access-Control-Allow-Origin'] = '*'
+    return rsp
 
 def showAnomalyStats(request):
     anomaly_count = Anomaly.objects.all().count()

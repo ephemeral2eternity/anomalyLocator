@@ -38,6 +38,7 @@ urlpatterns = [
 	url(r'^get_anomaly', views.getAnomalyByID, name='getAnomalyByID'),
 	url(r'^update_qoe_score', views.updateOriginQoEScore, name='updateOriginQoEScore'),
 	url(r'^update_all_qoe_score', views.updateAllQoEScore, name='updateAllQoEScore'),
+	url(r'^get_all_qoes_json', views.getAllQoEsJson, name='getAllQoEsJson'),
 	url(r'^edit_network', views.editNetwork, name='editNetwork'),
 	url(r'^get_net_graph_json', views.getJsonNetworkGraph, name='getJsonNetworkGraph'),
 	url(r'^get_net_graph', views.getNetworkGraph, name='getNetworkGraph'),
