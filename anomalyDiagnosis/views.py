@@ -628,9 +628,9 @@ def getAllQoEsJson(request):
         else:
             session_qoes = session.updates.all()
         cur_session = {"server":session.server.ip, "client":session.client.ip, "lid":session.id, "locator":locator}
-        qoes_list = {}
+        qoes_list = []
         for update in session_qoes:
-            qoes_list[update.timestamp.timestamp()] = update.qoe
+            qoes_list.append({"timestamp":update.timestamp.timestamp(),"QoE":update.qoe})
         cur_session["qoes"] = qoes_list
         sessions_qoes_json.append(cur_session)
 
