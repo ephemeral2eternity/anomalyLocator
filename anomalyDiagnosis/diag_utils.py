@@ -367,6 +367,7 @@ def get_top_cause(anomaly):
     if causes.count() > 0:
         top_cause = causes[head_pt]
         while ((top_cause.type == "path") or (top_cause.type == "event")):
+            top_causes.append(top_cause)
             head_pt += 1
             top_cause = causes[head_pt]
         top_causes.append(top_cause)
