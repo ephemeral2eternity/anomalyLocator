@@ -1366,3 +1366,17 @@ def addEvent(request):
         return HttpResponse("Yes")
     else:
         return HttpResponse("No")
+
+## Add links between networks if nodes in two networks are connected
+def fixNetLinks(request):
+    links = Edge.objects.all().distinct()
+    for link in links:
+        srcNet = link.src.network
+        dstNet = link.dst.network
+
+        if srcNet.isp.ASNumber != dstNet.isp.ASNumber:
+            update_net_edge(srcNet, dstNet, False)
+        else:
+            update_net_edge(srcNet, dstNet, True)
+
+    return HttpResponse("Complete fixing all network edges!")

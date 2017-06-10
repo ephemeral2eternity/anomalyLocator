@@ -57,4 +57,5 @@ urlpatterns = [
 	url(r'^get_isp_peers_json', views.getISPPeersJson, name='getISPPeersJson'),
 	url(r'^get_isp', views.getISP, name='getISP'),
 	url(r'^del_isp', views.deleteISP, name='deleteISP'),
+	url(r'^fix_netlinks', views.fixNetLinks, name='fixNetLinks'),
 ]
