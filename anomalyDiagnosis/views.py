@@ -380,7 +380,11 @@ def getNode(request):
         node_id = int(request_dict['id'][0])
         node = Node.objects.get(id=node_id)
         template = loader.get_template('anomalyDiagnosis/node.html')
-        return HttpResponse(template.render({'node': node}, request))
+        if ('anomaly' in request_dict.keys()):
+            anomaly_id = int(request_dict['anomaly'][0])
+            return HttpResponse(template.render({'node': node, 'anomaly':anomaly_id}, request))
+        else:
+            return HttpResponse(template.render({'node': node}, request))
     else:
         return HttpResponse("Please denote the node id in : http://locator/diag/get_node?id=node_id")
 
@@ -449,8 +453,9 @@ def getAnomalyByID(request):
     if ('id' in request_dict.keys()):
         anomaly_id = int(request_dict['id'][0])
         anomaly = Anomaly.objects.get(id=anomaly_id)
+        session = Session.objects.get(id=anomaly.session_id)
         template = loader.get_template('anomalyDiagnosis/anomaly.html')
-        return HttpResponse(template.render({'anomaly':anomaly}, request))
+        return HttpResponse(template.render({'anomaly':anomaly, 'session':session}, request))
     else:
         return HttpResponse('Please denote the anomaly_id in the url: http://locator/diag/get_anomaly?id=anomaly_id')
 
@@ -744,6 +749,88 @@ def getAnomalyGraphJson(request):
                 edge_dict = {"source": srcID, "target": dstID, "group": "suspect"}
             else:
                 edge_dict = {"source": srcID, "target": dstID, "group": "good"}
+            graph["links"].append(edge_dict)
+
+        rsp = JsonResponse(graph)
+    else:
+        rsp = JsonResponse({})
+    rsp['Access-Control-Allow-Origin'] = '*'
+    return rsp
+
+## Get network level topology graph for a certain anomaly
+def getAnomalyNetworkGraphJson(request):
+    url = request.get_full_path()
+    params = url.split('?')[1]
+    request_dict = urllib.parse.parse_qs(params)
+    graph = {"nodes": [], "links": []}
+    node_status = {}
+    nodes = []
+    if ('id' in request_dict.keys()):
+        anomaly_id = int(request_dict['id'][0])
+        anomaly = Anomaly.objects.get(id=anomaly_id)
+        anomaly_ts = anomaly.timestamp
+        time_window_start = anomaly_ts - datetime.timedelta(minutes=update_graph_window)
+        time_window_end = anomaly_ts + datetime.timedelta(minutes=update_graph_window)
+
+        ## Get the top network origins
+        top_causes = get_top_cause(anomaly)
+        top_network_origins = []
+        for cause in top_causes:
+            if cause.type == "network":
+                top_network_origins.append(cause.obj_id)
+
+        ## Get anomaly session's nodes, with name, id, type, qoe and group
+        anomaly_session = Session.objects.get(id=anomaly.session_id)
+        for network in anomaly_session.sub_networks.distinct():
+            if network.id not in node_status.keys():
+                node_status[network.id] = False
+                nodes.append(network.id)
+                node_dict = {"name": network.isp.name, "type": network.isp.type, "id": network.id, "as":network.isp.ASNumber,
+                             "latitude": network.latitude, "longitude":network.longitude}
+                node_dict["qoe"] = get_ave_QoE(network, time_window_start, time_window_end)
+
+                node_dict["label"] = "AS " + str(network.isp.ASNumber) + "@(" + str(network.latitude) + "," + str(network.longitude) + ")"
+                graph["nodes"].append(node_dict)
+
+        ## Add peer sessions' nodes, with name, id, type, qoe, and group
+        if anomaly.related_session_status:
+            for session_status in anomaly.related_session_status.all():
+                session_id = session_status.session_id
+                peer_session = Session.objects.get(id=session_id)
+                for network in peer_session.sub_networks.all():
+                    if network.id not in node_status.keys():
+                        node_status[network.id] = session_status.isGood
+                        nodes.append(network.id)
+                        node_dict = {"name": network.isp.name, "type": network.isp.type, "id": network.id,
+                                     "as": network.isp.ASNumber,
+                                     "latitude": network.latitude, "longitude": network.longitude}
+                        node_dict["qoe"] = get_ave_QoE(network, time_window_start, time_window_end)
+                        nodes.append(network.id)
+
+                        node_dict["label"] = "AS " + str(network.isp.ASNumber) + "@(" + str(
+                            network.latitude) + "," + str(network.longitude) + ")"
+
+                        graph["nodes"].append(node_dict)
+                    else:
+                        node_status[network.id] |= session_status.isGood
+
+        ## Update all nodes group info as suspect or good.
+        for i, node_obj in enumerate(graph["nodes"]):
+            if node_obj["id"] in top_network_origins:
+                graph["nodes"][i]["group"] = "bad"
+            elif node_status[node_obj["id"]]:
+                graph["nodes"][i]["group"] = "good"
+            else:
+                graph["nodes"][i]["group"] = "suspect"
+
+        edge_objs = NetEdge.objects.filter(srcNet_id__in=nodes, dstNet_id__in=nodes)
+        for edge in edge_objs.all():
+            srcID = nodes.index(edge.srcNet.id)
+            dstID = nodes.index(edge.dstNet.id)
+            if edge.isIntra:
+                edge_dict = {"source": srcID, "target": dstID, "group": "intra"}
+            else:
+                edge_dict = {"source": srcID, "target": dstID, "group": "inter"}
             graph["links"].append(edge_dict)
 
         rsp = JsonResponse(graph)

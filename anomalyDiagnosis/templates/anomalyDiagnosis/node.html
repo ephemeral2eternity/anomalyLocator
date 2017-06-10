@@ -46,7 +46,9 @@
 <script type="text/javascript">
     var node_id_str = {{ node.id|safe }};
     var obj_type = "node";
-    drawUpdates(obj_type, node_id_str);
+    var anomaly_id = {{ anomaly|safe }};
+    console.log(anomaly_id);
+    drawUpdates(obj_type, node_id_str, anomaly_id);
 
     /*
     function drawUpdates(node_id) {

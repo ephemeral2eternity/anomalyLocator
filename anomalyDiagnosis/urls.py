@@ -47,6 +47,7 @@ urlpatterns = [
 	url(r'^get_updates', views.getUpdates, name='getUpdates'),
 	url(r'^get_status', views.getStatus, name='getStatus'),
 	url(r'^get_ano_graph_json', views.getAnomalyGraphJson, name='getAnomalyGraphJson'),
+	url(r'^get_ano_network_topology_json', views.getAnomalyNetworkGraphJson, name='getAnomalyNetworkGraphJson'),
 	url(r'^get_router_graph_json', views.getRouterGraphJson, name='getRouterGraphJson'),
 	url(r'^get_router_graph', views.getRouterGraph, name='getRouterGraph'),
 	url(r'^get_isp_map', views.getISPMap, name='getISPMap'),
