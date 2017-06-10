@@ -362,7 +362,7 @@ def get_top_cause(anomaly):
     top_causes = []
 
     ## Get all causes' probability and QoE scores, ignore events right now
-    causes = anomaly.causes.order_by('-prob', '-qoe_score').all()
+    causes = anomaly.causes.order_by('-prob', 'qoe_score').all()
     if causes.count() > 0:
         top_cause = causes.first()
         top_causes.append(top_cause)
