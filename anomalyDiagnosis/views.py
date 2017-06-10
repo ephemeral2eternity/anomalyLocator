@@ -805,7 +805,6 @@ def getAnomalyNetworkGraphJson(request):
                                      "as": network.isp.ASNumber,
                                      "latitude": network.latitude, "longitude": network.longitude}
                         node_dict["qoe"] = get_ave_QoE(network, time_window_start, time_window_end)
-                        nodes.append(network.id)
 
                         node_dict["label"] = "AS " + str(network.isp.ASNumber) + "@(" + str(
                             network.latitude) + "," + str(network.longitude) + ")"
