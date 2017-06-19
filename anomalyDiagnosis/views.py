@@ -330,7 +330,7 @@ def editNetwork(request):
             network_info = request.POST.dict()
             # print(network_info)
             try:
-                org_network = Network.objects.get(ASNumber=int(network_info['asn']), latitude=network.latitude, longitude=network.longitude)
+                org_network = Network.objects.get(isp__ASNumber=int(network_info['asn']), latitude=network.latitude, longitude=network.longitude)
                 for node in network.nodes.all():
                     if node not in org_network.nodes.all():
                         org_network.nodes.add(node)
