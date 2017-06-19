@@ -334,6 +334,8 @@ def editNetwork(request):
                 for node in network.nodes.all():
                     if node not in org_network.nodes.all():
                         org_network.nodes.add(node)
+                        node.network = org_network
+                        node.save()
                 for session in network.related_sessions.all():
                     if session not in org_network.related_sessions.all():
                         org_network.related_sessions.add(session)
@@ -341,12 +343,19 @@ def editNetwork(request):
                 network.delete()
                 network = org_network
             except:
-                network.isp = network_info['isp']
-                network.ASNumber = int(network_info['asn'])
+                try:
+                     isp = ISP.objects.get(ASNumber=int(network_info['asn']))
+                except:
+                     isp = ISP(ASNumber=int(network_info['asn']), name=network_info['isp'])
+                isp.save()
+                network.isp = isp
+                # network.ASNumber = int(network_info['asn'])
                 network.city = network_info['city']
                 network.region = network_info['region']
                 network.country = network_info['country']
                 network.save()
+                isp.networks.add(network)
+                isp.save()
             template = loader.get_template('anomalyDiagnosis/network.html')
             return HttpResponse(template.render({'network':network}, request))
         else:
