@@ -3,8 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <title>ISP</title>
+
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+    <script type="text/javascript" src="http://visjs.org/dist/vis.js"></script>
+    <link href="http://visjs.org/dist/vis.min.css" rel="stylesheet" type="text/css" />
+    <script src="/static/draw_networks.js"></script>
+
+    <style type="text/css">
+        #mynetwork {
+            width: 60%;
+            height: 300px;
+            border: 1px solid lightgray;
+        }
+    </style>
 </head>
-<body>
+<body onload="draw()">
 <h1>Show details for ISP: {{ isp.name }}</h1>
 <h2>AS #: {{ isp.ASNumber }}</h2>
 <h2>ISP Type: {{ isp.type }}</h2>
@@ -43,6 +56,16 @@
         </tr>
     {% endfor %}
 </table>
+<h2>Networks within the ISP</h2>
+<div id="mynetwork"></div>
 <h2><a href="/diag/del_isp?as={{ isp.ASNumber }}">Delete this ISP</a></h2>
+<script type="text/javascript">
+    function draw() {
+        var id = {{ isp.ASNumber|safe }};
+        var url = "/diag/get_isp_network_graph_json?as=" + id;
+        console.log(url);
+        drawNetworkGraph(url);
+    }
+</script>
 </body>
 </html>

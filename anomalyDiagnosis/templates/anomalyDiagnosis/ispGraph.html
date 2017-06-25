@@ -27,13 +27,12 @@
 <script type="text/javascript">
     function draw() {
         var ids = {{ ids|safe }};
-        var url = "/diag/get_net_graph_json?";
+        var url = "/diag/get_isp_graph_json?";
         var idsNum = ids.length;
         for (var i=0; i<idsNum - 1; i++) {
             url = url + "id=" + ids[i] + "&";
         }
         url = url + "id=" + ids[idsNum - 1];
-        console.log(url);
         drawNetworkGraph(url);
     }
 </script>

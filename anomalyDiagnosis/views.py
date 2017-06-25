@@ -1216,6 +1216,46 @@ def getRouterGraphJson(request):
     return rsp
 
 @csrf_exempt
+def getJsonISPNetGraph(request):
+    url = request.get_full_path()
+    graph = {"links": [], "nodes": []}
+    nodes = []
+    if '?' in url:
+        params = url.split('?')[1]
+        request_dict = urllib.parse.parse_qs(params)
+        if ('id' in request_dict.keys()):
+            as_num = int(request_dict['id'][0])
+        elif ('as' in request_dict.keys()):
+            as_num = int(request_dict['as'][0])
+        else:
+            return HttpResponse(
+                "Please use /diag/get_isp_network_graph_json?id=ASNum or /diag/get_isp_network_graph_json?as=ASNum to denote AS Number of the ISP!")
+        try:
+            isp = ISP.objects.get(ASNumber=as_num)
+            isp_nets = isp.networks.distinct()
+            for net in isp_nets:
+                net_addr = net.city + "," + net.region + "," + net.country
+                graph["nodes"].append(
+                    {"name": net_addr, "type": "network", "as": net.isp.ASNumber, "id": net.id})
+                nodes.append(net.id)
+
+            edges = NetEdge.objects.filter(srcNet_id__in=nodes, dstNet_id__in=nodes)
+            for edge in edges.all():
+                srcID = nodes.index(edge.srcNet.id)
+                dstID = nodes.index(edge.dstNet.id)
+                graph["links"].append({"source": srcID, "target": dstID})
+
+            rsp = JsonResponse(graph)
+            rsp['Access-Control-Allow-Origin'] = '*'
+            return rsp
+        except:
+            return HttpResponse("Not found ISP with AS number " + str(as_num) + "!")
+    else:
+        return HttpResponse(
+            "Please use /diag/get_isp_network_graph_json?id=ASNum or /diag/get_isp_network_graph_json?as=ASNum to denote AS Number of the ISP!")
+
+
+@csrf_exempt
 def getJsonISPGraph(request):
     url = request.get_full_path()
     graph = {"links": [], "nodes": []}
@@ -1242,25 +1282,21 @@ def getJsonISPGraph(request):
                     graph["nodes"].append({"name": user.client.name, "type": "user", "id": user.id})
                     firstID = nodes.index("user_" + str(user.id))
                     userNetID = nodes.index("isp_" + str(user.client.network.isp.ASNumber))
-                    graph["links"].append({"source": firstID, "target": userNetID, "group": "intra"})
+                    graph["links"].append({"source": firstID, "target": userNetID})
 
                 if "server_" + str(server_node.id) not in nodes:
                     nodes.append("server_" + str(server_node.id))
                     graph["nodes"].append({"name": server_node.name, "type": "server", "id": server_node.id})
                     lastID = nodes.index("server_" + str(server_node.id))
-                    srvNetID = nodes.index("network_" + str(server_node.network.id))
-                    graph["links"].append({"source": srvNetID, "target": lastID, "group": "intra"})
+                    srvNetID = nodes.index("isp_" + str(server_node.network.isp.ASNumber))
+                    graph["links"].append({"source": srvNetID, "target": lastID})
 
             # edges = NetEdge.objects.filter(srcNet_id__in=net_nodes, dstNet_id__in=net_nodes)
             edges = PeeringEdge.objects.filter(srcISP__ASNumber__in=isp_nodes, dstISP__ASNumber__in=isp_nodes)
             for edge in edges.all():
                 srcID = nodes.index("isp_" + str(edge.srcISP.ASNumber))
-                dstID = nodes.index("network_" + str(edge.dstISP.ASNumber))
-                if edge.isIntra:
-                    link_group = "intra"
-                else:
-                    link_group = "inter"
-                graph["links"].append({"source": srcID, "target": dstID, "group": link_group})
+                dstID = nodes.index("isp_" + str(edge.dstISP.ASNumber))
+                graph["links"].append({"source": srcID, "target": dstID})
 
             rsp = JsonResponse(graph)
             rsp['Access-Control-Allow-Origin'] = '*'
@@ -1271,14 +1307,14 @@ def getJsonISPGraph(request):
         return HttpResponse(
             "Please select the checkboxes in the url: http://manage.cmu-agens.com/verify/show_sessions")
 
-def getNetworkGraph(request):
+def getISPGraph(request):
     url = request.get_full_path()
     if '?' in url:
         params = url.split('?')[1]
         request_dict = urllib.parse.parse_qs(params)
         ids = request_dict['id']
         ids_json = json.dumps(ids)
-        template = loader.get_template("anomalyDiagnosis/netGraph.html")
+        template = loader.get_template("anomalyDiagnosis/ispGraph.html")
         return HttpResponse(template.render({'ids': ids_json}, request))
     else:
         sessions = Session.objects.all()
@@ -1286,7 +1322,7 @@ def getNetworkGraph(request):
         for session in sessions:
             ids.append(session.id)
         ids_json = json.dumps(ids)
-        template = loader.get_template("anomalyDiagnosis/netGraph.html")
+        template = loader.get_template("anomalyDiagnosis/ispGraph.html")
         return HttpResponse(template.render({'ids': ids_json}, request))
 
 @csrf_exempt

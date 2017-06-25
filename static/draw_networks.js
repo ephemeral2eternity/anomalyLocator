@@ -145,16 +145,10 @@ function drawRouterGraph(ids) {
     });
 }
 
-function drawNetworkGraph(ids) {
+function drawNetworkGraph(url) {
     var network = null;
     var EDGE_LENGTH_SUB = 50;
 
-    var url = "/diag/get_net_graph_json?";
-    var idsNum = ids.length;
-    for (var i=0; i<idsNum - 1; i++) {
-        url = url + "id=" + ids[i] + "&";
-    }
-    url = url + "id=" + ids[idsNum - 1];
     console.log(url);
 
     $.getJSON(url, function (json) {
