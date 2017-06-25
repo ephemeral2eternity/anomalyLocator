@@ -57,18 +57,21 @@ def getISP(request):
     request_dict = urllib.parse.parse_qs(params)
     if ('as' in request_dict.keys()):
         as_num = int(request_dict['as'][0])
-        isp = ISP.objects.get(ASNumber=as_num)
-        peerings = PeeringEdge.objects.filter(Q(srcISP__ASNumber=isp.ASNumber)|Q(dstISP__ASNumber=isp.ASNumber))
-        peers = []
-        for pEdge in peerings.all():
-            if pEdge.srcISP.ASNumber == isp.ASNumber:
-                peers.append(pEdge.dstISP)
-            else:
-                peers.append(pEdge.srcISP)
-        template = loader.get_template('anomalyDiagnosis/isp.html')
-        return HttpResponse(template.render({'isp': isp, 'peers': peers}, request))
+    elif ('id' in request_dict.keys()):
+        as_num = int(request_dict['id'][0])
     else:
         return HttpResponse("Please denote the AS # in http://cloud_agent/diag/get_isp?as=as_num!")
+
+    isp = ISP.objects.get(ASNumber=as_num)
+    peerings = PeeringEdge.objects.filter(Q(srcISP__ASNumber=isp.ASNumber) | Q(dstISP__ASNumber=isp.ASNumber))
+    peers = []
+    for pEdge in peerings.all():
+        if pEdge.srcISP.ASNumber == isp.ASNumber:
+            peers.append(pEdge.dstISP)
+        else:
+            peers.append(pEdge.srcISP)
+    template = loader.get_template('anomalyDiagnosis/isp.html')
+    return HttpResponse(template.render({'isp': isp, 'peers': peers}, request))
 
 # @description Delete 1 isp
 def deleteISP(request):
@@ -328,20 +331,28 @@ def editNetwork(request):
         network = Network.objects.get(id=network_id)
         if request.method == "POST":
             network_info = request.POST.dict()
-            # print(network_info)
+            print(network_info)
             try:
                 org_network = Network.objects.get(isp__ASNumber=int(network_info['asn']), latitude=network.latitude, longitude=network.longitude)
-                for node in network.nodes.all():
-                    if node not in org_network.nodes.all():
-                        org_network.nodes.add(node)
-                        node.network = org_network
-                        node.save()
-                for session in network.related_sessions.all():
-                    if session not in org_network.related_sessions.all():
-                        org_network.related_sessions.add(session)
-                org_network.save()
-                network.delete()
-                network = org_network
+
+                if org_network.id != network.id:
+                    for node in network.nodes.all():
+                        if node not in org_network.nodes.all():
+                            org_network.nodes.add(node)
+                            node.network = org_network
+                            node.save()
+                    for session in network.related_sessions.all():
+                        if session not in org_network.related_sessions.all():
+                            org_network.related_sessions.add(session)
+
+                    org_network.save()
+                    network.delete()
+                    network = org_network
+                else:
+                    network.city = network_info['city']
+                    network.region = network_info['region']
+                    network.country = network_info['country']
+                    network.save()
             except:
                 try:
                      isp = ISP.objects.get(ASNumber=int(network_info['asn']))
@@ -1203,6 +1214,80 @@ def getRouterGraphJson(request):
     rsp = JsonResponse(graph)
     rsp['Access-Control-Allow-Origin'] = '*'
     return rsp
+
+@csrf_exempt
+def getJsonISPGraph(request):
+    url = request.get_full_path()
+    graph = {"links": [], "nodes": []}
+    nodes = []
+    isp_nodes = []
+    if '?' in url:
+        params = url.split('?')[1]
+        request_dict = urllib.parse.parse_qs(params)
+        if ('id' in request_dict.keys()):
+            for session_id in request_dict['id']:
+                session = Session.objects.get(id=session_id)
+                client_node = Node.objects.get(ip=session.client.ip)
+                user = User.objects.get(client=client_node)
+                server_node = Node.objects.get(ip=session.server.ip)
+
+                for net in session.sub_networks.all():
+                    if "isp_" + str(net.isp.ASNumber) not in nodes:
+                        nodes.append("isp_" + str(net.isp.ASNumber))
+                        isp_nodes.append(net.isp.ASNumber)
+                        graph["nodes"].append({"name": net.isp.name, "type": "isp", "as": net.isp.ASNumber, "id":net.isp.ASNumber})
+
+                if "user_" + str(user.id) not in nodes:
+                    nodes.append("user_" + str(user.id))
+                    graph["nodes"].append({"name": user.client.name, "type": "user", "id": user.id})
+                    firstID = nodes.index("user_" + str(user.id))
+                    userNetID = nodes.index("isp_" + str(user.client.network.isp.ASNumber))
+                    graph["links"].append({"source": firstID, "target": userNetID, "group": "intra"})
+
+                if "server_" + str(server_node.id) not in nodes:
+                    nodes.append("server_" + str(server_node.id))
+                    graph["nodes"].append({"name": server_node.name, "type": "server", "id": server_node.id})
+                    lastID = nodes.index("server_" + str(server_node.id))
+                    srvNetID = nodes.index("network_" + str(server_node.network.id))
+                    graph["links"].append({"source": srvNetID, "target": lastID, "group": "intra"})
+
+            # edges = NetEdge.objects.filter(srcNet_id__in=net_nodes, dstNet_id__in=net_nodes)
+            edges = PeeringEdge.objects.filter(srcISP__ASNumber__in=isp_nodes, dstISP__ASNumber__in=isp_nodes)
+            for edge in edges.all():
+                srcID = nodes.index("isp_" + str(edge.srcISP.ASNumber))
+                dstID = nodes.index("network_" + str(edge.dstISP.ASNumber))
+                if edge.isIntra:
+                    link_group = "intra"
+                else:
+                    link_group = "inter"
+                graph["links"].append({"source": srcID, "target": dstID, "group": link_group})
+
+            rsp = JsonResponse(graph)
+            rsp['Access-Control-Allow-Origin'] = '*'
+            return rsp
+        else:
+            return HttpResponse("No session is selected!")
+    else:
+        return HttpResponse(
+            "Please select the checkboxes in the url: http://manage.cmu-agens.com/verify/show_sessions")
+
+def getNetworkGraph(request):
+    url = request.get_full_path()
+    if '?' in url:
+        params = url.split('?')[1]
+        request_dict = urllib.parse.parse_qs(params)
+        ids = request_dict['id']
+        ids_json = json.dumps(ids)
+        template = loader.get_template("anomalyDiagnosis/netGraph.html")
+        return HttpResponse(template.render({'ids': ids_json}, request))
+    else:
+        sessions = Session.objects.all()
+        ids = []
+        for session in sessions:
+            ids.append(session.id)
+        ids_json = json.dumps(ids)
+        template = loader.get_template("anomalyDiagnosis/netGraph.html")
+        return HttpResponse(template.render({'ids': ids_json}, request))
 
 @csrf_exempt
 def getJsonNetworkGraph(request):

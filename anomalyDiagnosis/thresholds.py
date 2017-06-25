@@ -1,7 +1,7 @@
 ## threasholds.py
 
 ## Session active threshold
-session_active_window = 300 # 5minutes
+session_active_window = 300 # 5 minutes
 
 # Define the time window to
 node_time_window = 1     # 1 minutes
