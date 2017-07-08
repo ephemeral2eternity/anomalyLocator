@@ -55,8 +55,8 @@ class ISP(models.Model):
     # Network defines a network that several routers in an end-to-end delivery path belongs to
 class Network(models.Model):
     isp = models.ForeignKey(ISP, related_name="net_isp")
-    latitude = models.DecimalField(max_digits=10, decimal_places=6, default=0.0)
-    longitude = models.DecimalField(max_digits=10, decimal_places=6, default=0.0)
+    latitude = models.DecimalField(max_digits=5, decimal_places=1, default=0.0)
+    longitude = models.DecimalField(max_digits=5, decimal_places=1, default=0.0)
     nodes = models.ManyToManyField(Node, blank=True, related_name='net_nodes')
     # network_qoe_score = models.DecimalField(default=5, max_digits=5, decimal_places=4)
     related_sessions = models.ManyToManyField('Session')
@@ -227,6 +227,9 @@ class DeviceInfo(models.Model):
     browser = models.CharField(max_length=100)
     # device_qoe_score = models.DecimalField(default=5.0, max_digits=5, decimal_places=4)
     latest_check = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ["device", "os", "player", "browser"]
 
     def __str__(self):
         return "(" + self.device + ", " + self.os + ", " + self.player + ", " + self.browser + ")"

@@ -78,6 +78,8 @@ def update_origin_qoe_score(anomaly):
             obj = Node.objects.get(id=cause.obj_id)
         elif cause.type == "device":
             obj = DeviceInfo.objects.get(id=cause.obj_id)
+            # session = Session.objects.get(id=anomaly.session_id)
+            # obj = session.client
         else:
             continue
 

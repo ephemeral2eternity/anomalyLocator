@@ -223,7 +223,7 @@ def anomaly_diagnosis(session, anomaly_ts, anomaly_qoe, anomaly_type):
 
         session.anomalies.add(anomaly)
         session.save()
-        # print("Anomaly with id " + str(anomaly.id) + " is diagnosed and saved!")
+        print("Anomaly with id " + str(anomaly.id) + " is diagnosed and saved!")
         return anomaly
     except:
         print(session.ip + " is not associated with any user!")
@@ -245,7 +245,7 @@ def detect_anomaly(session, recent_qoes):
         anomaly_qoe = sum(recent_qoes.values()) / float(total_pts)
         anomaly_ts = max(anomaly_tses)
 
-        # print(anomaly_type + " anomaly detected for session " + str(session))
+        print(anomaly_type + " anomaly detected for session " + str(session))
 
         session_status = Status(session_id=session.id, isGood=False)
         session_status.save()

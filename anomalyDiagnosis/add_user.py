@@ -36,14 +36,14 @@ def add_node(node_ip, nodeTyp="router", nodeName=None, netTyp="transit"):
             node_isp.save()
 
         latitude = float(node_info['latitude'])
-        latitude_str = '{0:.6f}'.format(latitude)
+        latitude_format = "{:.1f}".format(latitude)
         longitude = float(node_info['longitude'])
-        longitude_str = '{0:.6f}'.format(longitude)
+        longitude_format = "{:.1f}".format(longitude)
         # print("AS " + str(node_isp.ASNumber) + "(" + latitude_str + "," + longitude_str + ")" )
         try:
-            node_network = Network.objects.get(isp=node_isp, latitude=latitude_str, longitude=longitude_str)
+            node_network = Network.objects.get(isp=node_isp, latitude=latitude_format, longitude=longitude_format)
         except:
-            node_network = Network(isp=node_isp, latitude=latitude_str, longitude=longitude_str, city=node_info["city"], region=node_info["region"], country=node_info["country"])
+            node_network = Network(isp=node_isp, latitude=latitude_format, longitude=longitude_format, city=node_info["city"], region=node_info["region"], country=node_info["country"])
             node_network.save()
 
         if nodeName:
