@@ -16,6 +16,7 @@ urlpatterns = [
 	url(r'^show_networks', views.showNetworks, name='showNetworks'),
 	url(r'^show_users', views.showUsers, name='showUsers'),
 	url(r'^get_user', views.getUser, name='getUser'),
+	url(r'^get_all_user_device_json', views.getAllUserDeviceJson, name='getAllUserDeviceJson'),
 	url(r'^show_sessions', views.showSessions, name='showSessions'),
 	url(r'^get_session', views.getSession, name='getSession'),
 	url(r'^show_servers$', views.showServers, name='showServers'),

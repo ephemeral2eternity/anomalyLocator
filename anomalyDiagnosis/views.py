@@ -45,6 +45,23 @@ def getUser(request):
     else:
         return HttpResponse('Please denote user_id in url: http://locator/diag/get_user?id=user_id!')
 
+def getAllUserDeviceJson(request):
+    users = User.objects.all()
+    users_device = []
+    for user in users:
+        cur_user_device = {}
+        cur_user_device["ip"] = user.client.ip
+        cur_user_device["name"] = user.client.name
+        cur_user_device["device"] = {
+            "device": user.device.device,
+            "os": user.device.os,
+            "player": user.device.player,
+            "browser": user.device.browser
+        }
+        users_device.append(cur_user_device)
+    return JsonResponse(users_device, safe=False)
+
+
 def showSessions(request):
     sessions = Session.objects.all()
     template = loader.get_template('anomalyDiagnosis/sessions.html')
